@@ -11,6 +11,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 
 FILE(GLOB_RECURSE INCLUDE_FILES
         ${PROJECT_SOURCE_DIR}/include/*.h
+        ${PROJECT_SOURCE_DIR}/include/*.hh
         ${PROJECT_SOURCE_DIR}/include/*.hpp
         )
 FILE(GLOB_RECURSE SRC_FILES
