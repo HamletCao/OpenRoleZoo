@@ -6,7 +6,7 @@
 
 namespace orz
 {
-    std::string Format(const std::string &f)
+    const std::string Format(const std::string &f)
     {
         return f;
     }
