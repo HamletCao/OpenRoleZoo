@@ -15,18 +15,18 @@ FILE(GLOB_RECURSE INCLUDE_FILES
         )
 FILE(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.c
-        ${PROJECT_SOURCE_DIR}/src/*.cpp
         ${PROJECT_SOURCE_DIR}/src/*.cc
+        ${PROJECT_SOURCE_DIR}/src/*.cpp
         )
 FILE(GLOB_RECURSE TEST_FILES
         ${PROJECT_SOURCE_DIR}/test/*.c
-        ${PROJECT_SOURCE_DIR}/test/*.cpp
         ${PROJECT_SOURCE_DIR}/test/*.cc
+        ${PROJECT_SOURCE_DIR}/test/*.cpp
         )
 FILE(GLOB_RECURSE TOOL_FILES
         ${PROJECT_SOURCE_DIR}/tools/*.c
-        ${PROJECT_SOURCE_DIR}/tools/*.cpp
         ${PROJECT_SOURCE_DIR}/tools/*.cc
+        ${PROJECT_SOURCE_DIR}/tools/*.cpp
         )
 
 set(LOCAL_OUTPUT_DIR ${PROJECT_SOURCE_DIR})
@@ -40,7 +40,7 @@ if (LOCAL_OUTPUT_DIR)
 endif ()
 
 foreach (path ${TEST_FILES})
-    string(REGEX MATCH "[^/]*.[(c)|(cpp)|(cc)]$" file_ext ${path})
+    string(REGEX MATCH "[^/]*.[(c)|(cc)|(cpp)]$" file_ext ${path})
     string(REGEX MATCH "^[^.]*" file ${file_ext})
     add_executable(test_${file} ${path})
     target_link_libraries(test_${file} ${PROJECT_NAME}_SHARED)
@@ -48,7 +48,7 @@ foreach (path ${TEST_FILES})
 endforeach ()
 
 foreach (path ${TOOL_FILES})
-    string(REGEX MATCH "[^/]*.[(c)|(cpp)|(cc)]$" file_ext ${path})
+    string(REGEX MATCH "[^/]*.[(c)|(cc)|(cpp)]$" file_ext ${path})
     string(REGEX MATCH "^[^.]*" file ${file_ext})
     add_executable(tool_${file} ${path})
     set_target_properties(tool_${file} PROPERTIES OUTPUT_NAME ${file})
