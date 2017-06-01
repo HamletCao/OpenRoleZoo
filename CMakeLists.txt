@@ -10,9 +10,9 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 FILE(GLOB_RECURSE INCLUDE_FILES
-        ${PROJECT_SOURCE_DIR}/include/*.h
-        ${PROJECT_SOURCE_DIR}/include/*.hh
-        ${PROJECT_SOURCE_DIR}/include/*.hpp
+        ${PROJECT_SOURCE_DIR}/include/orz/*.h
+        ${PROJECT_SOURCE_DIR}/include/orz/*.hh
+        ${PROJECT_SOURCE_DIR}/include/orz/*.hpp
         )
 FILE(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.c
@@ -58,4 +58,8 @@ foreach (path ${TOOL_FILES})
 endforeach ()
 
 install(TARGETS ${PROJECT_NAME}_SHARED DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(FILES ${INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(FILES ${INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/orz)
+
+if (WIN32)
+    install(FILES ${LOCAL_OUTPUT_DIR}/lib/lib${PROJECT_NAME}.dll DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+endif ()
