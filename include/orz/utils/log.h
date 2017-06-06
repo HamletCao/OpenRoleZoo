@@ -82,6 +82,6 @@ namespace orz
     };
 }
 
-#define RichLog(level) orz::Log(level)(orz::Split(__FILE__, R"(/\)").back())(":")(__LINE__)(" ")
+#define RichLog(level) orz::Log(level)("[")(orz::Split(__FILE__, R"(/\)").back())(":")(__LINE__)("] ")
 
 #endif //ORZ_UTILS_LOG_H
