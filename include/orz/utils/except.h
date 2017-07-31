@@ -6,6 +6,7 @@
 #define ORZ_UTILS_EXCEPT_H
 
 #include <exception>
+#include <string>
 
 namespace orz
 {
@@ -13,7 +14,7 @@ namespace orz
     {
     public:
         Exception(const std::string &message);
-        virtual const char* what() const override;
+        virtual const char* what() const noexcept override;
     private:
         std::string m_message;
     };
