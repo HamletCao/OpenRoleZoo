@@ -25,6 +25,8 @@
 #   endif
 #endif
 
+#define ORZ_API ORZ_DLL_EXPORT
+
 #ifndef ORZ_UNUSED
 #   define ORZ_UNUSED(x) ((void)x)
 #endif
