@@ -2,7 +2,10 @@
 #include <iostream>
 #include <stack>
 
-#ifdef _WIN32
+#include "dir.h"
+#include "orz/utils/platform.h"
+
+#if ORZ_PLATFORM_OS_WINDOWS
 #include <io.h>
 #else
 #include <dirent.h>
@@ -10,18 +13,10 @@
 
 namespace orz {
 
-    const std::string FileSeparator() {
-#ifdef _WIN32
-        return "\\";
-#else
-        return "/";
-#endif
-    }
-
     static std::vector<std::string> FindFilesCore(const std::string &path, std::vector<std::string> *dirs = nullptr) {
         std::vector<std::string> result;
         if (dirs) dirs->clear();
-#ifdef _WIN32
+#if ORZ_PLATFORM_OS_WINDOWS
         _finddata_t file;
         std::string pattern = path + FileSeparator() + "*";
         auto handle = _findfirst(pattern.c_str(), &file);

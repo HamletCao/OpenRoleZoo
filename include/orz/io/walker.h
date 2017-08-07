@@ -9,8 +9,6 @@
 #include <string>
 
 namespace orz {
-    const std::string FileSeparator();
-
     std::vector<std::string> FindFiles(const std::string &path);
 
     std::vector<std::string> FindFiles(const std::string &path, std::vector<std::string> &dirs);
