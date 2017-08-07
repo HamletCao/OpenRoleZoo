@@ -13,6 +13,21 @@ namespace orz {
     bool mkdir(const std::string &dir);
 
     bool access(const std::string &path);
+
+    /***
+     * @brief Remove a file for now
+     * @param filename File to remove
+     * @return Return 0 only if succeed.
+     */
+    bool remove(const std::string &filename);
+
+    /***
+     * @brief Rename a file
+     * @param oldname File's old name
+     * @param newname File's new name
+     * @return Return 0 only if succeed.
+     */
+    bool rename(const std::string &oldname, const std::string &newname);
 }
 
 #endif //ORZ_IO_DIR_H
