@@ -28,6 +28,7 @@ namespace orz {
 
     std::vector<std::string> Split(const std::string &str, const std::string sep = " ", size_t _size = 0);
 
+    std::string Join(const std::vector<std::string> &list, const std::string &sep);
 }
 
 #endif //ORZ_UTILS_FORMAT_H
