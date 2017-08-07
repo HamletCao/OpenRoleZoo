@@ -17,11 +17,11 @@ int main()
     RichLog(orz::INFO) << "This " << "is " << "another " << "single " << "line.";
 
     std::vector<std::string> csv = {"1", "\"asdf\"", "asdf,asdf", "\"asdf\",\"asdf\""};
-    auto line = orz::CSVBuild(csv, ';');
+    auto line = orz::CSVBuild(csv);
 
     std::cout << line << std::endl;
 
-    auto items = orz::CSVParse(line, ';');
+    auto items = orz::CSVParse(line);
 
     for (auto item : items)
     {

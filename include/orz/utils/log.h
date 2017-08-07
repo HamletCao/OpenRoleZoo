@@ -8,10 +8,8 @@
 #include <iostream>
 #include "format.h"
 
-namespace orz
-{
-    enum LogLevel
-    {
+namespace orz {
+    enum LogLevel {
         DEBUG = 1,
         STATUS = 2,
         INFO = 3,
@@ -20,26 +18,21 @@ namespace orz
 
     static LogLevel InnerGlobalLogLevel = STATUS;
 
-    LogLevel GlobalLogLevel(LogLevel level)
-    {
+    LogLevel GlobalLogLevel(LogLevel level) {
         LogLevel pre_level = InnerGlobalLogLevel;
         InnerGlobalLogLevel = level;
         return pre_level;
     }
 
-    LogLevel GlobalLogLevel()
-    {
+    LogLevel GlobalLogLevel() {
         return InnerGlobalLogLevel;
     }
 
-    class Log
-    {
+    class Log {
     public:
         Log(LogLevel level, std::ostream &log = std::cout)
-            : m_level(level), m_log(log)
-        {
-            switch (m_level)
-            {
+                : m_level(level), m_log(log) {
+            switch (m_level) {
                 case DEBUG:
                     *this << "DEBUG: ";
                     break;
@@ -55,24 +48,20 @@ namespace orz
             }
         }
 
-        ~Log()
-        {
+        ~Log() {
             if (m_level >= InnerGlobalLogLevel) m_log << std::endl;
         }
 
-        template <typename T>
-        Log &operator ()(const T&message)
-        {
-            if (m_level >= InnerGlobalLogLevel)
-            {
+        template<typename T>
+        Log &operator()(const T &message) {
+            if (m_level >= InnerGlobalLogLevel) {
                 m_log << message;
             }
             return *this;
         }
 
-        template <typename T>
-        Log &operator <<(const T &message)
-        {
+        template<typename T>
+        Log &operator<<(const T &message) {
             return operator()(message);
         }
 

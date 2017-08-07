@@ -24,8 +24,9 @@ namespace orz {
 
     const std::string Format(const std::string &f);
 
-    std::vector<std::string> Split(const std::string& str, char ch = ' ', size_t _size = 0);
-    std::vector<std::string> Split(const std::string& str, const std::string sep = " ", size_t _size = 0);
+    std::vector<std::string> Split(const std::string &str, char ch = ' ', size_t _size = 0);
+
+    std::vector<std::string> Split(const std::string &str, const std::string sep = " ", size_t _size = 0);
 
 }
 

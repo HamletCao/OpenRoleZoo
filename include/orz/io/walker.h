@@ -8,12 +8,16 @@
 #include <vector>
 #include <string>
 
-namespace orz
-{
-const std::string FileSeparator();
-std::vector<std::string> FindFiles(const std::string &path);
-std::vector<std::string> FindFiles(const std::string &path, std::vector<std::string> &dirs);
-std::vector<std::string> FindFilesRecursively(const std::string &path, int depth = -1);
+namespace orz {
+    const std::string FileSeparator();
+
+    std::vector<std::string> FindFiles(const std::string &path);
+
+    std::vector<std::string> FindFiles(const std::string &path, std::vector<std::string> &dirs);
+
+    std::vector<std::string> FindFilesRecursively(const std::string &path, int depth = -1);
+
+    std::vector<std::string> FindFlodersRecursively(const std::string &path, int depth = -1);
 }
 
 #endif //ORZ_IO_WALKER_H

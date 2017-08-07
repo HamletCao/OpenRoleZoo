@@ -8,13 +8,13 @@
 #include <exception>
 #include <string>
 
-namespace orz
-{
-    class Exception : std::exception
-    {
+namespace orz {
+    class Exception : std::exception {
     public:
         Exception(const std::string &message);
-        virtual const char* what() const noexcept override;
+
+        virtual const char *what() const noexcept override;
+
     private:
         std::string m_message;
     };
