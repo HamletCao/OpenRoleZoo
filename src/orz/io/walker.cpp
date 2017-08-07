@@ -2,7 +2,7 @@
 #include <iostream>
 #include <stack>
 
-#include "dir.h"
+#include "orz/io/dir.h"
 #include "orz/utils/platform.h"
 
 #if ORZ_PLATFORM_OS_WINDOWS
