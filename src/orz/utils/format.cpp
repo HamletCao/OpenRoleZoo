@@ -48,7 +48,7 @@ namespace orz {
 
     std::string Join(const std::vector<std::string>& list, const std::string &sep) {
         std::ostringstream oss;
-        for (int i = 0; i < list.size(); ++i) {
+        for (size_t i = 0; i < list.size(); ++i) {
             if (i) oss << sep;
             oss << list[i];
         }

@@ -46,7 +46,7 @@ namespace orz {
 
     bool mkdir(const std::string &dir) {
         auto path = orz::Split(dir, "\\/");
-        for (int i = 1; i <= path.size(); ++i) {
+        for (size_t i = 1; i <= path.size(); ++i) {
             if (path[i - 1].empty()) continue;
             auto local_path = orz::Join(std::vector<std::string>(path.begin(), path.begin() + i), FileSeparator());
             if (!mkdir_core(local_path)) return false;
