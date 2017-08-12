@@ -21,7 +21,7 @@ namespace orz {
 
         template<typename OP>
         explicit Canyon(OP op, int size = -1)
-                : _work(true), _core(&Canyon::operating, this), _size(size) {
+                : _core(&Canyon::operating, this), _work(true), _size(size) {
             this->_op = [op](const T &arg) { op(arg); };
         }
 
@@ -34,7 +34,7 @@ namespace orz {
 
         void operator()(const T &arg) {
             std::unique_lock<std::mutex> _locker(_mutex);
-            while (_size > 0 && _task.size() >= _size) _cond.wait(_locker);
+            while (_size > 0 && _task.size() >= static_cast<size_t >(_size)) _cond.wait(_locker);
             _task.push(arg);
             _cond.notify_all();
         }
@@ -45,6 +45,9 @@ namespace orz {
         }
 
     private:
+        Canyon(const Canyon &that) = delete;
+        const Canyon &operator=(const Canyon &that) = delete;
+
         void operating() {
             std::unique_lock<std::mutex> _locker(_mutex);
             while (_work) {
