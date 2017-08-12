@@ -27,6 +27,12 @@
 
 #define ORZ_API ORZ_DLL_EXPORT
 
+#ifdef __cplusplus
+#   define ORZ_C_API ORZ_EXTERN_C ORZ_API
+#else
+#   define ORZ_C_API ORZ_API
+#endif
+
 #ifndef ORZ_UNUSED
 #   define ORZ_UNUSED(x) ((void)x)
 #endif
