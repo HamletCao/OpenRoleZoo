@@ -45,7 +45,7 @@ int main()
     std::cout << files << std::endl;
     std::cout << dirs << std::endl;
 
-    orz::Canyon<int> a([](int i) {std::cout << i << std::endl;});
+    const orz::Canyon<int> a([](int i) {std::cout << i << std::endl;});
     a(10);
     a(20);
 
