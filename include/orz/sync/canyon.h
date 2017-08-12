@@ -32,14 +32,14 @@ namespace orz {
             _core.join();
         }
 
-        void operator()(const T &arg) {
+        void operator()(const T &arg) const {
             std::unique_lock<std::mutex> _locker(_mutex);
             while (_size > 0 && _task.size() >= static_cast<size_t >(_size)) _cond.wait(_locker);
             _task.push(arg);
             _cond.notify_all();
         }
 
-        void join() {
+        void join() const {
             std::unique_lock<std::mutex> _locker(_mutex);
             while (_task.size()) _cond.wait(_locker);
         }
@@ -61,10 +61,10 @@ namespace orz {
         }
 
         Operation _op;
-        std::queue<T> _task;
+        mutable std::queue<T> _task;
         std::thread _core;
-        std::mutex _mutex;
-        std::condition_variable _cond;
+        mutable std::mutex _mutex;
+        mutable std::condition_variable _cond;
         std::atomic<bool> _work;
         int _size;
     };
