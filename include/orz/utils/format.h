@@ -33,7 +33,7 @@ namespace orz {
     template <typename T>
     std::ostream &operator<<(std::ostream &out, const std::vector<T> &vec) {
         out << "(";
-        for (int i = 0; i < vec.size(); ++i) {
+        for (size_t i = 0; i < vec.size(); ++i) {
             if (i) out << ", ";
             out << vec[i];
         }
