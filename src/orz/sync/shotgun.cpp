@@ -36,9 +36,9 @@ namespace orz {
         } else {
             int signet = load();
             Cartridge *cart = this->clip[signet];
-            cart->fire(signet, bullet, [this, shell](int signet) -> void {
-                shell(signet);
-                this->recycling_cartridge(signet);
+            cart->fire(signet, bullet, [this, shell](int id) -> void {
+                shell(id);
+                this->recycling_cartridge(id);
             });
             return cart;
         }

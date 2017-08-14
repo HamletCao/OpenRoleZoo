@@ -3,7 +3,8 @@
 namespace orz {
 
     Cartridge::Cartridge()
-            : dry(true), bullet(nullptr), shell(nullptr), powder(&Cartridge::operating, this) {
+            : dry(true), bullet(nullptr), shell(nullptr) {
+        this->powder = std::thread(&Cartridge::operating, this);
     }
 
     Cartridge::~Cartridge() {
@@ -13,7 +14,7 @@ namespace orz {
     }
 
     void Cartridge::fire(int signet, const Cartridge::bullet_type &bullet, const Cartridge::shell_type &shell) {
-        std::unique_lock <std::mutex> locker(fire_mutex);
+        std::unique_lock<std::mutex> locker(fire_mutex);
         this->signet = signet;
         this->bullet = bullet;
         this->shell = shell;
@@ -21,17 +22,17 @@ namespace orz {
     }
 
     bool Cartridge::busy() {
-        std::unique_lock <std::mutex> _(fire_mutex);
+        std::unique_lock<std::mutex> _(fire_mutex);
         return bullet != nullptr;
     }
 
     void Cartridge::join() {
-        std::unique_lock <std::mutex> locker(fire_mutex);
+        std::unique_lock<std::mutex> locker(fire_mutex);
         while (bullet) fire_cond.wait(locker);
     }
 
     void Cartridge::operating() {
-        std::unique_lock <std::mutex> locker(fire_mutex);
+        std::unique_lock<std::mutex> locker(fire_mutex);
         while (dry) {
             while (dry && !bullet) fire_cond.wait(locker);
             if (!dry) break;
