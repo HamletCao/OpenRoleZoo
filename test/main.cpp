@@ -13,6 +13,18 @@
 #include <iostream>
 #include <memory>
 
+#include <future>
+
+int get_int()
+{
+    return 233;
+}
+
+void print(const std::string &str)
+{
+    std::cout << str << std::endl;
+}
+
 int main()
 {
     std::cout << orz::Format("Hey, I'm running!") << std::endl;
@@ -45,9 +57,13 @@ int main()
     std::cout << files << std::endl;
     std::cout << dirs << std::endl;
 
-    const orz::Canyon<int> a([](int i) {std::cout << i << std::endl;});
-    a(10);
-    a(20);
+    auto func = [](int i) {std::cout << i << std::endl;};
+    const orz::Canyon a;
+    a(func, 10);
+    a(func, 20);
+
+    a(get_int);
+    a(print, "a");
 
     return 0;
 }
