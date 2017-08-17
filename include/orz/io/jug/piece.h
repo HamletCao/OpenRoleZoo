@@ -217,11 +217,24 @@ namespace orz {
             return m_dict.erase(key);
         }
 
+        template <size_t _size>
+        std::shared_ptr<Piece> &operator[](const char (&key)[_size]) {
+            return this->operator[](std::string(key));
+        }
+
         std::shared_ptr<Piece> &operator[](const std::string &key) {
             return m_dict[key];
         }
 
         virtual std::istream &read(std::istream &bin) override {
+            int size;
+            binio<int>::read(bin, size);
+            m_dict.clear();
+            for (int i = 0; i < size; ++i) {
+                std::string key;
+                binio<std::string>::read(bin, key);
+                m_dict[key] = Piece::Read(bin);
+            }
             return bin;
         }
 
