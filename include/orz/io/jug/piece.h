@@ -32,9 +32,11 @@ namespace orz {
         virtual ~Piece() {}
 
         virtual std::istream &read(std::istream &bin) = 0;
+
         virtual std::ostream &write(std::ostream &bin) const = 0;
 
         static inline void Write(std::ostream &bin, const Piece &pie);
+
         static inline std::shared_ptr<Piece> Read(std::istream &bin);
 
     public:
@@ -70,23 +72,22 @@ namespace orz {
         return T();
     }
 
-    template <typename T>
-    class binio
-    {
+    template<typename T>
+    class binio {
     public:
         static std::ostream &write(std::ostream &bin, const T &elem) {
             /// TODO: check big or little endian
             return bin.write(reinterpret_cast<const char *>(&elem), sizeof(T));
         }
+
         static std::istream &read(std::istream &bin, T &elem) {
             /// TODO: check big or little endian
             return bin.read(reinterpret_cast<char *>(&elem), sizeof(T));
         }
     };
 
-    template <>
-    class binio<std::string>
-    {
+    template<>
+    class binio<std::string> {
     public:
         static std::ostream &write(std::ostream &bin, const std::string &str) {
             int size = static_cast<int>(str.size());
@@ -248,13 +249,20 @@ namespace orz {
         char type;
         binio<char>::read(bin, type);
         switch (static_cast<Type>(type)) {
-            case NIL: return std::make_shared<NilPiece>(bin);
-            case INT: return std::make_shared<IntPiece>(bin);
-            case FLOAT: return std::make_shared<FloatPiece>(bin);
-            case STRING: return std::make_shared<StringPiece>(bin);
-            case BINARY: return std::make_shared<BinaryPiece>(bin);
-            case LIST: return std::make_shared<ListPiece>(bin);
-            case DICT: return std::make_shared<DictPiece>(bin);
+            case NIL:
+                return std::make_shared<NilPiece>(bin);
+            case INT:
+                return std::make_shared<IntPiece>(bin);
+            case FLOAT:
+                return std::make_shared<FloatPiece>(bin);
+            case STRING:
+                return std::make_shared<StringPiece>(bin);
+            case BINARY:
+                return std::make_shared<BinaryPiece>(bin);
+            case LIST:
+                return std::make_shared<ListPiece>(bin);
+            case DICT:
+                return std::make_shared<DictPiece>(bin);
         }
         throw Exception("Unknown piece type.");
     }
