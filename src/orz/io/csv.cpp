@@ -35,7 +35,7 @@ namespace orz {
 
     std::string CSVBuild(const std::vector<std::string> &line, char sep) {
         std::ostringstream oss;
-        for (auto i = 0; i < line.size(); ++i) {
+        for (size_t i = 0; i < line.size(); ++i) {
             if (i) oss << sep;
             oss << CSVBuildItem(line[i], sep);
         }
