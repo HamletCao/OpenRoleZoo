@@ -32,12 +32,12 @@ namespace orz {
 
     template <typename T>
     std::ostream &operator<<(std::ostream &out, const std::vector<T> &vec) {
-        out << "(";
+        out << "[";
         for (size_t i = 0; i < vec.size(); ++i) {
             if (i) out << ", ";
             out << vec[i];
         }
-        out << ")";
+        out << "]";
         return out;
     }
 }
