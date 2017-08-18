@@ -8,12 +8,20 @@
 #include <exception>
 #include <string>
 
+#include "platform.h"
+
+#if ORZ_PLATFORM_CC_MSVC
+#define ORZ_NOEXCEPT
+#else
+#define ORZ_NOEXCEPT noexcept
+#endif
+
 namespace orz {
     class Exception : std::exception {
     public:
         Exception(const std::string &message);
 
-        virtual const char *what() const noexcept override;
+        virtual const char *what() const ORZ_NOEXCEPT override;
 
     private:
         std::string m_message;
