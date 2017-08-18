@@ -10,6 +10,7 @@
 #include "orz/io/dir.h"
 #include "orz/sync/canyon.h"
 #include "orz/io/jug/piece.h"
+#include "orz/io/jug/jug.h"
 
 #include <iostream>
 #include <fstream>
@@ -73,6 +74,54 @@ int main()
     std::cout << reinterpret_cast<IntPiece *>(dp2_1.get())->get() << std::endl;
 
     infile.close();
+
+    std::ostringstream oss("aaaa", std::ios::binary);
+    orz::binio<int>::write(oss, 0);
+    orz::binio<int>::write(oss, 0);
+    orz::binio<int>::write(oss, 0);
+    orz::binio<int>::write(oss, 0);
+    std::cout << oss.str().size() << std::endl;
+
+    std::cout << "==========" << std::endl;
+    orz::BinaryPiece bp;
+    std::cout << bp.size() << std::endl;
+    bp.push_bits<int>(1);
+    std::cout << bp.size() << std::endl;
+    bp.push_bits<int>(2);
+    std::cout << bp.size() << std::endl;
+    bp.push_bits<int>(3);
+    std::cout << bp.size() << std::endl;
+    bp.clear();
+    std::cout << bp.size() << std::endl;
+    bp.push_bits<int>(1);
+    std::cout << bp.size() << std::endl;
+    bp.push_bits<int>(2);
+    std::cout << bp.size() << std::endl;
+    bp.push_bits<int>(3);
+    std::cout << bp.size() << std::endl;
+
+    jug a;
+    jug b = 666;
+    jug d = "789";
+    jug e = 0;
+    jug f = 666.8;
+    jug num;
+    num = 666;
+    num = 666.8;
+    num = "789";
+    num = 0;
+
+    jug player;
+    player.index("name", "hello");
+    player.index("health", 100);
+
+    jug_write("player.sav", player);
+
+    player = nullptr;
+
+    player = jug_read("player.sav");
+
+    std::cout << player << std::endl;
 
     return 0;
 }
