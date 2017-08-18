@@ -39,6 +39,10 @@ namespace orz {
 
         static inline std::shared_ptr<Piece> Read(std::istream &bin);
 
+        static inline std::shared_ptr<Piece> Get(Type type);
+
+        static inline std::shared_ptr<Piece> Get(Type type, std::istream &bin);
+
     public:
 
         Type type() const {
@@ -261,24 +265,37 @@ namespace orz {
     std::shared_ptr<Piece> Piece::Read(std::istream &bin) {
         char type;
         binio<char>::read(bin, type);
+        return Get(static_cast<Type>(type), bin);
+    }
+
+    std::shared_ptr<Piece> Piece::Get(Type type)
+    {
         switch (static_cast<Type>(type)) {
             case NIL:
-                return std::make_shared<NilPiece>(bin);
+                return std::make_shared<NilPiece>();
             case INT:
-                return std::make_shared<IntPiece>(bin);
+                return std::make_shared<IntPiece>();
             case FLOAT:
-                return std::make_shared<FloatPiece>(bin);
+                return std::make_shared<FloatPiece>();
             case STRING:
-                return std::make_shared<StringPiece>(bin);
+                return std::make_shared<StringPiece>();
             case BINARY:
-                return std::make_shared<BinaryPiece>(bin);
+                return std::make_shared<BinaryPiece>();
             case LIST:
-                return std::make_shared<ListPiece>(bin);
+                return std::make_shared<ListPiece>();
             case DICT:
-                return std::make_shared<DictPiece>(bin);
+                return std::make_shared<DictPiece>();
         }
         throw Exception("Unknown piece type.");
     }
+
+    std::shared_ptr<Piece> Piece::Get(Type type, std::istream &bin)
+    {
+        auto pie = Get(type);
+        pie->read(bin);
+        return std::move(pie);
+    }
+
 }
 
 
