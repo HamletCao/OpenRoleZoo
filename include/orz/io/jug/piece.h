@@ -181,6 +181,7 @@ namespace orz {
         }
 
         size_t size() {
+            this->m_buff.seekp(0, std::ios::end);
             return static_cast<size_t>(this->m_buff.tellp());
         }
 

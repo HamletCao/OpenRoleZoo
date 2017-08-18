@@ -30,6 +30,53 @@ namespace orz {
         return m_pie && m_pie->type() == type;
     }
 
+    jug &jug::operator=(nullptr_t) {
+        switch (m_pie->type()) {
+            case Piece::NIL:
+                break;
+            default:
+                m_pie = std::make_shared<NilPiece>();
+                break;
+        }
+        return *this;
+    }
+
+    jug &jug::operator=(int val) {
+        switch (m_pie->type()) {
+            case Piece::INT:
+                reinterpret_cast<IntPiece *>(m_pie.get())->set(val);
+                break;
+            default:
+                m_pie = std::make_shared<IntPiece>(val);
+                break;
+        }
+        return *this;
+    }
+
+    jug &jug::operator=(float val) {
+        switch (m_pie->type()) {
+            case Piece::FLOAT:
+                reinterpret_cast<FloatPiece *>(m_pie.get())->set(val);
+                break;
+            default:
+                m_pie = std::make_shared<FloatPiece>(val);
+                break;
+        }
+        return *this;
+    }
+
+    jug &jug::operator=(const std::string &val) {
+        switch (m_pie->type()) {
+            case Piece::STRING:
+                reinterpret_cast<StringPiece *>(m_pie.get())->set(val);
+                break;
+            default:
+                m_pie = std::make_shared<StringPiece>(val);
+                break;
+        }
+        return *this;
+    }
+
     jug::operator bool() const {
         return m_pie && m_pie->notnil();
     }
@@ -68,6 +115,8 @@ namespace orz {
         switch (m_pie->type()) {
             case Piece::STRING:
                 return reinterpret_cast<StringPiece *>(m_pie.get())->get();
+            case Piece::BINARY:
+                return reinterpret_cast<BinaryPiece *>(m_pie.get())->get();
             default:
                 throw Exception("Can not convert this jug to string");
         }
@@ -181,7 +230,7 @@ namespace orz {
     }
 
     // binary function
-    jug &jug::set_bits(void *buffer, size_t size) {
+    jug &jug::set_bits(const void *buffer, size_t size) {
         switch (m_pie->type()) {
             case Piece::NIL:
                 m_pie = Piece::Get(Piece::BINARY);
@@ -195,7 +244,7 @@ namespace orz {
         }
     }
 
-    jug &jug::push_bits(void *buffer, size_t size) {
+    jug &jug::push_bits(const void *buffer, size_t size) {
         switch (m_pie->type()) {
             case Piece::NIL:
                 m_pie = Piece::Get(Piece::BINARY);
