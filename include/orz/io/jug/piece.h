@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <sstream>
 
 namespace orz {
 
@@ -36,6 +37,8 @@ namespace orz {
         virtual std::ostream &write(std::ostream &bin) const = 0;
 
         static inline void Write(std::ostream &bin, const Piece &pie);
+
+        static inline void Write(std::ostream &bin, const std::shared_ptr<Piece> &pie);
 
         static inline std::shared_ptr<Piece> Read(std::istream &bin);
 
@@ -152,11 +155,75 @@ namespace orz {
     using IntPiece = ValuedPiece<Piece::INT, int>;
     using FloatPiece = ValuedPiece<Piece::FLOAT, float>;
     using StringPiece = ValuedPiece<Piece::STRING, std::string>;
-    using BinaryPiece = ValuedPiece<Piece::BINARY, std::string>;
+    // using BinaryPiece = ValuedPiece<Piece::BINARY, std::string>;
+
+    class BinaryPiece : public TypedPiece<Piece::BINARY> {
+    public:
+        BinaryPiece() : m_buff(std::ios::binary) {}
+
+        BinaryPiece(const std::string &buff) : m_buff(buff, std::ios::binary) {}
+
+        BinaryPiece(std::istream &bin) {
+            this->read(bin);
+        }
+
+        BinaryPiece &set(const std::string &buff) {
+            this->m_buff.str(buff);
+            return *this;
+        }
+
+        std::string get() {
+            return this->m_buff.str();
+        }
+
+        void clear() {
+            this->m_buff.str("");
+        }
+
+        size_t size() {
+            return static_cast<size_t>(this->m_buff.tellp());
+        }
+
+        BinaryPiece &set_bits(const void *buffer, size_t size) {
+            this->m_buff.str("");
+            return push_bits(buffer, size);
+        }
+
+        BinaryPiece &push_bits(const void *buffer, size_t size) {
+            this->m_buff.write(reinterpret_cast<const char *>(buffer), size);
+            return *this;
+        }
+
+        template<typename T>
+        BinaryPiece &push_bits(const T &val) {
+            binio<T>::write(m_buff, val);
+            return *this;
+        }
+
+        virtual std::istream &read(std::istream &bin) override {
+            std::string buff;
+            binio<std::string>::read(bin, buff);
+            this->m_buff.str(buff);
+            return bin;
+        }
+
+        virtual std::ostream &write(std::ostream &bin) const override {
+            binio<char>::write(bin, static_cast<char>(this->type()));
+            binio<std::string>::write(bin, m_buff.str());
+            return bin;
+        }
+
+    private:
+        std::ostringstream m_buff;
+    };
 
     class ListPiece : public TypedPiece<Piece::LIST> {
     public:
         ListPiece() {}
+
+        ListPiece(size_t size) {
+            m_list.resize(size);
+        }
 
         ListPiece(std::istream &bin) {
             this->read(bin);
@@ -172,6 +239,18 @@ namespace orz {
 
         void clear() {
             m_list.clear();
+        }
+
+        const std::shared_ptr<Piece> &index(size_t i) const {
+            return m_list[i];
+        }
+
+        std::shared_ptr<Piece> &index(size_t i) {
+            return m_list[i];
+        }
+
+        std::shared_ptr<Piece> &index(size_t i, const std::shared_ptr<Piece> &value) {
+            return m_list[i] = value;
         }
 
         const std::shared_ptr<Piece> &operator[](size_t i) const {
@@ -196,6 +275,7 @@ namespace orz {
             binio<char>::write(bin, static_cast<char>(this->type()));
             binio<int>::write(bin, static_cast<int>(this->size()));
             for (auto &pie : m_list) {
+                /// TODO: check pointer pie valid
                 pie->write(bin);
             }
             return bin;
@@ -221,9 +301,33 @@ namespace orz {
             return m_dict.erase(key);
         }
 
-        template <size_t _size>
+        bool has_key(const std::string &key) {
+            return m_dict.find(key) != m_dict.end();
+        }
+
+        std::shared_ptr<Piece> &index(const std::string &key) {
+            return m_dict[key];
+        }
+
+        std::shared_ptr<Piece> &index(const std::string &key, const std::shared_ptr<Piece> &value) {
+            return m_dict[key] = value;
+        }
+
+        std::vector<std::string> keys() const {
+            std::vector<std::string> result;
+            result.reserve(m_dict.size());
+            for (auto &key_pie : m_dict) {
+                auto &key = key_pie.first;
+                // auto &pie = key_pie.second;
+                /// TODO: check pointer pie valid
+                result.push_back(key);
+            }
+            return std::move(result);
+        }
+
+        template<size_t _size>
         std::shared_ptr<Piece> &operator[](const char (&key)[_size]) {
-            return this->operator[](std::string(key));
+            return this->index(std::string(key));
         }
 
         std::shared_ptr<Piece> &operator[](const std::string &key) {
@@ -249,6 +353,7 @@ namespace orz {
                 auto &key = key_pie.first;
                 auto &pie = key_pie.second;
                 binio<std::string>::write(bin, key);
+                /// TODO: check pointer pie valid
                 pie->write(bin);
             }
             return bin;
@@ -262,14 +367,17 @@ namespace orz {
         pie.write(bin);
     }
 
+    void Piece::Write(std::ostream &bin, const std::shared_ptr<Piece> &pie) {
+        pie.get()->write(bin);
+    }
+
     std::shared_ptr<Piece> Piece::Read(std::istream &bin) {
         char type;
         binio<char>::read(bin, type);
         return Get(static_cast<Type>(type), bin);
     }
 
-    std::shared_ptr<Piece> Piece::Get(Type type)
-    {
+    std::shared_ptr<Piece> Piece::Get(Type type) {
         switch (static_cast<Type>(type)) {
             case NIL:
                 return std::make_shared<NilPiece>();
@@ -289,8 +397,7 @@ namespace orz {
         throw Exception("Unknown piece type.");
     }
 
-    std::shared_ptr<Piece> Piece::Get(Type type, std::istream &bin)
-    {
+    std::shared_ptr<Piece> Piece::Get(Type type, std::istream &bin) {
         auto pie = Get(type);
         pie->read(bin);
         return std::move(pie);

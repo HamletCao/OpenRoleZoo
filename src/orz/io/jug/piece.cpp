@@ -4,9 +4,5 @@
 
 #include "orz/io/jug/piece.h"
 
-namespace orz
-{
-    static NilPiece GlobalNilPiece;
-
-
+namespace orz {
 }
