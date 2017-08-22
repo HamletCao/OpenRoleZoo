@@ -178,6 +178,15 @@ namespace orz {
     bool jug_write(const std::string &filename, const jug &j);
 
     void jug_write(std::ostream &out, const jug &j);
+
+    template <typename T>
+    T jug_get(const jug &j, const T &def = T()) {
+        try {
+            return static_cast<T>(j);
+        } catch (const Exception &e) {
+            return def;
+        }
+    }
 }
 
 
