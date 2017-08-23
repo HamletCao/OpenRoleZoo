@@ -111,6 +111,9 @@ int main()
     num = "789";
     num = 0;
 
+    auto i = orz::jug_get<std::string>(f, "what");
+    std::cout << "got: " << i << std::endl;
+
     jug player;
     player.index("name", "hello");
     player.index("health", 100);
