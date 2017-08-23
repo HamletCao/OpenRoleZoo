@@ -270,7 +270,7 @@ namespace orz {
             case Piece::STRING:
                 return out << '\"' << reinterpret_cast<StringPiece *>(m_pie.get())->get() << '\"';
             case Piece::BINARY:
-                return out << "binary:" << reinterpret_cast<BinaryPiece *>(m_pie.get())->size();
+                return out << '\"' << "binary:" << reinterpret_cast<BinaryPiece *>(m_pie.get())->size() << '\"';
             case Piece::LIST: {
                 auto list = reinterpret_cast<ListPiece *>(m_pie.get());
                 out << '[';
@@ -288,7 +288,7 @@ namespace orz {
                 for (auto &key : dict->keys()) {
                     if (!first) out << ',' << ' ';
                     else first = false;
-                    out << key << ':' << jug(dict->index(key));
+                    out << "\"" << key << "\": " << jug(dict->index(key));
                 }
                 out << '}';
                 return out;

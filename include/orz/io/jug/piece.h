@@ -83,12 +83,12 @@ namespace orz {
     class binio {
     public:
         static std::ostream &write(std::ostream &bin, const T &elem) {
-            /// TODO: check big or little endian
+            // @TODO: check big or little endian
             return bin.write(reinterpret_cast<const char *>(&elem), sizeof(T));
         }
 
         static std::istream &read(std::istream &bin, T &elem) {
-            /// TODO: check big or little endian
+            // @TODO: check big or little endian
             return bin.read(reinterpret_cast<char *>(&elem), sizeof(T));
         }
     };
@@ -276,7 +276,7 @@ namespace orz {
             binio<char>::write(bin, static_cast<char>(this->type()));
             binio<int>::write(bin, static_cast<int>(this->size()));
             for (auto &pie : m_list) {
-                /// TODO: check pointer pie valid
+                // @TODO: check pointer pie valid
                 pie->write(bin);
             }
             return bin;
@@ -320,7 +320,7 @@ namespace orz {
             for (auto &key_pie : m_dict) {
                 auto &key = key_pie.first;
                 // auto &pie = key_pie.second;
-                /// TODO: check pointer pie valid
+                // @TODO: check pointer pie valid
                 result.push_back(key);
             }
             return std::move(result);
@@ -354,7 +354,7 @@ namespace orz {
                 auto &key = key_pie.first;
                 auto &pie = key_pie.second;
                 binio<std::string>::write(bin, key);
-                /// TODO: check pointer pie valid
+                // @TODO: check pointer pie valid
                 pie->write(bin);
             }
             return bin;
