@@ -2,34 +2,50 @@
 // Created by Lby on 2017/8/12.
 //
 
-#ifndef ORZ_MEM_POOL_H
-#define ORZ_MEM_POOL_H
+#ifndef ORZ_MEM_POT_H
+#define ORZ_MEM_POT_H
 
 #include <mutex>
 #include <memory>
 
 namespace orz {
 
-    class MemoryPot {
+    class Pot {
     public:
-        void *alloc(size_t _size);
-        const void *alloc(size_t _size) const;
+        Pot();
 
-        template <typename T>
-        T *alloc(size_t _count) {
-            return reinterpret_cast<T*>(this->alloc(sizeof(T) * _count));
+        void *malloc(size_t _size);
+
+        void *relloc(size_t _size);
+
+        template<typename T>
+        T *calloc(size_t _count, bool copy = false) {
+            if (copy)
+                return reinterpret_cast<T *>(this->relloc(sizeof(T) * _count));
+            else
+                return reinterpret_cast<T *>(this->malloc(sizeof(T) * _count));
         }
 
-        template <typename T>
-        const T *alloc(size_t _count) const {
-            return reinterpret_cast<T*>(this->alloc(sizeof(T) * _count));
-        }
+        void *data() const;
 
-        void free() const;
+        size_t capacity() const;
+
+        void clear();
+
+        void swap(Pot &that);
+
+        Pot(const Pot &that);
+
+        Pot &operator=(const Pot &that);
+
+        Pot(Pot &&that);
+
+        Pot &operator=(Pot &&that);
+
     private:
-        size_t _capacity;
-        std::shared_ptr<void> _data;
+        size_t m_capacity;
+        std::shared_ptr<void> m_data;
     };
 }
 
-#endif //ORZ_MEM_POOL_H
+#endif //ORZ_MEM_POT_H
