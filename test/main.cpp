@@ -14,9 +14,124 @@
 
 #include <iostream>
 #include <fstream>
+#include <orz/mem/vat.h>
+
+class FUNC
+{
+public:
+    int &t;
+    FUNC(int &t) : t(t) {}
+    int operator()(int a, int b) {
+        return a+b + t;
+    }
+};
+
+size_t random_size()
+{
+    long base = 1024 * 1024 * 1024;
+    return static_cast<size_t >(rand() % base + base);
+}
+
+void type1() {
+    static orz::Vat vat;
+    using void_ptr = void *;
+    void_ptr p[7];
+    vat.reset();
+    p[0] = vat.malloc(random_size());
+    // 0 -> 1
+    p[1] = vat.malloc(random_size());
+    vat.free(p[0]);
+    // 1 -> 2
+    p[2] = vat.malloc(random_size());
+    vat.free(p[1]);
+    // 2 -> 3
+    p[3] = vat.malloc(random_size());
+    // 2 -> 4
+    p[4] = vat.malloc(random_size());
+    vat.free(p[2]);
+    // 3, 4 -> 5
+    p[5] = vat.malloc(random_size());
+    vat.free(p[3]);
+    vat.free(p[4]);
+    // 5 -> 6
+    p[6] = vat.malloc(random_size());
+    vat.free(p[5]);
+}
+
+void type2() {
+    using void_ptr = void *;
+    void_ptr p[7];
+    p[0] = malloc(random_size());
+    // 0 -> 1
+    p[1] = malloc(random_size());
+    free(p[0]);
+    // 1 -> 2
+    p[2] = malloc(random_size());
+    free(p[1]);
+    // 2 -> 3
+    p[3] = malloc(random_size());
+    // 2 -> 4
+    p[4] = malloc(random_size());
+    free(p[2]);
+    // 3, 4 -> 5
+    p[5] = malloc(random_size());
+    free(p[3]);
+    free(p[4]);
+    // 5 -> 6
+    p[6] = malloc(random_size());
+    free(p[5]);
+
+    free(p[6]);
+}
+
+void time1(int N)
+{
+
+    using namespace std::chrono;
+    microseconds duration(0);
+    auto start = system_clock::now();
+    for (int i = 0; i < N; ++i) {
+        srand(4429);
+        type1();
+    }
+    auto end = system_clock::now();
+    duration += duration_cast<microseconds>(end - start);
+    double spent = 1.0 * duration.count() / 1000 ;
+
+    std::cout << "Takes " << spent << " ms " << std::endl;
+}
+
+void time2(int N)
+{
+
+    using namespace std::chrono;
+    microseconds duration(0);
+    auto start = system_clock::now();
+    for (int i = 0; i < N; ++i) {
+        srand(4429);
+        type2();
+    }
+    auto end = system_clock::now();
+    duration += duration_cast<microseconds>(end - start);
+    double spent = 1.0 * duration.count() / 1000 ;
+
+    std::cout << "Takes " << spent << " ms " << std::endl;
+}
 
 int main()
 {
+#if defined(FUNC)
+    std::cout << "A?" << std::endl;
+#else
+    std::cout << "B?" << std::endl;
+#endif
+
+    int t;
+    FUNC ffff(t);
+    std::cout << ffff(1, 2) << std::endl;
+    auto ffffff = [&t](int a, int b){return a+b+t;};
+    std::cout << ffffff(1, 2) << std::endl;
+
     std::cout << orz::Format("Hey, I'm running!") << std::endl;
     orz::GlobalLogLevel(orz::INFO);
     ORZ_LOG(orz::STATUS) << "This " << "is " << "a " << "single " << "line.";
@@ -125,6 +240,9 @@ int main()
     player = jug_read("player.sav");
 
     std::cout << player << std::endl;
+
+    time1(1000);
+    time2(1000);
 
     return 0;
 }
