@@ -30,17 +30,7 @@ namespace orz {
 
         size_t capacity() const;
 
-        void clear();
-
-        void swap(Pot &that);
-
-        Pot(const Pot &that);
-
-        Pot &operator=(const Pot &that);
-
-        Pot(Pot &&that);
-
-        Pot &operator=(Pot &&that);
+        void dispose();
 
     private:
         size_t m_capacity;

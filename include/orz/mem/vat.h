@@ -12,8 +12,8 @@
 namespace orz {
 
     class Vat {
+    public:
         Vat();
-        ~Vat();
 
         void *malloc(size_t _size);
 
@@ -24,7 +24,12 @@ namespace orz {
 
         void free(const void *ptr);
 
-        void clear();
+        /**
+         * @brief doing like free all malloc ptrs
+         */
+        void reset();
+
+        void dispose();
 
         void swap(Vat &that);
 
@@ -33,9 +38,9 @@ namespace orz {
         Vat &operator=(Vat &&that);
 
     private:
-        Vat(const Vat &that);
+        Vat(const Vat &that) = delete;
 
-        Vat &operator=(const Vat &that);
+        Vat &operator=(const Vat &that) = delete;
 
         struct RopedPot
         {
@@ -44,7 +49,7 @@ namespace orz {
         };
 
         std::vector<RopedPot> m_list;
-        std::map<void *, size_t> m_dict;
+        std::map<void *, size_t> m_dict;    ///< save pair of pointer and index
     };
 
 }

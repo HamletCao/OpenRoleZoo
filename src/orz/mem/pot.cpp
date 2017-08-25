@@ -40,34 +40,8 @@ namespace orz {
         return m_capacity;
     }
 
-    void Pot::clear() {
+    void Pot::dispose() {
         m_capacity = 0;
         m_data.reset();
-    }
-
-    void Pot::swap(Pot &that) {
-        std::swap(this->m_data, that.m_data);
-        std::swap(this->m_capacity, that.m_capacity);
-    }
-
-    Pot::Pot(const Pot &that)
-            : m_capacity(that.m_capacity), m_data(that.m_data) {
-
-    }
-
-
-    Pot &Pot::operator=(const Pot &that) {
-        this->m_data = that.m_data;
-        this->m_capacity = that.m_capacity;
-        return *this;
-    }
-
-    Pot::Pot(Pot &&that)
-            : m_capacity(that.m_capacity), m_data(std::move(that.m_data)) {
-    }
-
-    Pot &Pot::operator=(Pot &&that) {
-        this->swap(that);
-        return *this;
     }
 }
