@@ -1,6 +1,6 @@
 #include "orz/io/walker.h"
 #include <iostream>
-#include <stack>
+#include <queue>
 
 #include "orz/io/dir.h"
 #include "orz/utils/platform.h"
@@ -68,13 +68,13 @@ namespace orz {
 
     std::vector<std::string> FindFilesRecursively(const std::string &path, int depth) {
         std::vector<std::string> result;
-        std::stack<std::pair<std::string, int> > work;
+        std::queue<std::pair<std::string, int> > work;
         std::vector<std::string> dirs;
         std::vector<std::string> files = FindFiles(path, dirs);
         result.insert(result.end(), files.begin(), files.end());
         for (auto &dir : dirs) work.push({dir, 1});
         while (!work.empty()) {
-            auto local_pair = work.top();
+            auto local_pair = work.front();
             work.pop();
             auto local_path = local_pair.first;
             auto local_depth = local_pair.second;
@@ -88,13 +88,13 @@ namespace orz {
 
     std::vector<std::string> FindFlodersRecursively(const std::string &path, int depth) {
         std::vector<std::string> result;
-        std::stack<std::pair<std::string, int> > work;
+        std::queue<std::pair<std::string, int> > work;
         std::vector<std::string> dirs;
         std::vector<std::string> files = FindFiles(path, dirs);
         result.insert(result.end(), dirs.begin(), dirs.end());
         for (auto &dir : dirs) work.push({dir, 1});
         while (!work.empty()) {
-            auto local_pair = work.top();
+            auto local_pair = work.front();
             work.pop();
             auto local_path = local_pair.first;
             auto local_depth = local_pair.second;
