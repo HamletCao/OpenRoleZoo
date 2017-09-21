@@ -6,6 +6,7 @@
 #define ORZ_IO_JUG_JUG_H
 
 #include "piece.h"
+#include <cstddef>
 
 namespace orz {
 
@@ -19,7 +20,7 @@ namespace orz {
 
         jug(Piece::Type type);
 
-        jug(std::nullptr_t);
+        jug(std::nullptr_t _);
 
         jug(int val);
 
@@ -55,7 +56,7 @@ namespace orz {
         bool valid(Piece::Type type);
 
         // common type set function
-        jug &operator=(nullptr_t);
+        jug &operator=(nullptr_t _);
 
         jug &operator=(int val);
 
@@ -104,6 +105,8 @@ namespace orz {
         jug index(size_t i);
 
         jug operator[](size_t i) { return index(i); }
+
+        jug operator[](int i) { return index(i); }
 
         jug index(size_t i, const jug &value);
 

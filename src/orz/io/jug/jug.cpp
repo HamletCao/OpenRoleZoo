@@ -14,7 +14,7 @@ namespace orz {
     jug::jug(Piece::Type type)
             : m_pie(Piece::Get(type)) {}
 
-    jug::jug(std::nullptr_t)
+    jug::jug(std::nullptr_t _)
             : m_pie(std::make_shared<NilPiece>()) {}
 
     jug::jug(int val)
@@ -30,7 +30,7 @@ namespace orz {
         return m_pie && m_pie->type() == type;
     }
 
-    jug &jug::operator=(nullptr_t) {
+    jug &jug::operator=(nullptr_t _) {
         switch (m_pie->type()) {
             case Piece::NIL:
                 break;
