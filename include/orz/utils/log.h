@@ -22,13 +22,13 @@ namespace orz {
 
     static LogLevel InnerGlobalLogLevel = STATUS;
 
-    LogLevel GlobalLogLevel(LogLevel level) {
+    inline LogLevel GlobalLogLevel(LogLevel level) {
         LogLevel pre_level = InnerGlobalLogLevel;
         InnerGlobalLogLevel = level;
         return pre_level;
     }
 
-    LogLevel GlobalLogLevel() {
+    inline LogLevel GlobalLogLevel() {
         return InnerGlobalLogLevel;
     }
 
@@ -48,8 +48,9 @@ namespace orz {
                 case FATAL: level_str = "FATAL"; break;
             }
             if (m_level >= InnerGlobalLogLevel) {
-                auto msg = message();
-                m_buffer << level_str << ": " << message();
+                auto msg = m_buffer.str();
+                m_buffer.str("");
+                m_buffer << level_str << ": " << msg;
                 m_log << m_buffer.str() << std::endl;
             }
         }
@@ -86,12 +87,12 @@ namespace orz {
         std::ostream &m_log;
     };
 
-    Log &crash(Log &log)
+    inline Log &crash(Log &log)
     {
         throw Exception(log.message());
     }
 }
 
-#define ORZ_LOG(level) orz::Log(level)("[")(orz::Split(__FILE__, R"(/\)").back())(":")(__LINE__)("] ")
+#define ORZ_LOG(level) orz::Log(level)("[")(orz::Split(__FILE__, R"(/\)").back())(":")(__LINE__)("]: ")
 
 #endif //ORZ_UTILS_LOG_H
