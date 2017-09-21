@@ -4,6 +4,7 @@
 
 #include <orz/utils/except.h>
 #include "orz/mem/vat.h"
+#include <algorithm>
 
 namespace orz {
 
@@ -11,19 +12,21 @@ namespace orz {
     }
 
     void *Vat::malloc(size_t _size) {
-        // find unroped pot
-        for (size_t i = 0; i < m_list.size(); ++i) {
-            if (m_list[i].roped) continue;
-            m_list[i].roped = true;
-            void *ptr = m_list[i].pot.malloc(_size);
-            m_dict.insert(std::make_pair(ptr, i));
-            return ptr;
+        // find first small piece
+        Pot pot;
+        if (!m_heap.empty())
+        {
+            size_t i = 0;
+            for (; i < m_heap.size() - 1; ++i)
+            {
+                if (m_heap[i].capacity() >= _size) break;
+            }
+            pot = m_heap[i];
+            m_heap.erase(m_heap.begin() + i);
         }
-        RopedPot p;
-        p.roped = true;
-        void *ptr = p.pot.malloc(_size);
-        m_list.push_back(p);
-        m_dict.insert(std::make_pair(ptr, m_list.size() - 1));
+        void *ptr = pot.malloc(_size);
+        m_dict.insert(std::pair<void *, orz::Pot>(ptr, pot));
+
         return ptr;
     }
 
@@ -33,25 +36,32 @@ namespace orz {
         if (it == m_dict.end()) {
             throw orz::Exception("Can not free this ptr");
         }
-        m_list[it->second].roped = false;
+
+        auto &pot = it->second;
+
+        auto ind = m_heap.begin();
+        while (ind != m_heap.end() && ind->capacity() < pot.capacity()) ++ind;
+        m_heap.insert(ind, pot);
+
         m_dict.erase(key);
     }
 
     void Vat::reset() {
         for (auto &pair : m_dict) {
-            m_list[pair.second].roped = false;
+            m_heap.push_back(pair.second);
         }
         m_dict.clear();
+        std::sort(m_heap.begin(), m_heap.end(), [](const orz::Pot &p1, const orz::Pot &p2){return p1.capacity() < p2.capacity(); });
     }
 
     void Vat::dispose() {
         m_dict.clear();
-        m_list.clear();
+        m_heap.clear();
     }
 
     void Vat::swap(Vat &that)
     {
-        this->m_list.swap(that.m_list);
+        this->m_heap.swap(that.m_heap);
         this->m_dict.swap(that.m_dict);
     }
 
