@@ -22,13 +22,13 @@ namespace orz {
 
     static LogLevel InnerGlobalLogLevel = STATUS;
 
-    LogLevel GlobalLogLevel(LogLevel level) {
+    inline LogLevel GlobalLogLevel(LogLevel level) {
         LogLevel pre_level = InnerGlobalLogLevel;
         InnerGlobalLogLevel = level;
         return pre_level;
     }
 
-    LogLevel GlobalLogLevel() {
+	inline LogLevel GlobalLogLevel() {
         return InnerGlobalLogLevel;
     }
 
@@ -86,7 +86,7 @@ namespace orz {
         std::ostream &m_log;
     };
 
-    Log &crash(Log &log)
+    inline Log &crash(Log &log)
     {
         throw Exception(log.message());
     }

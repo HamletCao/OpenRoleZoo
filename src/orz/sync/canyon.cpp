@@ -6,8 +6,8 @@
 
 namespace orz {
 
-    Canyon::Canyon(int size)
-            : _work(true), _size(size) {
+    Canyon::Canyon(int size, Action act)
+            : _work(true), _size(size), _act(act) {
         this->_core = std::thread(&Canyon::operating, this);
     }
 
@@ -25,7 +25,12 @@ namespace orz {
 
     void Canyon::push(const Operation &op) const {
         std::unique_lock<std::mutex> _locker(_mutex);
-        while (_size > 0 && _task.size() >= static_cast<size_t >(_size)) _cond.wait(_locker);
+        while (_size > 0 && _task.size() >= static_cast<size_t>(_size)) {
+            switch (_act) {
+            case WAITING: _cond.wait(_locker); break;
+            case DISCARD: return;
+            }
+        }
         _task.push(op);
         _cond.notify_all();
     }

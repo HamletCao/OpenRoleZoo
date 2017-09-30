@@ -19,7 +19,13 @@ namespace orz {
     public:
         using Operation = std::function<void()>;
 
-        explicit Canyon(int size = -1);
+		enum Action
+		{
+			DISCARD,
+			WAITING
+		};
+
+        explicit Canyon(int size = -1, Action act = WAITING);
 
         ~Canyon();
 
@@ -47,6 +53,7 @@ namespace orz {
         mutable std::condition_variable _cond;
         std::atomic<bool> _work;
         int _size;
+		Action _act;
 
         std::thread _core;
     };
