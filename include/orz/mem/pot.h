@@ -12,7 +12,10 @@ namespace orz {
 
     class Pot {
     public:
+        using allocator = std::function<std::shared_ptr<void>(size_t)>;
+
         Pot();
+        Pot(const allocator &ator);
 
         void *malloc(size_t _size);
 
@@ -31,6 +34,9 @@ namespace orz {
         size_t capacity() const;
 
         void dispose();
+
+    private:
+        allocator m_allocator;
 
     private:
         size_t m_capacity;

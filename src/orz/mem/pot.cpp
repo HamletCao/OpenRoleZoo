@@ -3,16 +3,21 @@
 //
 
 #include "orz/mem/pot.h"
+#include <cstring>
 
 namespace orz {
 
     Pot::Pot()
-            : m_capacity(0), m_data() {
+        : Pot([](size_t _size){return std::shared_ptr<void>(std::malloc(_size), std::free); }){
+    }
+
+    Pot::Pot(const allocator &ator)
+        :  m_allocator(ator), m_capacity(0), m_data() {
     }
 
     void *Pot::malloc(size_t _size) {
         if (_size > m_capacity) {
-            m_data.reset(std::malloc(_size), [](void *p) { std::free(p); });
+            m_data = m_allocator(_size);
             m_capacity = _size;
         }
         return m_data.get();
@@ -20,13 +25,13 @@ namespace orz {
 
     void *Pot::relloc(size_t _size) {
         if (_size > m_capacity) {
-            void *new_data = std::malloc(_size);
+            auto new_data = m_allocator(_size);
 #if _MSC_VER >= 1600
-            memcpy_s(new_data, _size, m_data.get(), m_capacity);
+            memcpy_s(new_data.get(), _size, m_data.get(), m_capacity);
 #else
-            memcpy(new_data, m_data.get(), m_capacity);
+            memcpy(new_data.get(), m_data.get(), m_capacity);
 #endif
-            m_data.reset(new_data, [](void *p) { std::free(p); });
+            m_data = new_data;
             m_capacity = _size;
         }
         return m_data.get();

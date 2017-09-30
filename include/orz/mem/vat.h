@@ -22,6 +22,11 @@ namespace orz {
             return reinterpret_cast<T *>(this->malloc(sizeof(T) * _count));
         }
 
+        template<typename T>
+        std::shared_ptr<T> calloc_shared(size_t _count) {
+            return std::shared_ptr<T>(calloc<T>(_count), [this](T*ptr){this->free(ptr); });
+        }
+
         void free(const void *ptr);
 
         /**
@@ -42,14 +47,9 @@ namespace orz {
 
         Vat &operator=(const Vat &that) = delete;
 
-        struct RopedPot
-        {
-            bool roped = false;
-            Pot pot;
-        };
-
-        std::vector<RopedPot> m_list;
-        std::map<void *, size_t> m_dict;    ///< save pair of pointer and index
+        // std::vector<RopedPot> m_list;
+        std::map<void *, Pot> m_dict;	///< save pair of pointer and index
+        std::vector<Pot> m_heap;	///< save all free memory, small fisrt sort
     };
 
 }
