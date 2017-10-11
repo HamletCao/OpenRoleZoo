@@ -5,6 +5,8 @@
 #ifndef ORZ_MEM_NEED_H
 #define ORZ_MEM_NEED_H
 
+#include <functional>
+
 namespace orz {
 
     class need {
