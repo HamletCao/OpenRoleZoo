@@ -33,6 +33,8 @@ namespace orz {
 
         size_t capacity() const;
 
+        size_t size() const;
+
         void dispose();
 
     private:
@@ -40,6 +42,7 @@ namespace orz {
 
     private:
         size_t m_capacity;
+        size_t m_size;
         std::shared_ptr<void> m_data;
     };
 }
