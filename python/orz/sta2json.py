@@ -6,6 +6,7 @@ import struct
 from sta import *
 import json
 import copy
+import base64
 
 
 class Stream:
@@ -44,14 +45,14 @@ def unpack_string(stream, **params):
 
 def unpack_binary(stream, **params):
     length = struct.unpack('=i', stream.read(4))[0]
-    s = struct.unpack('=%dp' % length, stream.read(length))[0]
+    s = struct.unpack('=%ds' % length, stream.read(length))[0]
 
     mode = 1
     if 'binary_mode' in params:
         mode = params['binary_mode']
 
     if mode == 0:
-        return '@binary@%d' % length
+        return '@base64@%s' % base64.b64encode(s)
     elif mode == 1:
         # save file
         if 'getway' not in params:
@@ -137,7 +138,7 @@ def sta2obj(sta_filename):
 
     mark = struct.unpack('=i', stream.read(4))[0]
 
-    if mark != 0x19910505:
+    if mark != STA_MARK:
         raise Exception("%s is not a valid sta file." % sta_filename)
 
     params = {}
@@ -183,12 +184,13 @@ def sta2json(sta_filename, json_filename=None, **params):
 
         mark = struct.unpack('=i', stream.read(4))[0]
 
-        if mark != 0x19910505:
+        if mark != STA_MARK:
             raise Exception("%s is not a valid sta file." % sta_filename)
 
         params['workshop'] = workshop
         params['getway'] = getway
+        # params['binary_mode'] = 0
 
         obj = unpack_obj(stream, **params)
 
-        json.dump(obj, ofile)
+        json.dump(obj, ofile, indent=2)

@@ -9,6 +9,8 @@ STA_BINARY = 4
 STA_LIST = 5
 STA_DICT = 6
 
+STA_MARK = 0x19910929
+
 
 class binary(object):
     def __init__(self, byte=''):

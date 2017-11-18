@@ -6,6 +6,7 @@ import os
 from sta import *
 import struct
 import time
+import base64
 
 
 _registered_command = {}
@@ -55,7 +56,7 @@ def pack_string(obj, **params):
 
 def pack_binary(obj, **params):
     s = str(obj)
-    byte = struct.pack('=bi%dp' % len(s), STA_BINARY, len(s), s)
+    byte = struct.pack('=bi%ds' % len(s), STA_BINARY, len(s), s)
     return byte
 
 
@@ -131,10 +132,15 @@ def pack_file(filename, **params):
     return pack_binary(data, **params)
 
 
+def pack_base64(s, **params):
+    return pack_binary(base64.b64decode(s), **params)
+
+
 register_command("date", pack_date)
 register_command("time", pack_time)
 register_command("datetime", pack_datetime)
 register_command("file", pack_file)
+register_command("base64", pack_base64)
 
 
 def obj2sta(obj, sta_filename, workshop = None):
@@ -149,7 +155,7 @@ def obj2sta(obj, sta_filename, workshop = None):
         byte = pack_obj(obj, **params)
 
         # write header
-        ofile.write(struct.pack('i', 0x19910505))
+        ofile.write(struct.pack('i', STA_MARK))
         # write content
         ofile.write(byte)
 
@@ -181,6 +187,6 @@ def json2sta(json_filename, sta_filename=None):
         byte = pack_obj(obj, **params)
 
         # write header
-        ofile.write(struct.pack('i', 0x19910505))
+        ofile.write(struct.pack('i', STA_MARK))
         # write content
         ofile.write(byte)

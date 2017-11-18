@@ -19,5 +19,10 @@ if __name__ == '__main__':
     orz.json2sta("in/test.json", "out/")
     print json.dumps(orz.sta2obj("out/test.sta"), indent=2)
 
+    # orz.json2sta('workshop/VIPLFaceRecognizer4.3.SID.json', 'workshop/tmp')
+    # orz.json2sta('workshop/VIPLFaceRecognizer5.0.RN2.json', 'workshop/tmp')
+    #
+    # orz.sta2json('workshop/tmp/VIPLFaceRecognizer5.0.RN2.sta')
+
 
 
