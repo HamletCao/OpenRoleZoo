@@ -8,3 +8,11 @@ STA_STRING = 3
 STA_BINARY = 4
 STA_LIST = 5
 STA_DICT = 6
+
+
+class binary(object):
+    def __init__(self, byte=''):
+        self.byte = byte
+
+    def __str__(self):
+        return str(self.byte)

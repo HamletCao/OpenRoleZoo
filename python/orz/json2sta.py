@@ -88,6 +88,8 @@ def pack_value(value, **params):
         return pack_int(value, **params)
     elif isinstance(value, float):
         return pack_float(value, **params)
+    elif isinstance(value, binary):
+        return pack_binary(value, **params)
     else:
         raise Exception("Unsupported value type: ", type(value))
 

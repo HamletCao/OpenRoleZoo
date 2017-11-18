@@ -64,7 +64,7 @@ def unpack_binary(stream, **params):
             f.write(s)
         return '@file@%s' % filename_ext
     else:
-        return s
+        return binary(s)
 
 
 def unpack_list(stream, **params):
