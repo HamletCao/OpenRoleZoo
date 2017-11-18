@@ -47,7 +47,7 @@ def unpack_binary(stream, **params):
     length = struct.unpack('=i', stream.read(4))[0]
     s = struct.unpack('=%ds' % length, stream.read(length))[0]
 
-    mode = 1
+    mode = 0
     if 'binary_mode' in params:
         mode = params['binary_mode']
 
@@ -64,6 +64,8 @@ def unpack_binary(stream, **params):
         with open(binary_filename, 'wb') as f:
             f.write(s)
         return '@file@%s' % filename_ext
+    elif mode == 2:
+        return '@binary@%d' % length
     else:
         return binary(s)
 
@@ -129,7 +131,7 @@ def unpack_obj(stream, **params):
         raise Exception("Unsupported mark type: ", type(mark))
 
 
-def sta2obj(sta_filename):
+def sta2obj(sta_filename, **params):
     byte = ''
     with open(sta_filename, 'rb') as ifile:
         byte = ifile.read()
@@ -141,8 +143,9 @@ def sta2obj(sta_filename):
     if mark != STA_MARK:
         raise Exception("%s is not a valid sta file." % sta_filename)
 
-    params = {}
-    params['binary_mode'] = 0
+    #params = {}
+    if 'binary_mode' not in params:
+        params['binary_mode'] = 0
 
     obj = unpack_obj(stream, **params)
 
@@ -156,9 +159,10 @@ def sta2json(sta_filename, json_filename=None, **params):
     :param json_filename: output json filename or path
     :param params:
     :return:
-    params['binary_model']: 0(default): means write @binary@size
+    params['binary_model']: 0(default): means write @base64@...
                             1: means @file@path
-                            2: meas str for binary memory
+                            2: means write @binary@size
+                            3: meas str for binary memory
     """
     filepath, filename_ext = os.path.split(sta_filename)
     filename, ext = os.path.splitext(filename_ext)
@@ -189,7 +193,8 @@ def sta2json(sta_filename, json_filename=None, **params):
 
         params['workshop'] = workshop
         params['getway'] = getway
-        # params['binary_mode'] = 0
+        if 'binary_mode' not in params:
+            params['binary_mode'] = 1
 
         obj = unpack_obj(stream, **params)
 
