@@ -1,7 +1,7 @@
 {
     "name": "json2sta",
     "date": "@date",
-    "size": 4,
+    "stride": 4,
     "scale": 1.414,
     "threshold": [
         0.7,
@@ -14,6 +14,7 @@
             1,
             2.3
         ]
-    }
+    },
+    "data" : "@file@orz/sta.py"
 }
 
