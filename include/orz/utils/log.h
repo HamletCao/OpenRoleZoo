@@ -74,7 +74,7 @@ namespace orz {
 
         using Method = Log &(Log &);
 
-        Log &operator<<(const Method &method) {
+        Log &operator<<(Method method) {
             if (m_level >= InnerGlobalLogLevel) {
                 return method(*this);
             }
