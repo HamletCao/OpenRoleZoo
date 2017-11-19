@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 # coding: UTF-8
+"""
+Converter between json file and sta file.
+"""
 
-from orz.json2sta import json2sta
-from orz.json2sta import obj2sta
-from orz.sta2json import sta2json
-from orz.sta2json import sta2obj
+
+from json2sta import json2sta
+from json2sta import obj2sta
+from sta2json import sta2json
+from sta2json import sta2obj
+from sta import binary
 

@@ -24,43 +24,43 @@ class Stream:
         return data
 
 
-def unpack_nil(stream, **params):
+def unpack_nil(stream, **kwargs):
     stream.read(1)
     return None
 
 
-def unpack_int(stream, **params):
+def unpack_int(stream, **kwargs):
     return struct.unpack('=i', stream.read(4))[0]
 
 
-def unpack_float(stream, **params):
+def unpack_float(stream, **kwargs):
     return struct.unpack('=f', stream.read(4))[0]
 
 
-def unpack_string(stream, **params):
+def unpack_string(stream, **kwargs):
     length = struct.unpack('=i', stream.read(4))[0]
     s = struct.unpack('=%ds' % length, stream.read(length))[0]
     return s
 
 
-def unpack_binary(stream, **params):
+def unpack_binary(stream, **kwargs):
     length = struct.unpack('=i', stream.read(4))[0]
     s = struct.unpack('=%ds' % length, stream.read(length))[0]
 
     mode = 0
-    if 'binary_mode' in params:
-        mode = params['binary_mode']
+    if 'binary_mode' in kwargs:
+        mode = kwargs['binary_mode']
 
     if mode == 0:
         return '@base64@%s' % base64.b64encode(s)
     elif mode == 1:
         # save file
-        if 'getway' not in params:
+        if 'getway' not in kwargs:
             raise Exception("getway must be set.")
-        if 'workshop' not in params:
+        if 'workshop' not in kwargs:
             raise Exception("workshop must be set.")
-        filename_ext = params['getway'] + '.bin'
-        binary_filename = os.path.join(params['workshop'], filename_ext)
+        filename_ext = kwargs['getway'] + '.bin'
+        binary_filename = os.path.join(kwargs['workshop'], filename_ext)
         with open(binary_filename, 'wb') as f:
             f.write(s)
         return '@file@%s' % filename_ext
@@ -70,68 +70,78 @@ def unpack_binary(stream, **params):
         return binary(s)
 
 
-def unpack_list(stream, **params):
-    local_params = copy.copy(params)
-    if 'getway' not in local_params:
-        local_params['getway'] = ''
-    getway = local_params['getway']
+def unpack_list(stream, **kwargs):
+    local_kwargs = copy.copy(kwargs)
+    if 'getway' not in local_kwargs:
+        local_kwargs['getway'] = ''
+    getway = local_kwargs['getway']
 
     obj = []
     length = struct.unpack('=i', stream.read(4))[0]
     for i in xrange(length):
-        local_params['getway'] = getway + '_' + str(i)
-        obj.append(unpack_obj(stream, **local_params))
+        local_kwargs['getway'] = getway + '_' + str(i)
+        obj.append(unpack_obj(stream, **local_kwargs))
     return obj
 
 
-def unpack_dict(stream, **params):
-    local_params = copy.copy(params)
-    if 'getway' not in local_params:
-        local_params['getway'] = ''
-    getway = local_params['getway']
+def unpack_dict(stream, **kwargs):
+    local_kwargs = copy.copy(kwargs)
+    if 'getway' not in local_kwargs:
+        local_kwargs['getway'] = ''
+    getway = local_kwargs['getway']
 
     obj = {}
     length = struct.unpack('=i', stream.read(4))[0]
     for i in xrange(length):
-        key = unpack_string(stream, **params)
-        local_params['getway'] = getway + '_' + key
-        value = unpack_obj(stream, **local_params)
+        key = unpack_string(stream, **kwargs)
+        local_kwargs['getway'] = getway + '_' + key
+        value = unpack_obj(stream, **local_kwargs)
         obj[key] = value
     return obj
 
 
-def unpack_obj(stream, **params):
+def unpack_obj(stream, **kwargs):
     """
-    unpack_obj
+    Convert an stream(sta format) to object(json format)
     :param stream: Stream of binary sta file
-    :param params:
-    :return:
-    params['workshop']: means path to write binary file
-    params['getway']: means the getway to all values
-    params['binary_model']: 0(default): means write @binary@size
-                            1: means @file@path
-                            2: meas str for binary memory
+    :param workshop: path to write binary file
+    :param getway: the getway to all values
+    :param binary_mode: 0(default): means write @base64@...
+                        1: means @file@path
+                        2: means write @binary@size
+                        3: meas str for binary memory
+    :return: unpacked object
     """
     mark = struct.unpack('=b', stream.read(1))[0]
     if mark == STA_NIL:
-        return unpack_nil(stream, **params)
+        return unpack_nil(stream, **kwargs)
     elif mark == STA_INT:
-        return unpack_int(stream, **params)
+        return unpack_int(stream, **kwargs)
     elif mark == STA_FLOAT:
-        return unpack_float(stream, **params)
+        return unpack_float(stream, **kwargs)
     elif mark == STA_STRING:
-        return unpack_string(stream, **params)
+        return unpack_string(stream, **kwargs)
     elif mark == STA_BINARY:
-        return unpack_binary(stream, **params)
+        return unpack_binary(stream, **kwargs)
     elif mark == STA_LIST:
-        return unpack_list(stream, **params)
+        return unpack_list(stream, **kwargs)
     elif mark == STA_DICT:
-        return unpack_dict(stream, **params)
+        return unpack_dict(stream, **kwargs)
     else:
         raise Exception("Unsupported mark type: ", type(mark))
 
 
-def sta2obj(sta_filename, **params):
+def sta2obj(sta_filename, **kwargs):
+    """
+    Convert filename.sta to object
+    :param sta_filename: input sta filename
+    :param binary_mode: 0(default): means write @base64@...
+                        1: means @file@path
+                        2: means write @binary@size
+                        3: meas str for binary memory
+    :return:
+    """
+
     byte = ''
     with open(sta_filename, 'rb') as ifile:
         byte = ifile.read()
@@ -143,27 +153,27 @@ def sta2obj(sta_filename, **params):
     if mark != STA_MARK:
         raise Exception("%s is not a valid sta file." % sta_filename)
 
-    #params = {}
-    if 'binary_mode' not in params:
-        params['binary_mode'] = 0
+    # kwargs = {}
+    if 'binary_mode' not in kwargs:
+        kwargs['binary_mode'] = 0
 
-    obj = unpack_obj(stream, **params)
+    obj = unpack_obj(stream, **kwargs)
 
     return obj
 
 
-def sta2json(sta_filename, json_filename=None, **params):
+def sta2json(sta_filename, json_filename=None, **kwargs):
     """
-    sta2json
+    Convert filename.sta to filename.json.
     :param sta_filename: input sta filename
     :param json_filename: output json filename or path
-    :param params:
+    :param binary_mode: 0(default): means write @base64@...
+                        1: means @file@path
+                        2: means write @binary@size
+                        3: meas str for binary memory
     :return:
-    params['binary_model']: 0(default): means write @base64@...
-                            1: means @file@path
-                            2: means write @binary@size
-                            3: meas str for binary memory
     """
+
     filepath, filename_ext = os.path.split(sta_filename)
     filename, ext = os.path.splitext(filename_ext)
 
@@ -191,11 +201,11 @@ def sta2json(sta_filename, json_filename=None, **params):
         if mark != STA_MARK:
             raise Exception("%s is not a valid sta file." % sta_filename)
 
-        params['workshop'] = workshop
-        params['getway'] = getway
-        if 'binary_mode' not in params:
-            params['binary_mode'] = 1
+        kwargs['workshop'] = workshop
+        kwargs['getway'] = getway
+        if 'binary_mode' not in kwargs:
+            kwargs['binary_mode'] = 1
 
-        obj = unpack_obj(stream, **params)
+        obj = unpack_obj(stream, **kwargs)
 
         json.dump(obj, ofile, indent=2)
