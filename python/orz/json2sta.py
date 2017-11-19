@@ -69,7 +69,8 @@ def pack_list(obj, **kwargs):
 
 def pack_dict(obj, **kwargs):
     byte = struct.pack('=bi', STA_DICT, len(obj))
-    for key in obj.keys():
+    keys = sorted(obj.keys())
+    for key in keys:
         value = obj[key]
         byte += pack_raw_string(key, **kwargs)
         byte += pack_obj(value, **kwargs)

@@ -7,6 +7,7 @@ from sta import *
 import json
 import copy
 import base64
+from collections import OrderedDict
 
 
 class Stream:
@@ -97,6 +98,7 @@ def unpack_dict(stream, **kwargs):
         local_kwargs['getway'] = getway + '_' + key
         value = unpack_obj(stream, **local_kwargs)
         obj[key] = value
+    obj = OrderedDict(sorted(obj.items(), key=lambda item: item[0]))
     return obj
 
 
