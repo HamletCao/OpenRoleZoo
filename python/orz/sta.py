@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 # coding: UTF-8
+"""
+sta binary format:
+[byte-layout:value] means an binary block with length and content
+[[byte-layout:value], [byte-layout:value]] compose Piece
+following are each type of pieces:
+nil: [0:<hold>]
+int: [0:STA_INT],[1-4:<int>]
+float: [0:STA_INT],[1-4:<float>]
+string: [0:STA_STRING],[1-4:<length>],[4-`4+<length>-1`:<string>]
+binary: [0:STA_BINARY],[1-4:<length>],[4-`4+<length>-1`:<binary>]
+list: [0:STA_LIST],[1-4:<length>],...[<value-any-piece>]x<length>
+dict: [0:STA_DICT],[1-4:<length>],...[[<key-string-piece>],[<value-any-piece>]]x<length>
+the top piece should be dict, so it can hold all contents.
+"""
 
 STA_NIL = 0
 STA_INT = 1
@@ -13,8 +27,19 @@ STA_MARK = 0x19910929
 
 
 class binary(object):
+    """
+    Enclosure for binary str object
+    """
     def __init__(self, byte=''):
+        """
+        Init binary with content bytes
+        :param byte: content
+        """
         self.byte = byte
 
     def __str__(self):
+        """
+        Return the bytes of this binary
+        :return: bytes
+        """
         return str(self.byte)
