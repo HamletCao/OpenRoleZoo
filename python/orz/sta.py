@@ -8,8 +8,8 @@ following are each type of pieces:
 nil: [0:<hold>]
 int: [0:STA_INT],[1-4:<int>]
 float: [0:STA_INT],[1-4:<float>]
-string: [0:STA_STRING],[1-4:<length>],[4-`4+<length>-1`:<string>]
-binary: [0:STA_BINARY],[1-4:<length>],[4-`4+<length>-1`:<binary>]
+string: [0:STA_STRING],[1-4:<length>],[5-`4+<length>`:<string>]
+binary: [0:STA_BINARY],[1-4:<length>],[5-`4+<length>`:<binary>]
 list: [0:STA_LIST],[1-4:<length>],...[<value-any-piece>]x<length>
 dict: [0:STA_DICT],[1-4:<length>],...[[<key-string-piece>],[<value-any-piece>]]x<length>
 the top piece should be dict, so it can hold all contents.
