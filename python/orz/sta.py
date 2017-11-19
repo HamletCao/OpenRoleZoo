@@ -5,7 +5,7 @@ sta binary format:
 [byte-layout:value] means an binary block with length and content
 [[byte-layout:value], [byte-layout:value]] compose Piece
 following are each type of pieces:
-nil: [0:<hold>]
+nil: [0:STA_NIL],[1:<hold>]
 int: [0:STA_INT],[1-4:<int>]
 float: [0:STA_INT],[1-4:<float>]
 string: [0:STA_STRING],[1-4:<length>],[5-`4+<length>`:<string>]
