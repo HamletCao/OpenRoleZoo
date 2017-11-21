@@ -111,7 +111,7 @@ def unpack_obj(stream, **kwargs):
     :param binary_mode: 0(default): means write @base64@...
                         1: means @file@path
                         2: means write @binary@size
-                        3: meas str for binary memory
+                        3: means str for binary memory
     :return: unpacked object
     """
     mark = struct.unpack('=b', stream.read(1))[0]
@@ -140,7 +140,7 @@ def sta2obj(sta_filename, **kwargs):
     :param binary_mode: 0(default): means write @base64@...
                         1: means @file@path
                         2: means write @binary@size
-                        3: meas str for binary memory
+                        3: means str for binary memory
     :return:
     """
 
@@ -172,7 +172,7 @@ def sta2json(sta_filename, json_filename=None, **kwargs):
     :param binary_mode: 0(default): means write @base64@...
                         1: means @file@path
                         2: means write @binary@size
-                        3: meas str for binary memory
+                        3: means str for binary memory
     :return:
     """
 

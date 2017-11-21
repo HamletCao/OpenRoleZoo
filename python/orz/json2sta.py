@@ -215,6 +215,6 @@ def json2sta(json_filename, sta_filename=None):
         byte = pack_obj(obj, **kwargs)
 
         # write header
-        ofile.write(struct.pack('i', STA_MARK))
+        ofile.write(struct.pack('=i', STA_MARK))
         # write content
         ofile.write(byte)
