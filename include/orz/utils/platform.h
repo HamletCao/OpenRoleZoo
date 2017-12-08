@@ -87,7 +87,7 @@
 //#   error Unknown compiler
 #   define ORZ_PLATFORM_CC_MSVC  0
 #   define ORZ_PLATFORM_CC_MINGW 0
-#   define ORZ_PLATFORM_CC_GCC   1
+#   define ORZ_PLATFORM_CC_GCC   0
 #endif
 
 #endif //ORZ_UTILS_PLATFORM_H
