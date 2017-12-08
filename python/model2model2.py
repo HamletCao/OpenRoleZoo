@@ -23,8 +23,8 @@ if __name__ == '__main__':
 
     filenames = os.listdir(input_dir)
 
-    cout_keep = 0
-    cout_modify = 0
+    count_keep = 0
+    count_modify = 0
 
     for filename in filenames:
         if filename[-5:] != '.json':
@@ -36,9 +36,11 @@ if __name__ == '__main__':
         if timestamp(output_filename) < timestamp(input_filename):
             print 'Converting %s' % input_filename
             orz.json2sta(input_filename, output_filename)
-            cout_modify += 1
+            count_modify += 1
         else:
-            print 'Keeping %s' % output_filename
-            cout_keep += 1
+            print 'Keeping %s' % input_filename
+            count_keep += 1
 
-    print "Modified: %d, Kept: %d" % (cout_modify, cout_keep)
+    count_total = count_modify + count_keep
+
+    print "Total: %d. Modified: %d, kept: %d" % (count_total, count_modify, count_keep)
