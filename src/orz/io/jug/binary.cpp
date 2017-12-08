@@ -4,6 +4,8 @@
 
 #include "orz/io/jug/binary.h"
 
+#include <cstring>
+
 namespace orz {
 
     size_t binary::size() const {return m_size;}
@@ -26,29 +28,41 @@ namespace orz {
         return _size;
     }
 
-    size_t binary::get_pos() const;
+    size_t binary::get_pos() const
+    {
+        return m_index;
+    }
 
-    size_t binary::set_pos(pos _pos, int _shift);
+//    size_t binary::set_pos(pos _pos, int _shift);
+//
+//    void binary::shift(int _size);
 
-    void binary::shift(int _size);
+    const void *binary::data() const
+    {
+        return m_data.get();
+    }
 
-    const void *binary::data() const;
+    void *binary::data()
+    {
+        return m_data.get();
+    }
 
-    void *binary::data();
+//    binary binary::clone() const;
+//
+//    void binary::memset(char ch);
+//
+//    void binary::memset(pos _pos, int _begin, int _end, char ch);
 
-    binary binary::clone() const;
+    void binary::reverse(size_t _size)
+    {
 
-    void binary::memset(char ch);
+    }
 
-    void binary::memset(pos _pos, int _begin, int _end, char ch);
-
-    void binary::reverse(size_t _size);
-
-    void binary::resize(size_t _size);
-
-    void binary::clear();
-
-    void binary::dispose();
+//    void binary::resize(size_t _size);
+//
+//    void binary::clear();
+//
+//    void binary::dispose();
 
     void *binary::now_data() { return data<char>() + m_index; }
 

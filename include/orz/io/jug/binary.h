@@ -5,6 +5,9 @@
 #ifndef ORZ_IO_JUG_BINARY_H
 #define ORZ_IO_JUG_BINARY_H
 
+#include <cstddef>
+#include <memory>
+
 namespace orz {
     class binary {
     public:
@@ -74,7 +77,7 @@ namespace orz {
         std::shared_ptr<void> m_data;
         size_t m_capacity = 0;
         size_t m_size = 0;
-        size_t m_index = 0;
+        mutable size_t m_index = 0;
 
         void *now_data();
         const void *now_data() const;
