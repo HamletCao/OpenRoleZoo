@@ -9,6 +9,7 @@
 #include <io.h>
 #else
 #include <dirent.h>
+#include <cstring>
 #endif
 
 namespace orz {
