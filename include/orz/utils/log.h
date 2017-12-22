@@ -39,20 +39,7 @@ namespace orz {
         }
 
         ~Log() {
-            std::string level_str = "Unkown";
-            switch (m_level) {
-                case NONE: return;
-                case DEBUG: level_str = "DEBUG"; break;
-                case STATUS: level_str = "STATUS"; break;
-                case INFO: level_str = "INFO"; break;
-                case FATAL: level_str = "FATAL"; break;
-            }
-            if (m_level >= InnerGlobalLogLevel) {
-                auto msg = m_buffer.str();
-                m_buffer.str("");
-                m_buffer << level_str << ": " << msg;
-                m_log << m_buffer.str() << std::endl;
-            }
+            flush();
         }
 
         const std::string message() const {
@@ -81,15 +68,41 @@ namespace orz {
             return *this;
         }
 
+        void flush()
+        {
+            std::string level_str = "Unkown";
+            switch (m_level) {
+            case NONE: return;
+            case DEBUG: level_str = "DEBUG"; break;
+            case STATUS: level_str = "STATUS"; break;
+            case INFO: level_str = "INFO"; break;
+            case FATAL: level_str = "FATAL"; break;
+            }
+            if (m_level >= InnerGlobalLogLevel) {
+                auto msg = m_buffer.str();
+                m_buffer.str("");
+                m_buffer << level_str << ": " << msg;
+                m_log << m_buffer.str() << std::endl;
+            }
+            m_level = NONE;
+            m_buffer.str("");
+            m_log.flush();
+        }
+
     private:
         LogLevel m_level;
         std::ostringstream m_buffer;
         std::ostream &m_log;
+
+        Log(const Log &other) = delete;
+        Log &operator=(const Log&other) = delete;
     };
 
     inline Log &crash(Log &log)
     {
-        throw Exception(log.message());
+        const auto msg = log.message();
+        log.flush();
+        throw Exception(msg);
     }
 }
 

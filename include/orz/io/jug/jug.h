@@ -186,7 +186,7 @@ namespace orz {
     T jug_get(const jug &j, const T &def = T()) {
         try {
             return static_cast<T>(j);
-        } catch (const Exception &e) {
+        } catch (const Exception &) {
             return def;
         }
     }
