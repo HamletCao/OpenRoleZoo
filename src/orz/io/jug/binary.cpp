@@ -5,6 +5,7 @@
 #include "orz/io/jug/binary.h"
 
 #include <cstring>
+#include <algorithm>
 
 namespace orz {
 
