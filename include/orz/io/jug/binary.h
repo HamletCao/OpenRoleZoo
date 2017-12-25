@@ -22,6 +22,12 @@ namespace orz {
 
         using size_t = ::size_t;
 
+        binary();
+        binary(const void *_buffer, size_t _size);
+        binary(const std::string &str);
+
+        operator std::string() const;
+
         // return size
         size_t size() const;
 
@@ -50,7 +56,7 @@ namespace orz {
         void *data();
 
         template <typename T>
-        const T *data() const {return reinterpret_cast<T*>(data());}
+        const T *data() const {return reinterpret_cast<const T*>(data());}
 
         template <typename T>
         T *data() {return reinterpret_cast<T*>(data());}
