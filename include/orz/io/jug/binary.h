@@ -25,6 +25,9 @@ namespace orz {
         // return size
         size_t size() const;
 
+        // return capacity
+        size_t capacity() const;
+
         // read _size bytes into _buffer from binary, and index += _size
         size_t read(void *_buffer, size_t _size) const;
 
@@ -79,6 +82,8 @@ namespace orz {
         size_t m_size = 0;
         mutable size_t m_index = 0;
 
+        size_t correct_index(int _index);
+        size_t correct_index(pos _pos, int _shift);
         void *now_data();
         const void *now_data() const;
     };

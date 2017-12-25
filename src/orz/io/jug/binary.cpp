@@ -10,6 +10,8 @@ namespace orz {
 
     size_t binary::size() const {return m_size;}
 
+    size_t binary::capacity() const {return m_capacity;}
+
     size_t binary::read(void *_buffer, size_t _size) const
     {
         size_t memory_left = m_size - m_index;
@@ -33,9 +35,16 @@ namespace orz {
         return m_index;
     }
 
-//    size_t binary::set_pos(pos _pos, int _shift);
-//
-//    void binary::shift(int _size);
+    size_t binary::set_pos(pos _pos, int _shift)
+    {
+        m_index = correct_index(_pos, _shift);
+        return m_index;
+    }
+
+    void binary::shift(int _size)
+    {
+        set_pos(pos::now, _size);
+    }
 
     const void *binary::data() const
     {
@@ -47,24 +56,77 @@ namespace orz {
         return m_data.get();
     }
 
-//    binary binary::clone() const;
-//
-//    void binary::memset(char ch);
-//
-//    void binary::memset(pos _pos, int _begin, int _end, char ch);
+    binary binary::clone() const
+    {
+        binary doly;
+        doly.write(self::data(), self::size());
+        return std::move(doly);
+    }
+
+    void binary::memset(char ch)
+    {
+        std::memset(self::data(), ch, self::capacity());
+    }
+
+    void binary::memset(pos _pos, int _begin, int _end, char ch)
+    {
+        size_t c_begin = correct_index(_pos, _begin);
+        size_t c_end = correct_index(_pos, _end);
+        size_t c_size = c_end - c_begin;
+        std::memset(self::data<char>() + c_begin, ch, c_size);
+    }
 
     void binary::reverse(size_t _size)
     {
-
+        if (_size > m_capacity)
+        {
+            auto *new_data = std::malloc(_size);
+            std::memcpy(new_data, self::data(), self::size());
+            m_data.reset(new_data, std::free);
+            m_capacity = _size;
+        }
     }
 
-//    void binary::resize(size_t _size);
-//
-//    void binary::clear();
-//
-//    void binary::dispose();
+    void binary::resize(size_t _size)
+    {
+        reverse(_size);
+        m_size = _size;
+    }
 
-    void *binary::now_data() { return data<char>() + m_index; }
+    void binary::clear()
+    {
+        m_index = 0;
+        m_size = 0;
+    }
+
+    void binary::dispose()
+    {
+        m_index = 0;
+        m_size = 0;
+        m_capacity = 0;
+        m_data.reset();
+    }
+
+    size_t binary::correct_index(int _index)
+    {
+        int c_index = std::max<int>(0, std::min<int>(static_cast<int>(m_size), _index));
+        return static_cast<size_t>(c_index);
+    }
+
+    size_t binary::correct_index(pos _pos, int _shift)
+    {
+        size_t _base = m_index;
+        switch (_pos)
+        {
+            case pos::beg: _base = 0; break;
+            case pos::now: _base = m_index; break;
+            case pos::end: _base = m_size; break;
+        }
+        int b_index = static_cast<int>(_base) + _shift;
+        return correct_index(b_index);
+    }
+
+    void *binary::now_data() { return self::data<char>() + m_index; }
 
     const void *binary::now_data() const  { return const_cast<self *>(this)->now_data(); }
 
