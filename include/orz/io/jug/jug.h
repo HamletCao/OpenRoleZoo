@@ -98,6 +98,8 @@ namespace orz {
 
         operator std::string() const;
 
+        operator binary() const;
+
         // string, binary, list, dict function
         size_t size() const;
 

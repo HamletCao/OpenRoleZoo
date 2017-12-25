@@ -122,6 +122,17 @@ namespace orz {
         }
     }
 
+    jug::operator binary() const {
+        switch (m_pie->type()) {
+            case Piece::STRING:
+                return reinterpret_cast<StringPiece *>(m_pie.get())->get();
+            case Piece::BINARY:
+                return reinterpret_cast<BinaryPiece *>(m_pie.get())->get();
+            default:
+                throw Exception("Can not convert this jug to binary");
+        }
+    }
+
     // string, binary, list, dict function
     size_t jug::size() const {
         switch (m_pie->type()) {
