@@ -13,7 +13,7 @@ namespace orz {
     public:
         template<typename FUNC, typename... Args>
         need(FUNC func, Args... args) {
-            task = [func, args...]() { func(args...); };
+            task = std::bind(func, std::forward<Args>(args)...);
         }
 
         ~need() { task(); }
