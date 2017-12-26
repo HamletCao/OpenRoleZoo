@@ -80,7 +80,7 @@ namespace orz {
 
         wide_brick(const std::vector<typename brick<I, O>::ptr> &cores)
                 : m_gun(cores.size()), m_core(cores) {
-            if (m_core.empty()) ORZ_LOG(orz::FATAL) << "Can not init with empty cores" << crash;
+            if (m_core.empty()) orz::Log(FATAL) << "Can not init with empty cores" << crash;
         }
 
         virtual IOList<O> work(const IOList<I> &input) override
