@@ -11,6 +11,11 @@ namespace orz {
 
     class need {
     public:
+        template<typename FUNC>
+        need(FUNC func) {
+            task = func;
+        }
+
         template<typename FUNC, typename... Args>
         need(FUNC func, Args... args) {
             task = std::bind(func, std::forward<Args>(args)...);
@@ -20,6 +25,7 @@ namespace orz {
 
     private:
         need(const need &that) = delete;
+
         need &operator=(const need &that) = delete;
 
         std::function<void()> task;
