@@ -29,11 +29,15 @@ namespace orz {
 
         ~Canyon();
 
+        template<typename FUNC>
+        void operator()(FUNC func) const {
+            auto op = func;
+            this->push(op);
+        };
+
         template<typename FUNC, typename... Args>
         void operator()(FUNC func, Args... args) const {
-            auto op = [func, args...]() {
-                func(args...);
-            };
+            auto op = std::bind(func, std::forward<Args>(args)...);
             this->push(op);
         };
 
