@@ -154,6 +154,7 @@ register_command("datetime", pack_datetime)
 register_command("file", pack_file)
 register_command("base64", pack_base64)
 register_command("binary", pack_error)
+register_command("nil", pack_nil)
 
 
 def obj2sta(obj, sta_filename, workshop=None):
