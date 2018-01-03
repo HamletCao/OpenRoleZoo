@@ -26,8 +26,12 @@ namespace orz {
     jug::jug(const std::string &val)
             : m_pie(std::make_shared<StringPiece>(val)) {}
 
-    bool jug::valid(Piece::Type type) {
+    bool jug::valid(Piece::Type type) const {
         return m_pie && m_pie->type() == type;
+    }
+
+    bool jug::valid() const {
+        return !valid(Piece::NIL);
     }
 
     jug &jug::operator=(nullptr_t _) {
@@ -269,11 +273,19 @@ namespace orz {
         }
     }
 
+    Piece *jug::raw() {
+        return m_pie.get();
+    }
+
+    const Piece *jug::raw() const {
+        return m_pie.get();
+    }
+
     std::ostream &operator<<(std::ostream &out, const jug &e) {
         auto &m_pie = e.m_pie;
         switch (m_pie->type()) {
             case Piece::NIL:
-                return out << "nil";
+                return out << "@nil";
             case Piece::INT:
                 return out << reinterpret_cast<IntPiece *>(m_pie.get())->get();
             case Piece::FLOAT:
@@ -281,7 +293,7 @@ namespace orz {
             case Piece::STRING:
                 return out << '\"' << reinterpret_cast<StringPiece *>(m_pie.get())->get() << '\"';
             case Piece::BINARY:
-                return out << '\"' << "binary:" << reinterpret_cast<BinaryPiece *>(m_pie.get())->size() << '\"';
+                return out << '\"' << "@binary:" << reinterpret_cast<BinaryPiece *>(m_pie.get())->size() << '\"';
             case Piece::LIST: {
                 auto list = reinterpret_cast<ListPiece *>(m_pie.get());
                 out << '[';
@@ -344,6 +356,36 @@ namespace orz {
     }
 
     void jug_write(std::ostream &out, const jug &j) {
+        Piece::Write(out, j.m_pie);
+    }
+
+    jug sta_read(const std::string &filename, int mask) {
+        std::ifstream infile(filename, std::ios::binary);
+        if (infile.is_open()) {
+            return sta_read(infile, STA_MASK);
+        } else {
+            return jug();
+        }
+    }
+
+    jug sta_read(std::istream &in, int mask) {
+        int stream_mask = 0;
+        binio<int>::read(in, stream_mask);
+        if (stream_mask != mask) return jug();
+        return Piece::Read(in);
+    }
+
+    bool sta_write(const std::string &filename, const jug &j, int mask) {
+        std::ofstream outfile(filename, std::ios::binary);
+        if (outfile.is_open()) {
+            sta_write(outfile, j, STA_MASK);
+            return true;
+        }
+        return false;
+    }
+
+    void sta_write(std::ostream &out, const jug &j, int mask) {
+        binio<int>::write(out, mask);
         Piece::Write(out, j.m_pie);
     }
 

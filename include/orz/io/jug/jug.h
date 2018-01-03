@@ -10,6 +10,8 @@
 
 namespace orz {
 
+    static const int STA_MASK = 0x19910929;
+
     /*
      * @brief interface of piece
      */
@@ -53,7 +55,9 @@ namespace orz {
 
         jug(const char *val) : jug(std::string(val)) {}
 
-        bool valid(Piece::Type type);
+        bool valid(Piece::Type type) const;
+
+        bool valid() const;
 
         // common type set function
         jug &operator=(nullptr_t _);
@@ -146,6 +150,10 @@ namespace orz {
             }
         }
 
+        Piece *raw();
+
+        const Piece *raw() const;
+
     private:
         jug(const std::shared_ptr<Piece> &pie) : m_pie(pie) {}
 
@@ -168,6 +176,13 @@ namespace orz {
 
         friend void jug_write(std::ostream &out, const jug &j);
 
+        friend jug sta_read(const std::string &filename, int mask);
+
+        friend jug sta_read(std::istream &in, int mask);
+
+        friend bool sta_write(const std::string &filename, const jug &j, int mask);
+
+        friend void sta_write(std::ostream &out, const jug &j, int mask);
     };
 
     std::ostream &operator<<(std::ostream &out, const jug &e);
@@ -184,7 +199,15 @@ namespace orz {
 
     void jug_write(std::ostream &out, const jug &j);
 
-    template <typename T>
+    jug sta_read(const std::string &filename, int mask = STA_MASK);
+
+    jug sta_read(std::istream &in, int mask = STA_MASK);
+
+    bool sta_write(const std::string &filename, const jug &j, int mask = STA_MASK);
+
+    void sta_write(std::ostream &out, const jug &j, int mask = STA_MASK);
+
+    template<typename T>
     T jug_get(const jug &j, const T &def = T()) {
         try {
             return static_cast<T>(j);
