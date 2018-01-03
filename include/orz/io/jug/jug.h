@@ -93,6 +93,8 @@ namespace orz {
 
         jug &operator=(const char *val) { return *this = std::string(val); }
 
+        jug &operator=(const binary &val);
+
         // common type function
         operator bool() const;
 

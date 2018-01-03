@@ -81,6 +81,18 @@ namespace orz {
         return *this;
     }
 
+    jug &jug::operator=(const binary &val) {
+        switch (m_pie->type()) {
+            case Piece::BINARY:
+                reinterpret_cast<BinaryPiece *>(m_pie.get())->set(val);
+                break;
+            default:
+                m_pie = std::make_shared<BinaryPiece>(val);
+                break;
+        }
+        return *this;
+    }
+
     jug::operator bool() const {
         return m_pie && m_pie->notnil();
     }
