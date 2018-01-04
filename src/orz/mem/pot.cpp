@@ -27,11 +27,7 @@ namespace orz {
     void *Pot::relloc(size_t _size) {
         if (_size > m_capacity) {
             auto new_data = m_allocator(_size);
-#if _MSC_VER >= 1600
-            memcpy_s(new_data.get(), _size, m_data.get(), m_capacity);
-#else
-            memcpy(new_data.get(), m_data.get(), m_capacity);
-#endif
+            std::memcpy(new_data.get(), m_data.get(), m_capacity);
             m_data = new_data;
             m_capacity = _size;
         }
