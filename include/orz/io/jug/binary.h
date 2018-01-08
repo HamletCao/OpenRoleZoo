@@ -25,9 +25,9 @@ namespace orz {
 
         binary();
         binary(const void *_buffer, size_t _size);
-        binary(const std::string &str);
+        // binary(const std::string &str);
 
-        operator std::string() const;
+        // operator std::string() const;
 
         // return size
         size_t size() const;

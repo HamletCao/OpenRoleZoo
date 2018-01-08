@@ -132,7 +132,10 @@ namespace orz {
             case Piece::STRING:
                 return reinterpret_cast<StringPiece *>(m_pie.get())->get();
             case Piece::BINARY:
-                return reinterpret_cast<BinaryPiece *>(m_pie.get())->get();
+            {
+                auto bin = reinterpret_cast<BinaryPiece *>(m_pie.get())->get();
+                return std::string(bin.data<char>(), bin.size());
+            }
             default:
                 throw Exception("Can not convert this jug to string");
         }
@@ -141,7 +144,10 @@ namespace orz {
     jug::operator binary() const {
         switch (m_pie->type()) {
             case Piece::STRING:
-                return reinterpret_cast<StringPiece *>(m_pie.get())->get();
+            {
+                auto &str = reinterpret_cast<StringPiece *>(m_pie.get())->get();
+                return binary(str.data(), str.size());
+            }
             case Piece::BINARY:
                 return reinterpret_cast<BinaryPiece *>(m_pie.get())->get();
             default:

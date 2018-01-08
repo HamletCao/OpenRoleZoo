@@ -15,13 +15,13 @@ namespace orz {
         write(_buffer, _size);
     }
 
-    binary::binary(const std::string &str) {
-        write(str.data(), str.size());
-    }
+//    binary::binary(const std::string &str) {
+//        write(str.data(), str.size());
+//    }
 
-    binary::operator std::string() const {
-        return std::string(self::data<char>(), self::size());
-    }
+//    binary::operator std::string() const {
+//        return std::string(self::data<char>(), self::size());
+//    }
 
     size_t binary::size() const { return m_size; }
 
