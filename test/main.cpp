@@ -298,9 +298,7 @@ int main() {
     std::cout << bb << std::endl;
 
     std::ifstream in("../python/workshop/tmp/VIPLFaceRecognizer5.0.RN2.sta", std::ios::binary);
-    int mark;
-    orz::binio<int>::read(in, mark);
-    auto model = orz::jug_read(in);
+    auto model = orz::sta_read(in);
 
     std::cout << model << std::endl;
 
