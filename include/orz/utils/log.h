@@ -106,6 +106,6 @@ namespace orz {
     }
 }
 
-#define ORZ_LOG(level) orz::Log(level)("[")(orz::Split(__FILE__, R"(/\)").back())(":")(__LINE__)("]: ")
+#define ORZ_LOG(level) (orz::Log(level))("[")(orz::Split(__FILE__, R"(/\)").back())(":")(__LINE__)("]: ")
 
 #endif //ORZ_UTILS_LOG_H
