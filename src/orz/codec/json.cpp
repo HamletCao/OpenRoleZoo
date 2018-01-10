@@ -6,12 +6,38 @@
 
 #include "json_iterator.h"
 
-static std::string parse_string();
+namespace orz
+{
+    static std::string parse_string(json_iterator &it)
+    {
+        if (it == it.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to string" << crash;
+        if (*it != '"') ORZ_LOG(ERROR) << "syntax error: string begin with " << *it << crash;
+        std::ostringstream oss;
+        while (++it != it.end())
+        {
+            if (*it == '"')
+            {
+                ++it;
+                return oss.str();
+            }
+            oss << *it;
+        }
+        ORZ_LOG(ERROR) << "syntax error: can not find match \"" << crash;
+        return std::string();
+    }
 
-orz::jug orz::json2jug(const std::string &json) {
-    return orz::jug();
-}
+    static jug parse_num(json_iterator &it){
+        return jug();
+    }
 
-std::string orz::jug2json(const std::string &obj) {
-    return std::__cxx11::string();
+    jug json2jug(const std::string &json) {
+        json_iterator it(json.data(), static_cast<int>(json.size()));
+        ORZ_LOG(INFO) << parse_string(it);
+        return orz::jug();
+    }
+
+    std::string jug2json(const orz::jug &obj) {
+        return std::string();
+    }
+
 }

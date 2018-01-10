@@ -10,7 +10,7 @@
 namespace orz
 {
     orz::jug json2jug(const std::string &json);
-    std::string jug2json(const std::string &obj);
+    std::string jug2json(const orz::jug &obj);
 }
 
 
