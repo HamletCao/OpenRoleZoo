@@ -7,8 +7,13 @@
 
 namespace orz {
 
+    static std::shared_ptr<void> default_allocator(size_t _size)
+    {
+        return std::shared_ptr<void>(std::malloc(_size), std::free);
+    }
+
     Pot::Pot()
-        : Pot([](size_t _size){return std::shared_ptr<void>(std::malloc(_size), std::free); }) {
+        : Pot(default_allocator) {
     }
 
     Pot::Pot(const allocator &ator)
