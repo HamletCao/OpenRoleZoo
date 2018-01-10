@@ -6,38 +6,117 @@
 
 #include "json_iterator.h"
 
-namespace orz
-{
-    static std::string parse_string(json_iterator &it)
-    {
-        if (it == it.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to string" << crash;
-        if (*it != '"') ORZ_LOG(ERROR) << "syntax error: string begin with " << *it << crash;
-        std::ostringstream oss;
-        while (++it != it.end())
-        {
-            if (*it == '"')
-            {
-                ++it;
-                return oss.str();
+namespace orz {
+    static bool is_space(char ch) {
+        return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n';
+    }
+
+    static json_iterator jump_space(json_iterator it) {
+        while (it != it.end() && is_space(*it)) ++it;
+        return it;
+    }
+
+    static std::string parse_string(json_iterator &beg) {
+        beg = jump_space(beg);
+        if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to string" << crash;
+        if (*beg != '"') ORZ_LOG(ERROR) << "syntax error: string begin with " << *beg << crash;
+        auto it = beg;
+        while (++it != it.end()) {
+            if (*it == '"') {
+                std::string value = (beg + 1).cut(it);
+                beg = it + 1;
+                return std::move(value);
             }
-            oss << *it;
         }
         ORZ_LOG(ERROR) << "syntax error: can not find match \"" << crash;
         return std::string();
     }
 
-    static jug parse_num(json_iterator &it){
+    static jug parse_number(json_iterator &beg) {
+        beg = jump_space(beg);
+        if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to number" << crash;
+        jug result;
+        const char *number_c_string = &(*beg);
+        char *end_ptr = nullptr;
+        double value = std::strtod(number_c_string, &end_ptr);
+        if (end_ptr == number_c_string) return result;
+        auto ivalue = static_cast<int>(value);
+        if (double(ivalue) == value) result = ivalue;
+        else result = value;
+        beg += end_ptr - number_c_string;
+        return result;
+    }
+
+    static jug parse_value(json_iterator &beg);
+
+    static jug parse_list(json_iterator &beg) {
+        beg = jump_space(beg);
+        if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to list" << crash;
+        if (*beg != '[') ORZ_LOG(ERROR) << "syntax error: list begin with " << *beg << crash;
+        jug value(Piece::LIST);
+        auto it = beg;
+        while (++it != it.end()) {
+            it = jump_space(it);
+            if (*it == ']') break;
+            jug local_value = parse_value(it);
+            value.append(local_value);
+            it = jump_space(it);
+            if (*it == ',') continue;
+            break;
+        }
+        if (*it != ']') ORZ_LOG(ERROR) << "syntax error: can not find match ]" << crash;
+        beg = it + 1;
+        return std::move(value);
+    }
+
+    static jug parse_dict(json_iterator &beg) {
+        beg = jump_space(beg);
+        if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to dict" << crash;
+        if (*beg != '{') ORZ_LOG(ERROR) << "syntax error: dict begin with " << *beg << crash;
+        jug value(Piece::DICT);
+        auto it = beg;
+        while (++it != it.end()) {
+            it = jump_space(it);
+            if (*it == '}') break;
+            std::string local_key = parse_string(it);
+            it = jump_space(it);
+            if (*it != ':') ORZ_LOG(ERROR) << "syntax error: dict key:value must split with :" << crash;
+            ++it;
+            jug local_value = parse_value(it);
+            value.index(local_key, local_value);
+            it = jump_space(it);
+            if (*it == ',') continue;
+            break;
+        }
+        if (*it != '}') ORZ_LOG(ERROR) << "syntax error: can not find match ]" << crash;
+        beg = it + 1;
+        return std::move(value);
+    }
+
+    static jug parse_value(json_iterator &beg) {
+        beg = jump_space(beg);
+        if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json" << crash;
+        jug value;
+        auto it = beg;
+        value = parse_number(beg);
+        if (value.valid()) return value;
+        if (*it == '"') return parse_string(beg);
+        if (*it == '[') return parse_list(beg);
+        if (*it == '{') return parse_dict(beg);
+        ORZ_LOG(ERROR) << "syntax error: unrecognized symbol " << *it << crash;
         return jug();
     }
 
+
     jug json2jug(const std::string &json) {
-        json_iterator it(json.data(), static_cast<int>(json.size()));
-        ORZ_LOG(INFO) << parse_string(it);
-        return orz::jug();
+        json_iterator it(json.c_str(), static_cast<int>(json.length()));
+        return parse_value(it);
     }
 
     std::string jug2json(const orz::jug &obj) {
-        return std::string();
+        std::ostringstream oss;
+        oss << obj;
+        return oss.str();
     }
 
 }

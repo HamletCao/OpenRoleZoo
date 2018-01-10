@@ -74,6 +74,12 @@ namespace orz {
             return lhs.index - rhs.index;
         }
 
+        const std::string cut(json_iterator end) const {
+            int length = end - *this;
+            if (length <= 0) return std::string();
+            return std::string(data + index, length);
+        }
+
     private:
         const char *data;
         int size;
