@@ -17,7 +17,8 @@ namespace orz {
         DEBUG = 1,
         STATUS = 2,
         INFO = 3,
-        FATAL = 4,
+        ERROR = 4,
+        FATAL = 5,
     };
 
     static LogLevel InnerGlobalLogLevel = STATUS;
@@ -76,6 +77,7 @@ namespace orz {
             case DEBUG: level_str = "DEBUG"; break;
             case STATUS: level_str = "STATUS"; break;
             case INFO: level_str = "INFO"; break;
+            case ERROR: level_str = "ERROR"; break;
             case FATAL: level_str = "FATAL"; break;
             }
             if (m_level >= InnerGlobalLogLevel) {
