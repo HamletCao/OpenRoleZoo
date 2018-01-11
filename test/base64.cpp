@@ -14,7 +14,7 @@ bool base64_test(const std::string &bin) {
 }
 
 const std::string random_string() {
-    int size = std::rand() % 128;
+    int size = std::rand() % 1024;
     std::string bin(size, 0);
     for (auto &ch : bin) {
         ch = char(std::rand() % 256);
@@ -24,7 +24,7 @@ const std::string random_string() {
 
 int main(int argc, char *argv[]) {
     std::srand(7726);
-    int N = 1000;
+    int N = 32768;
     int count = 0;
     for (int i = 0; i < N; ++i) {
         std::string bin = random_string();
