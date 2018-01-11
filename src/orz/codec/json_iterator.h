@@ -49,11 +49,11 @@ namespace orz {
             return *this;
         }
 
-        bool operator==(const json_iterator &it)const {
+        bool operator==(const json_iterator &it) const {
             return self::data == it.data && self::size == it.size && self::index == it.index;
         }
 
-        bool operator!=(const json_iterator &it)const {
+        bool operator!=(const json_iterator &it) const {
             return !self::operator==(it);
         }
 
