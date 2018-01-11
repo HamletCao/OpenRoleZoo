@@ -22,6 +22,8 @@ namespace orz {
         if (*beg != '"') ORZ_LOG(ERROR) << "syntax error: string begin with " << *beg << crash;
         auto it = beg;
         while (++it != it.end()) {
+            /// TODO: support \ symbol
+            if (*it == '\\')  ORZ_LOG(ERROR) << "syntax error: using not supporting \\" << crash;
             if (*it == '"') {
                 std::string value = (beg + 1).cut(it);
                 beg = it + 1;
