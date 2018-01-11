@@ -55,6 +55,8 @@ namespace orz {
 
         jug(const char *val) : jug(std::string(val)) {}
 
+        jug(bool val);
+
         bool valid(Piece::Type type) const;
 
         bool valid() const;
@@ -94,6 +96,8 @@ namespace orz {
         jug &operator=(const char *val) { return *this = std::string(val); }
 
         jug &operator=(const binary &val);
+
+        jug &operator=(bool val);
 
         // common type function
         operator bool() const;

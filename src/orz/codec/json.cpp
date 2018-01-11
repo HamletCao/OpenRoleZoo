@@ -95,6 +95,7 @@ namespace orz {
         return std::move(value);
     }
 
+    /// TODO: add bool support
     static jug parse_value(json_iterator &beg) {
         beg = jump_space(beg);
         if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json" << crash;

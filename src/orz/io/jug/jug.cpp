@@ -26,6 +26,9 @@ namespace orz {
     jug::jug(const std::string &val)
             : m_pie(std::make_shared<StringPiece>(val)) {}
 
+    jug::jug(bool val)
+            : m_pie(std::make_shared<BooleanPiece>(val)) {}
+
     bool jug::valid(Piece::Type type) const {
         return m_pie && m_pie->type() == type;
     }
@@ -93,8 +96,29 @@ namespace orz {
         return *this;
     }
 
+    jug &jug::operator=(bool val) {
+        switch (m_pie->type()) {
+            case Piece::BOOLEAN:
+                reinterpret_cast<BooleanPiece *>(m_pie.get())->set(val);
+                break;
+            default:
+                m_pie = std::make_shared<BooleanPiece>(val);
+                break;
+        }
+        return *this;
+    }
+
     jug::operator bool() const {
-        return m_pie && m_pie->notnil();
+        switch (m_pie->type()) {
+            case Piece::NIL:
+                return false;
+            case Piece::INT:
+                return reinterpret_cast<IntPiece *>(m_pie.get())->get() != 0;
+            case Piece::BOOLEAN:
+                return reinterpret_cast<BooleanPiece *>(m_pie.get())->get() != 0;
+            default:
+                throw Exception("Can not convert this jug to bool");
+        }
     }
 
     jug::operator int() const {
@@ -304,6 +328,8 @@ namespace orz {
         switch (m_pie->type()) {
             case Piece::NIL:
                 return out << '\"' << "@nil" << '\"';
+            case Piece::BOOLEAN:
+                return out << std::boolalpha << (reinterpret_cast<BooleanPiece *>(m_pie.get())->get() != 0);
             case Piece::INT:
                 return out << reinterpret_cast<IntPiece *>(m_pie.get())->get();
             case Piece::FLOAT:

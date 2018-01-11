@@ -26,7 +26,8 @@ namespace orz {
             STRING = 3,
             BINARY = 4,
             LIST = 5,
-            DICT = 6
+            DICT = 6,
+            BOOLEAN = 7
         };
 
         Piece(Type type)
@@ -177,6 +178,7 @@ namespace orz {
     using FloatPiece = ValuedPiece<Piece::FLOAT, float>;
     using StringPiece = ValuedPiece<Piece::STRING, std::string>;
     // using BinaryPiece = ValuedPiece<Piece::BINARY, std::string>;
+    using BooleanPiece = ValuedPiece<Piece::BOOLEAN, char>;
 
     class BinaryPiece : public TypedPiece<Piece::BINARY> {
     public:
@@ -431,6 +433,8 @@ namespace orz {
                 return std::make_shared<ListPiece>();
             case DICT:
                 return std::make_shared<DictPiece>();
+            case BOOLEAN:
+                return std::make_shared<BooleanPiece>();
         }
         throw Exception("Unknown piece type.");
     }
