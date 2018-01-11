@@ -8,8 +8,8 @@
 #include <string>
 
 namespace orz {
-    std::string base64_encode(const std::string &str);
-    std::string base64_decode(const std::string &str);
+    std::string base64_encode(const std::string &bin);
+    std::string base64_decode(const std::string &codes);
 }
 
 #endif //ORZ_CODEC_BASE64_H
