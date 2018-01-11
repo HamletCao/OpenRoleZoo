@@ -117,7 +117,8 @@ namespace orz {
             case Piece::BOOLEAN:
                 return reinterpret_cast<BooleanPiece *>(m_pie.get())->get() != 0;
             default:
-                throw Exception("Can not convert this jug to bool");
+                return true;
+                // throw Exception("Can not convert this jug to bool");
         }
     }
 
