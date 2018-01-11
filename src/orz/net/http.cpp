@@ -1,0 +1,50 @@
+//
+// Created by lby on 2018/1/11.
+//
+
+#include "orz/net/http.h"
+#include "orz/utils/platform.h"
+
+#if defined(ORZ_PLATFORM_CC_MSVC) || defined(ORZ_PLATFORM_CC_MINGW)
+#include "http_win.h"
+#else
+#error not supported compiler
+#endif
+
+namespace orz {
+    URL::URL(const std::string &url)
+            : m_url(url), m_valid(false) {
+        auto anchor = m_url.find(':', 0);
+        if (anchor != std::string::npos) {
+            if (anchor + 2 < m_url.length() && m_url[anchor + 1] == '/' && m_url[anchor + 2] == '/') {
+                m_protocol = m_url.substr(0, anchor);
+                anchor += 3;
+            } else {
+                anchor = 0;
+            }
+        } else {
+            anchor = 0;
+        }
+        auto target_anchor = m_url.find('/', anchor);
+        auto port_anchor = m_url.find(':', anchor);
+        if (port_anchor <= target_anchor) {
+            m_host = m_url.substr(anchor, port_anchor - anchor);
+            std::string port_string;
+            if (target_anchor == std::string::npos) port_string = m_url.substr(port_anchor + 1);
+            else port_string = m_url.substr(port_anchor + 1, target_anchor - port_anchor);
+            m_port = std::atoi(port_string.c_str());
+        } else{
+            m_host = m_url.substr(anchor, target_anchor - anchor);
+            m_port = 0;
+        }
+        if (target_anchor != std::string::npos) {
+            m_target = m_url.substr(target_anchor);
+        }
+
+        m_valid = true;
+    }
+
+    std::string http_request(const URL &url, http::VERB verb, const std::string &data) {
+        return http_request_core(url, verb, data);
+    }
+}

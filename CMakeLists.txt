@@ -41,6 +41,11 @@ target_link_libraries(${PROJECT_NAME}_SHARED ${PROJECT_NAME}_STATIC)
 target_link_libraries(${PROJECT_NAME}_SHARED pthread)
 target_link_libraries(${PROJECT_NAME}_STATIC pthread)
 
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME}_SHARED wininet.lib)
+    target_link_libraries(${PROJECT_NAME}_STATIC wininet.lib)
+endif ()
+
 set_target_properties(${PROJECT_NAME}_SHARED PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME}_STATIC PROPERTIES OUTPUT_NAME ${PROJECT_NAME}_static)
 
