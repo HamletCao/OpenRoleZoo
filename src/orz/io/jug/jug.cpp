@@ -303,7 +303,7 @@ namespace orz {
         auto &m_pie = e.m_pie;
         switch (m_pie->type()) {
             case Piece::NIL:
-                return out << "@nil";
+                return out << '\"' << "@nil" << '\"';
             case Piece::INT:
                 return out << reinterpret_cast<IntPiece *>(m_pie.get())->get();
             case Piece::FLOAT:
