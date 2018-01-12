@@ -12,6 +12,8 @@
 #define ACCESS ::_access
 #define MKDIR(a) ::_mkdir((a))
 
+#include <Windows.h>
+
 #elif  ORZ_PLATFORM_OS_LINUX || ORZ_PLATFORM_OS_MAC
 
 #include <unistd.h>
@@ -66,5 +68,14 @@ namespace orz {
     bool rename(const std::string &oldname, const std::string &newname) {
         return std::rename(oldname.c_str(), newname.c_str()) == 0;
     }
+
+	bool copy(const std::string& fromfile, const std::string& tofile, bool force)
+	{
+#if ORZ_PLATFORM_OS_WINDOWS
+		return CopyFileA(fromfile.c_str(), tofile.c_str(), !force);
+#else
+		return false;
+#endif
+	}
 }
 
