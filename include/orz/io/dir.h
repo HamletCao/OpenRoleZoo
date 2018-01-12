@@ -28,6 +28,15 @@ namespace orz {
      * @return Return 0 only if succeed.
      */
     bool rename(const std::string &oldname, const std::string &newname);
+
+	/**
+	 * \brief 
+	 * \param fromfile source file
+	 * \param tofile dest file, or dir
+	 * \param force if false, 
+	 * \return return true only if success
+	 */
+	bool copy(const std::string &fromfile, const std::string &tofile, bool force = true);
 }
 
 #endif //ORZ_IO_DIR_H
