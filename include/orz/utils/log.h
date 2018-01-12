@@ -17,7 +17,8 @@ namespace orz {
         DEBUG = 1,
         STATUS = 2,
         INFO = 3,
-        FATAL = 4,
+        ERROR = 4,
+        FATAL = 5,
     };
 
     static LogLevel InnerGlobalLogLevel = STATUS;
@@ -39,20 +40,7 @@ namespace orz {
         }
 
         ~Log() {
-            std::string level_str = "Unkown";
-            switch (m_level) {
-                case NONE: return;
-                case DEBUG: level_str = "DEBUG"; break;
-                case STATUS: level_str = "STATUS"; break;
-                case INFO: level_str = "INFO"; break;
-                case FATAL: level_str = "FATAL"; break;
-            }
-            if (m_level >= InnerGlobalLogLevel) {
-                auto msg = m_buffer.str();
-                m_buffer.str("");
-                m_buffer << level_str << ": " << msg;
-                m_log << m_buffer.str() << std::endl;
-            }
+            flush();
         }
 
         const std::string message() const {
@@ -74,25 +62,52 @@ namespace orz {
 
         using Method = Log &(Log &);
 
-        Log &operator<<(const Method &method) {
+        Log &operator<<(Method method) {
             if (m_level >= InnerGlobalLogLevel) {
                 return method(*this);
             }
             return *this;
         }
 
+        void flush()
+        {
+            std::string level_str = "Unkown";
+            switch (m_level) {
+            case NONE: return;
+            case DEBUG: level_str = "DEBUG"; break;
+            case STATUS: level_str = "STATUS"; break;
+            case INFO: level_str = "INFO"; break;
+            case ERROR: level_str = "ERROR"; break;
+            case FATAL: level_str = "FATAL"; break;
+            }
+            if (m_level >= InnerGlobalLogLevel) {
+                auto msg = m_buffer.str();
+                m_buffer.str("");
+                m_buffer << level_str << ": " << msg;
+                m_log << m_buffer.str() << std::endl;
+            }
+            m_level = NONE;
+            m_buffer.str("");
+            m_log.flush();
+        }
+
     private:
         LogLevel m_level;
         std::ostringstream m_buffer;
         std::ostream &m_log;
+
+        Log(const Log &other) = delete;
+        Log &operator=(const Log&other) = delete;
     };
 
     inline Log &crash(Log &log)
     {
-        throw Exception(log.message());
+        const auto msg = log.message();
+        log.flush();
+        throw Exception(msg);
     }
 }
 
-#define ORZ_LOG(level) orz::Log(level)("[")(orz::Split(__FILE__, R"(/\)").back())(":")(__LINE__)("]: ")
+#define ORZ_LOG(level) (orz::Log(level))("[")(orz::Split(__FILE__, R"(/\)").back())(":")(__LINE__)("]: ")
 
 #endif //ORZ_UTILS_LOG_H

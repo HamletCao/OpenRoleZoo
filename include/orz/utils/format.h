@@ -9,8 +9,12 @@
 #include <sstream>
 #include <vector>
 
+#ifndef UNUSED
+#define UNUSED(val) (void)(val)
+#endif
+
 namespace orz {
-    static void _Concat_str(std::ostream &out) {}
+    static void _Concat_str(std::ostream &out) { UNUSED(_Concat_str); }
 
     template<typename T, typename... Args>
     static void _Concat_str(std::ostream &out, const T &t, Args... args) { _Concat_str(out << t, args...); }
@@ -30,7 +34,7 @@ namespace orz {
 
     std::string Join(const std::vector<std::string> &list, const std::string &sep);
 
-    template <typename T>
+    template<typename T>
     std::ostream &operator<<(std::ostream &out, const std::vector<T> &vec) {
         out << "[";
         for (size_t i = 0; i < vec.size(); ++i) {

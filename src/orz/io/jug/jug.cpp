@@ -26,8 +26,15 @@ namespace orz {
     jug::jug(const std::string &val)
             : m_pie(std::make_shared<StringPiece>(val)) {}
 
-    bool jug::valid(Piece::Type type) {
+    jug::jug(bool val)
+            : m_pie(std::make_shared<BooleanPiece>(val)) {}
+
+    bool jug::valid(Piece::Type type) const {
         return m_pie && m_pie->type() == type;
+    }
+
+    bool jug::valid() const {
+        return !valid(Piece::NIL);
     }
 
     jug &jug::operator=(nullptr_t _) {
@@ -77,8 +84,42 @@ namespace orz {
         return *this;
     }
 
+    jug &jug::operator=(const binary &val) {
+        switch (m_pie->type()) {
+            case Piece::BINARY:
+                reinterpret_cast<BinaryPiece *>(m_pie.get())->set(val);
+                break;
+            default:
+                m_pie = std::make_shared<BinaryPiece>(val);
+                break;
+        }
+        return *this;
+    }
+
+    jug &jug::operator=(bool val) {
+        switch (m_pie->type()) {
+            case Piece::BOOLEAN:
+                reinterpret_cast<BooleanPiece *>(m_pie.get())->set(val);
+                break;
+            default:
+                m_pie = std::make_shared<BooleanPiece>(val);
+                break;
+        }
+        return *this;
+    }
+
     jug::operator bool() const {
-        return m_pie && m_pie->notnil();
+        switch (m_pie->type()) {
+            case Piece::NIL:
+                return false;
+            case Piece::INT:
+                return reinterpret_cast<IntPiece *>(m_pie.get())->get() != 0;
+            case Piece::BOOLEAN:
+                return reinterpret_cast<BooleanPiece *>(m_pie.get())->get() != 0;
+            default:
+                return true;
+                // throw Exception("Can not convert this jug to bool");
+        }
     }
 
     jug::operator int() const {
@@ -116,9 +157,26 @@ namespace orz {
             case Piece::STRING:
                 return reinterpret_cast<StringPiece *>(m_pie.get())->get();
             case Piece::BINARY:
-                return reinterpret_cast<BinaryPiece *>(m_pie.get())->get();
+            {
+                auto bin = reinterpret_cast<BinaryPiece *>(m_pie.get())->get();
+                return std::string(bin.data<char>(), bin.size());
+            }
             default:
                 throw Exception("Can not convert this jug to string");
+        }
+    }
+
+    jug::operator binary() const {
+        switch (m_pie->type()) {
+            case Piece::STRING:
+            {
+                auto &str = reinterpret_cast<StringPiece *>(m_pie.get())->get();
+                return binary(str.data(), str.size());
+            }
+            case Piece::BINARY:
+                return reinterpret_cast<BinaryPiece *>(m_pie.get())->get();
+            default:
+                throw Exception("Can not convert this jug to binary");
         }
     }
 
@@ -258,11 +316,21 @@ namespace orz {
         }
     }
 
+    Piece *jug::raw() {
+        return m_pie.get();
+    }
+
+    const Piece *jug::raw() const {
+        return m_pie.get();
+    }
+
     std::ostream &operator<<(std::ostream &out, const jug &e) {
         auto &m_pie = e.m_pie;
         switch (m_pie->type()) {
             case Piece::NIL:
-                return out << "nil";
+                return out << '\"' << "@nil" << '\"';
+            case Piece::BOOLEAN:
+                return out << std::boolalpha << (reinterpret_cast<BooleanPiece *>(m_pie.get())->get() != 0);
             case Piece::INT:
                 return out << reinterpret_cast<IntPiece *>(m_pie.get())->get();
             case Piece::FLOAT:
@@ -270,7 +338,7 @@ namespace orz {
             case Piece::STRING:
                 return out << '\"' << reinterpret_cast<StringPiece *>(m_pie.get())->get() << '\"';
             case Piece::BINARY:
-                return out << '\"' << "binary:" << reinterpret_cast<BinaryPiece *>(m_pie.get())->size() << '\"';
+                return out << '\"' << "@binary:" << reinterpret_cast<BinaryPiece *>(m_pie.get())->size() << '\"';
             case Piece::LIST: {
                 auto list = reinterpret_cast<ListPiece *>(m_pie.get());
                 out << '[';
@@ -333,6 +401,36 @@ namespace orz {
     }
 
     void jug_write(std::ostream &out, const jug &j) {
+        Piece::Write(out, j.m_pie);
+    }
+
+    jug sta_read(const std::string &filename, int mask) {
+        std::ifstream infile(filename, std::ios::binary);
+        if (infile.is_open()) {
+            return sta_read(infile, STA_MASK);
+        } else {
+            return jug();
+        }
+    }
+
+    jug sta_read(std::istream &in, int mask) {
+        int stream_mask = 0;
+        binio<int>::read(in, stream_mask);
+        if (stream_mask != mask) return jug();
+        return Piece::Read(in);
+    }
+
+    bool sta_write(const std::string &filename, const jug &j, int mask) {
+        std::ofstream outfile(filename, std::ios::binary);
+        if (outfile.is_open()) {
+            sta_write(outfile, j, STA_MASK);
+            return true;
+        }
+        return false;
+    }
+
+    void sta_write(std::ostream &out, const jug &j, int mask) {
+        binio<int>::write(out, mask);
         Piece::Write(out, j.m_pie);
     }
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 2.7)
 project(ORZ)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
@@ -34,8 +34,20 @@ FILE(GLOB_RECURSE TOOL_FILES
 
 set(LOCAL_OUTPUT_DIR ${PROJECT_SOURCE_DIR})
 
-add_library(${PROJECT_NAME}_SHARED SHARED ${SRC_FILES})
+add_library(${PROJECT_NAME}_STATIC STATIC ${INCLUDE_FILES} ${SRC_FILES})
+add_library(${PROJECT_NAME}_SHARED SHARED ${INCLUDE_FILES} ${SRC_FILES})
+target_link_libraries(${PROJECT_NAME}_SHARED ${PROJECT_NAME}_STATIC)
+
+target_link_libraries(${PROJECT_NAME}_SHARED pthread)
+target_link_libraries(${PROJECT_NAME}_STATIC pthread)
+
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME}_SHARED wininet.lib)
+    target_link_libraries(${PROJECT_NAME}_STATIC wininet.lib)
+endif ()
+
 set_target_properties(${PROJECT_NAME}_SHARED PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}_STATIC PROPERTIES OUTPUT_NAME ${PROJECT_NAME}_static)
 
 if (LOCAL_OUTPUT_DIR)
     set(EXECUTABLE_OUTPUT_PATH ${LOCAL_OUTPUT_DIR}/bin)
@@ -46,8 +58,8 @@ foreach (path ${TEST_FILES})
     string(REGEX MATCH "[^/]*.[(c)|(cc)|(cpp)]$" file_ext ${path})
     string(REGEX MATCH "^[^.]*" file ${file_ext})
     add_executable(test_${file} ${path})
-    target_link_libraries(test_${file} ${PROJECT_NAME}_SHARED)
-    set_target_properties(test_${file} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LOCAL_OUTPUT_DIR}/lib)
+    target_link_libraries(test_${file} ${PROJECT_NAME}_STATIC)
+    # set_target_properties(test_${file} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LOCAL_OUTPUT_DIR}/lib)
 endforeach ()
 
 foreach (path ${TOOL_FILES})
@@ -55,11 +67,12 @@ foreach (path ${TOOL_FILES})
     string(REGEX MATCH "^[^.]*" file ${file_ext})
     add_executable(tool_${file} ${path})
     set_target_properties(tool_${file} PROPERTIES OUTPUT_NAME ${file})
-    target_link_libraries(tool_${file} ${PROJECT_NAME}_SHARED)
+    target_link_libraries(tool_${file} ${PROJECT_NAME}_STATIC)
     install(TARGETS tool_${file} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 endforeach ()
 
 install(TARGETS ${PROJECT_NAME}_SHARED DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(TARGETS ${PROJECT_NAME}_STATIC DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 install(FILES ${INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/orz)
 
 if (WIN32)

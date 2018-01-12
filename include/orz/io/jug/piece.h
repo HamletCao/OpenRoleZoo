@@ -13,6 +13,8 @@
 #include <map>
 #include <sstream>
 
+#include "binary.h"
+
 namespace orz {
 
     class Piece {
@@ -24,7 +26,8 @@ namespace orz {
             STRING = 3,
             BINARY = 4,
             LIST = 5,
-            DICT = 6
+            DICT = 6,
+            BOOLEAN = 7
         };
 
         Piece(Type type)
@@ -113,6 +116,25 @@ namespace orz {
         }
     };
 
+    template<>
+    class binio<binary> {
+    public:
+        static std::ostream &write(std::ostream &bin, const binary &str) {
+            int size = static_cast<int>(str.size());
+            binio<int>::write(bin, size);
+            bin.write(str.data<char>(), str.size());
+            return bin;
+        }
+
+        static std::istream &read(std::istream &bin, binary &str) {
+            int size;
+            binio<int>::read(bin, size);
+            str.resize(size);
+            bin.read(str.data<char>(), str.size());
+            return bin;
+        }
+    };
+
     template<Piece::Type _type, typename T>
     class ValuedPiece : public TypedPiece<_type> {
     public:
@@ -156,66 +178,83 @@ namespace orz {
     using FloatPiece = ValuedPiece<Piece::FLOAT, float>;
     using StringPiece = ValuedPiece<Piece::STRING, std::string>;
     // using BinaryPiece = ValuedPiece<Piece::BINARY, std::string>;
+    using BooleanPiece = ValuedPiece<Piece::BOOLEAN, char>;
 
     class BinaryPiece : public TypedPiece<Piece::BINARY> {
     public:
-        BinaryPiece() : m_buff(std::ios::binary) {}
+        BinaryPiece() : m_buff() {}
 
-        BinaryPiece(const std::string &buff) : m_buff(buff, std::ios::binary) {}
+        BinaryPiece(const std::string &buff) : m_buff(buff.data(), buff.size()) {}
+
+        BinaryPiece(const binary &buff) : m_buff(buff) {}
 
         BinaryPiece(std::istream &bin) {
             this->read(bin);
         }
 
         BinaryPiece &set(const std::string &buff) {
-            this->m_buff.str(buff);
+            this->m_buff.clear();
+            this->m_buff.write(buff.data(), buff.size());
             return *this;
         }
 
-        std::string get() {
-            return this->m_buff.str();
+        BinaryPiece &set(const binary &buff) {
+            this->m_buff = buff;
+            return *this;
+        }
+
+        binary get() {
+            return this->m_buff;
+        }
+
+        std::string str() {
+            return std::string(this->m_buff.data<char>(), this->m_buff.size());
         }
 
         void clear() {
-            this->m_buff.str("");
+            this->m_buff.clear();
+        }
+
+        void dispose() {
+            this->m_buff.dispose();
         }
 
         size_t size() {
-            this->m_buff.seekp(0, std::ios::end);
-            return static_cast<size_t>(this->m_buff.tellp());
+            return m_buff.size();
         }
 
         BinaryPiece &set_bits(const void *buffer, size_t size) {
-            this->m_buff.str("");
+            this->m_buff.clear();
             return push_bits(buffer, size);
         }
 
         BinaryPiece &push_bits(const void *buffer, size_t size) {
-            this->m_buff.write(reinterpret_cast<const char *>(buffer), size);
+            this->m_buff.write(buffer, size);
             return *this;
         }
 
         template<typename T>
         BinaryPiece &push_bits(const T &val) {
-            binio<T>::write(m_buff, val);
+            const void *_data = &val;
+            size_t _size = sizeof(val);
+            m_buff.write(_data, _size);
             return *this;
         }
 
         virtual std::istream &read(std::istream &bin) override {
-            std::string buff;
-            binio<std::string>::read(bin, buff);
-            this->m_buff.str(buff);
+            binio<binary>::read(bin, m_buff);
             return bin;
         }
 
         virtual std::ostream &write(std::ostream &bin) const override {
             binio<char>::write(bin, static_cast<char>(this->type()));
-            binio<std::string>::write(bin, m_buff.str());
+            binio<binary>::write(bin, m_buff);
             return bin;
         }
 
     private:
-        std::ostringstream m_buff;
+        // std::ostringstream m_buff;
+        binary m_buff;
     };
 
     class ListPiece : public TypedPiece<Piece::LIST> {
@@ -394,6 +433,8 @@ namespace orz {
                 return std::make_shared<ListPiece>();
             case DICT:
                 return std::make_shared<DictPiece>();
+            case BOOLEAN:
+                return std::make_shared<BooleanPiece>();
         }
         throw Exception("Unknown piece type.");
     }

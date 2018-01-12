@@ -9,6 +9,7 @@
 #include <io.h>
 #else
 #include <dirent.h>
+#include <cstring>
 #endif
 
 namespace orz {
@@ -79,7 +80,7 @@ namespace orz {
             auto local_path = local_pair.first;
             auto local_depth = local_pair.second;
             if (depth > 0 && local_depth >= depth) continue;
-            files = FindFiles(local_path, dirs);
+            files = FindFiles(path + FileSeparator() + local_path, dirs);
             for (auto &file : files) result.push_back(local_path + FileSeparator() + file);
             for (auto &dir : dirs) work.push({local_path + FileSeparator() + dir, local_depth + 1});
         }
@@ -99,7 +100,7 @@ namespace orz {
             auto local_path = local_pair.first;
             auto local_depth = local_pair.second;
             if (depth > 0 && local_depth >= depth) continue;
-            files = FindFiles(local_path, dirs);
+            files = FindFiles(path + FileSeparator() + local_path, dirs);
             for (auto &dir : dirs) result.push_back(local_path + FileSeparator() + dir);
             for (auto &dir : dirs) work.push({local_path + FileSeparator() + dir, local_depth + 1});
         }

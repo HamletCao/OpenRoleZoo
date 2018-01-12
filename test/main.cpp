@@ -15,6 +15,11 @@
 #include <iostream>
 #include <fstream>
 #include <orz/mem/vat.h>
+#include <orz/mem/need.h>
+
+#include "orz/lego/box.h"
+#include "orz/lego/brick.h"
+#include "orz/tools/limit.h"
 
 class FUNC
 {
@@ -118,18 +123,52 @@ void time2(int N)
     std::cout << "Takes " << spent << " ms " << std::endl;
 }
 
-int main()
+class OO : orz::limit<3, OO>
 {
+
+};
+
+class OOO : orz::limit<3, OOO>
+{
+
+};
+
+void func1()
+{
+    std::cout << "Finished." << std::endl;
+}
+
+void func2(int n)
+{
+    std::cout << "Finished with " << n << "." << std::endl;
+}
+
+int main() {
 #if defined(FUNC)
     std::cout << "A?" << std::endl;
 #else
     std::cout << "B?" << std::endl;
 #endif
 
+    auto o1 = new OO;
+    auto o2 = new OO;
+    auto o3 = new OO;
+    delete o3;
+    auto o4 = new OO;
+    auto oo1 = new OOO;
+
+    int *p;
+    p = new int(2);
+    int &r = *p;
+    std::cout << "r: " << r << std::endl;
+    p = new int(3);
+    std::cout << "r: " << r << std::endl;
+
+
     int t;
     FUNC ffff(t);
     std::cout << ffff(1, 2) << std::endl;
-    auto ffffff = [&t](int a, int b){return a+b+t;};
+    auto ffffff = [&t](int a, int b) { return a + b + t; };
     std::cout << ffffff(1, 2) << std::endl;
 
     std::cout << orz::Format("Hey, I'm running!") << std::endl;
@@ -149,8 +188,7 @@ int main()
 
     auto items = orz::CSVParse(line);
 
-    for (auto item : items)
-    {
+    for (auto item : items) {
         std::cout << item << " ";
     }
     std::cout << std::endl;
@@ -241,8 +279,40 @@ int main()
 
     std::cout << player << std::endl;
 
-    time1(1000);
-    time2(1000);
+//    time1(1000);
+//    time2(1000);
+
+    auto add_one = orz::make_brick<orz::function_brick<int, int>>([](int a) { return a + 1; });
+    orz::brick<int, int>::ptr mul_two(new orz::function_brick<int, int>([](int a) { return a * 2; }));
+
+    orz::big_brick<int, int, int> add_one_then_mul_two(add_one, mul_two);
+
+    std::cout << add_one_then_mul_two(10) << std::endl;
+
+    auto haha = orz::make_wide_brick<orz::function_brick<int, int>>(1, [](int a) { return a + 1; });
+
+    std::vector<int> aa = {1, 3, 5, 134, 245, 2345, 1345, 2345, 134, 5, 36, 245, 624, 56, 134, 51, 34, 51, 345, 1, 234,
+                           5, 1, 45};
+    std::cout << aa << std::endl;
+    auto bb = haha->work(aa);
+    std::cout << bb << std::endl;
+
+    std::ifstream in("../python/workshop/tmp/VIPLFaceRecognizer5.0.RN2.sta", std::ios::binary);
+    auto model = orz::sta_read(in);
+
+    std::cout << model << std::endl;
+
+    orz::need call_func1(func1);
+    orz::need call_func2(func2, 2);
+
+    try
+    {
+        orz::Log(orz::FATAL) << "Test orz::Exception." << orz::crash;
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << e.what() << std::endl;
+    }
 
     return 0;
 }

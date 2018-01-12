@@ -31,7 +31,10 @@
 #   define ORZ_PLATFORM_OS_MAC     0
 #   define ORZ_PLATFORM_OS_LINUX   1
 #else
-#   error Unknown OS
+//#   error Unknown OS
+#   define ORZ_PLATFORM_OS_WINDOWS 0
+#   define ORZ_PLATFORM_OS_MAC     0
+#   define ORZ_PLATFORM_OS_LINUX   0
 #endif
 
 /**
@@ -55,7 +58,10 @@
 #   define ORZ_PLATFORM_BITS_32 1
 #   define ORZ_PLATFORM_BITS_64 0
 #else
-#   error Unknown system bit-length
+//#   error Unknown system bit-length
+#   define ORZ_PLATFORM_BITS_16 0
+#   define ORZ_PLATFORM_BITS_32 0
+#   define ORZ_PLATFORM_BITS_64 0
 #endif
 
 /**
@@ -78,7 +84,10 @@
 #   define ORZ_PLATFORM_CC_MINGW 0
 #   define ORZ_PLATFORM_CC_GCC   1
 #else
-#   error Unknown compiler
+//#   error Unknown compiler
+#   define ORZ_PLATFORM_CC_MSVC  0
+#   define ORZ_PLATFORM_CC_MINGW 0
+#   define ORZ_PLATFORM_CC_GCC   0
 #endif
 
 #endif //ORZ_UTILS_PLATFORM_H

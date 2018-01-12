@@ -17,7 +17,7 @@
 #endif
 
 namespace orz {
-    class Exception : std::exception {
+    class Exception : public std::exception {
     public:
         Exception(const std::string &message);
 
