@@ -34,7 +34,7 @@ namespace orz {
             beg += 5;
             result = false;
         }
-        return nullptr;
+        return result;
     }
 
     static std::string parse_string(json_iterator &beg) {
