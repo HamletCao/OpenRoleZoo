@@ -76,6 +76,8 @@ namespace orz {
 
         const std::string cut(json_iterator end) const {
             int length = end - *this;
+            int over = end - this->end();
+            if (over > 0) length -= over;
             if (length <= 0) return std::string();
             return std::string(data + index, length);
         }

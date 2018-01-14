@@ -16,6 +16,27 @@ namespace orz {
         return it;
     }
 
+    static const std::string tolower(const std::string &str)
+    {
+        auto str_copy = str;
+        for (auto &ch : str_copy) ch = static_cast<char>(std::tolower(ch));
+        return std::move(str_copy);
+    }
+
+    static jug parse_boolean(json_iterator &beg) {
+        beg = jump_space(beg);
+        if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to boolean" << crash;
+        jug result;
+        if (tolower(beg.cut(beg + 4)) == "true"){
+            beg += 4;
+            result = true;
+        }else if (tolower(beg.cut(beg + 5)) == "false") {
+            beg += 5;
+            result = false;
+        }
+        return nullptr;
+    }
+
     static std::string parse_string(json_iterator &beg) {
         beg = jump_space(beg);
         if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to string" << crash;
@@ -59,14 +80,14 @@ namespace orz {
         auto it = beg;
         while (++it != it.end()) {
             it = jump_space(it);
-            if (*it == ']') break;
+            if (it == it.end() || *it == ']') break;
             jug local_value = parse_value(it);
             value.append(local_value);
             it = jump_space(it);
-            if (*it == ',') continue;
+            if (it != it.end() && *it == ',') continue;
             break;
         }
-        if (*it != ']') ORZ_LOG(ERROR) << "syntax error: can not find match ]" << crash;
+        if (it == it.end() || *it != ']') ORZ_LOG(ERROR) << "syntax error: can not find match ]" << crash;
         beg = it + 1;
         return std::move(value);
     }
@@ -79,18 +100,18 @@ namespace orz {
         auto it = beg;
         while (++it != it.end()) {
             it = jump_space(it);
-            if (*it == '}') break;
+            if (it == it.end() || *it == '}') break;
             std::string local_key = parse_string(it);
             it = jump_space(it);
-            if (*it != ':') ORZ_LOG(ERROR) << "syntax error: dict key:value must split with :" << crash;
+            if (it == it.end() || *it != ':') ORZ_LOG(ERROR) << "syntax error: dict key:value must split with :" << crash;
             ++it;
             jug local_value = parse_value(it);
             value.index(local_key, local_value);
             it = jump_space(it);
-            if (*it == ',') continue;
+            if (it != it.end() && *it == ',') continue;
             break;
         }
-        if (*it != '}') ORZ_LOG(ERROR) << "syntax error: can not find match ]" << crash;
+        if (it == it.end() || *it != '}') ORZ_LOG(ERROR) << "syntax error: can not find match }" << crash;
         beg = it + 1;
         return std::move(value);
     }
@@ -106,6 +127,8 @@ namespace orz {
         if (*it == '"') return parse_string(beg);
         if (*it == '[') return parse_list(beg);
         if (*it == '{') return parse_dict(beg);
+        value = parse_boolean(beg);
+        if (value.valid()) return value;
         ORZ_LOG(ERROR) << "syntax error: unrecognized symbol " << *it << crash;
         return jug();
     }
