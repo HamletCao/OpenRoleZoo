@@ -16,8 +16,7 @@
 
 namespace orz {
 
-    int defulat_protocol_port(const std::string &protocal, int port)
-    {
+    int defulat_protocol_port(const std::string &protocal, int port) {
         if (port > 0) return port;
         std::string local_protocal = protocal;
         for (auto &ch : local_protocal) ch = std::tolower(ch);
@@ -85,8 +84,7 @@ namespace orz {
                 0;
     }
 
-    DWORD defulat_protocol_flags(const std::string &protocal)
-    {
+    DWORD defulat_protocol_flags(const std::string &protocal) {
         std::string local_protocal = protocal;
         for (auto &ch : local_protocal) ch = std::tolower(ch);
         if (local_protocal == "http") return default_http_flags();
@@ -94,16 +92,15 @@ namespace orz {
         return 0;
     }
 
-    std::string format_message(DWORD dw)
-    {
+    std::string format_message(DWORD dw) {
         LPVOID lpMsgBuf;
-        FormatMessageA (
+        FormatMessageA(
                 FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
                 NULL,
                 dw,
                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                 (LPTSTR) &lpMsgBuf,
-                0, NULL );
+                0, NULL);
         std::string msg = reinterpret_cast<char *>(lpMsgBuf);
         LocalFree(lpMsgBuf);
         return msg;
@@ -115,7 +112,7 @@ namespace orz {
 
         // Open
         HINTERNET hInternet = InternetOpenA("Microsoft Internet Explorer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-        if(hInternet == NULL) {
+        if (hInternet == NULL) {
             ORZ_LOG(INFO) << "Internet open error: " << std::hex << format_message(GetLastError());
             return report;
         }
@@ -126,7 +123,7 @@ namespace orz {
                                               url.host().c_str(),
                                               defulat_protocol_port(url.protocol(), url.port()),
                                               NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
-        if(hConnect == NULL) {
+        if (hConnect == NULL) {
             ORZ_LOG(INFO) << "Internet connect error: " << std::hex << format_message(GetLastError());
             return report;
         }
@@ -134,14 +131,12 @@ namespace orz {
 
         // Request
         HINTERNET hOpenRequest = HttpOpenRequestA(hConnect, verb_string(verb), url.target().c_str(), NULL, NULL,
-                                                  (LPCSTR*)"*/*", defulat_protocol_flags(url.protocol()), 0);
-        if(hOpenRequest == NULL) {
+                                                  (LPCSTR *) "*/*", defulat_protocol_flags(url.protocol()), 0);
+        if (hOpenRequest == NULL) {
             ORZ_LOG(INFO) << "Http open request error: " << std::hex << format_message(GetLastError());
             return report;
         }
         need close_request(InternetCloseHandle, hOpenRequest);
-
-        std::cout << data << std::endl;
 
         std::string header = "Content-Type:application/x-www-form-urlencoded; charset=utf-8";
         // std::string header = "Content-Type:application/json; charset=utf-8";
@@ -159,8 +154,7 @@ namespace orz {
         binary buffer;
         char szBuffer[1024] = {0};
         DWORD dwByteRead = 0;
-        while (InternetReadFile(hOpenRequest, szBuffer, sizeof(szBuffer), &dwByteRead) && dwByteRead > 0)
-        {
+        while (InternetReadFile(hOpenRequest, szBuffer, sizeof(szBuffer), &dwByteRead) && dwByteRead > 0) {
             buffer.write(szBuffer, dwByteRead);
         }
 
