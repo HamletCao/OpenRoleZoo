@@ -23,14 +23,25 @@ namespace orz {
         return std::move(str_copy);
     }
 
+    static bool parse_null(json_iterator &beg, jug &value) {
+        beg = jump_space(beg);
+        if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to null" << crash;
+        if (beg.cut(beg + 4) == "null") {
+            beg += 4;
+            value = nullptr;
+            return true;
+        }
+        return false;
+    }
+
     static jug parse_boolean(json_iterator &beg) {
         beg = jump_space(beg);
         if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to boolean" << crash;
         jug result;
-        if (tolower(beg.cut(beg + 4)) == "true"){
+        if (beg.cut(beg + 4) == "true"){
             beg += 4;
             result = true;
-        }else if (tolower(beg.cut(beg + 5)) == "false") {
+        }else if (beg.cut(beg + 5) == "false") {
             beg += 5;
             result = false;
         }
@@ -129,10 +140,10 @@ namespace orz {
         if (*it == '{') return parse_dict(beg);
         value = parse_boolean(beg);
         if (value.valid()) return value;
+        if (parse_null(beg, value)) return value;
         ORZ_LOG(ERROR) << "syntax error: unrecognized symbol " << *it << crash;
         return jug();
     }
-
 
     jug json2jug(const std::string &json) {
         json_iterator it(json.c_str(), static_cast<int>(json.length()));
@@ -140,9 +151,7 @@ namespace orz {
     }
 
     std::string jug2json(const orz::jug &obj) {
-        std::ostringstream oss;
-        oss << obj;
-        return oss.str();
+        return obj.repr();
     }
 
 }
