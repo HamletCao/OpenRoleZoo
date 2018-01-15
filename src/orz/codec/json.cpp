@@ -16,13 +16,6 @@ namespace orz {
         return it;
     }
 
-    static const std::string tolower(const std::string &str)
-    {
-        auto str_copy = str;
-        for (auto &ch : str_copy) ch = static_cast<char>(std::tolower(ch));
-        return std::move(str_copy);
-    }
-
     static bool parse_null(json_iterator &beg, jug &value) {
         beg = jump_space(beg);
         if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to null" << crash;
@@ -48,19 +41,94 @@ namespace orz {
         return result;
     }
 
+    int char2hex(char ch) {
+        int lch = std::tolower(ch);
+        if ('0' <= lch && lch <= '9') return lch - '0';
+        if ('a' <= lch && lch <= 'f') return lch - 'a' + 10;
+        return -1;
+    }
+
     static std::string parse_string(json_iterator &beg) {
         beg = jump_space(beg);
         if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to string" << crash;
         if (*beg != '"') ORZ_LOG(ERROR) << "syntax error: string begin with " << *beg << crash;
+        std::string value;
         auto it = beg;
+        bool slant = false;
+        int unicode_index = 0;
+        char unicode = 0;
         while (++it != it.end()) {
-            /// TODO: support \ symbol
-            if (*it == '\\')  ORZ_LOG(ERROR) << "syntax error: using not supporting \\" << crash;
-            if (*it == '"') {
-                std::string value = (beg + 1).cut(it);
+            if (unicode_index > 0) {
+                int ch = char2hex(*it);
+                if (ch < 0) ORZ_LOG(ERROR) << "syntax error: unrecognized unicode" << crash;
+                switch (unicode_index) {
+                    case 1:
+                        unicode |= (ch << 4);
+                        unicode_index++;
+                        break;
+                    case 2:
+                        unicode |= ch;
+                        value.push_back(char(unicode));
+                        unicode = 0;
+                        unicode_index++;
+                        break;
+                    case 3:
+                        unicode |= (ch << 4);
+                        unicode_index++;
+                        break;
+                    case 4:
+                        unicode |= ch;
+                        value.push_back(char(unicode));
+                        unicode = 0;
+                        unicode_index = 0;
+                        break;
+                    default:
+                        break;
+                }
+                continue;
+            } else if (slant) {
+                switch (*it) {
+                    case '\"':
+                        value.push_back(*it);
+                        break;
+                    case '\\':
+                        value.push_back(*it);
+                        break;
+                    case '/':
+                        value.push_back(*it);
+                        break;
+                    case 'b':
+                        value.push_back('\b');
+                        break;
+                    case 'f':
+                        value.push_back('\f');
+                        break;
+                    case 'n':
+                        value.push_back('\n');
+                        break;
+                    case 'r':
+                        value.push_back('\r');
+                        break;
+                    case 't':
+                        value.push_back('\t');
+                        break;
+                    case 'u':
+                        unicode_index = 1;
+                        break;
+                    default:
+                        value.push_back(*it);
+                        break;
+                }
+                slant = false;
+                continue;
+            } else if (*it == '\\') {
+                slant = true;
+                continue;
+            } else if (*it == '"') {
                 beg = it + 1;
                 return std::move(value);
             }
+            value.push_back(*it);
         }
         ORZ_LOG(ERROR) << "syntax error: can not find match \"" << crash;
         return std::string();
@@ -152,6 +220,18 @@ namespace orz {
 
     std::string jug2json(const orz::jug &obj) {
         return obj.repr();
+    }
+
+    std::string form_encode(const orz::jug &obj) {
+        if (!obj.valid(Piece::DICT)) ORZ_LOG(ERROR) << "form encoding only supporting dict" << crash;
+        std::ostringstream oss;
+        int first = true;
+        for (auto &key : obj.keys()) {
+            if (first) first = false;
+            else oss << "&";
+            oss << key << "=" << obj[key].str();
+        }
+        return oss.str();
     }
 
 }

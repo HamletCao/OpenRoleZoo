@@ -11,6 +11,7 @@ namespace orz
 {
     orz::jug json2jug(const std::string &json);
     std::string jug2json(const orz::jug &obj);
+    std::string form_encode(const orz::jug &obj);
 }
 
 
