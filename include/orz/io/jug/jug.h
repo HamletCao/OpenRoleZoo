@@ -116,9 +116,15 @@ namespace orz {
         // list function
         jug index(size_t i);
 
+        const jug index(size_t i) const;
+
         jug operator[](size_t i) { return index(i); }
 
+        const jug operator[](size_t i) const { return index(i); }
+
         jug operator[](int i) { return index(i); }
+
+        const jug operator[](int i) const { return index(i); }
 
         jug index(size_t i, const jug &value);
 
@@ -127,12 +133,21 @@ namespace orz {
         // dict function
         jug index(const std::string &key);
 
+        const jug index(const std::string &key) const;
+
         jug operator[](const std::string &key) { return index(key); }
+
+        const jug operator[](const std::string &key) const { return index(key); }
 
         template<size_t _size>
         jug operator[](const char(&key)[_size]) { return index(key); }
 
+        template<size_t _size>
+        const jug operator[](const char(&key)[_size]) const { return index(key); }
+
         jug operator[](const char *key) { return index(key); }
+
+        const jug operator[](const char *key) const { return index(key); }
 
         jug index(const std::string &key, const jug &value);
 

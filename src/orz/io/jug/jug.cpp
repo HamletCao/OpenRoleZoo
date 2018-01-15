@@ -214,6 +214,10 @@ namespace orz {
         }
     }
 
+    const jug jug::index(size_t i) const {
+        return const_cast<jug *>(this)->index(i);
+    }
+
     jug jug::index(size_t i, const jug &value) {
         switch (m_pie->type()) {
             case Piece::NIL:
@@ -261,6 +265,10 @@ namespace orz {
             default:
                 throw Exception("This jug has no method index(key)");
         }
+    }
+
+    const jug jug::index(const std::string &key) const {
+        return const_cast<jug *>(this)->index(key);
     }
 
     jug jug::index(const std::string &key, const jug &value) {
