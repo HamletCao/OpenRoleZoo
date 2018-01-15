@@ -160,6 +160,10 @@ namespace orz {
 
         const Piece *raw() const;
 
+        const std::string str() const;
+
+        const std::string repr() const;
+
     private:
         jug(const std::shared_ptr<Piece> &pie) : m_pie(pie) {}
 
@@ -221,6 +225,8 @@ namespace orz {
             return def;
         }
     }
+
+    std::string to_string(const jug& obj);
 }
 
 

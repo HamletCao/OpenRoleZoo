@@ -133,4 +133,12 @@ namespace orz {
     void *binary::now_data() { return self::data<char>() + m_index; }
 
     const void *binary::now_data() const { return const_cast<self *>(this)->now_data(); }
+
+    std::string to_string(const binary &str) {
+        return std::string(str.data<char>(), str.size());
+    }
+
+    binary to_binary(const std::string &bin) {
+        return binary(bin.data(), bin.size());
+    }
 }

@@ -19,6 +19,8 @@ namespace orz {
 
     class Piece {
     public:
+        using self = Piece;
+
         enum Type {
             NIL = 0,
             INT = 1,
@@ -49,6 +51,18 @@ namespace orz {
 
         static inline std::shared_ptr<Piece> Get(Type type, std::istream &bin);
 
+        virtual const std::string str() const {
+            std::stringstream oss;
+            oss << "Piece<0x" << std::hex << *this << ">";
+            return oss.str();
+        }
+
+        virtual const std::string repr() const {
+            std::stringstream oss;
+            oss << "Piece<0x" << std::hex << *this << ">";
+            return oss.str();
+        }
+
     public:
 
         Type type() const {
@@ -74,6 +88,9 @@ namespace orz {
     template<Piece::Type _type>
     class TypedPiece : public Piece {
     public:
+        using supper = Piece;
+        using self = TypedPiece;
+
         TypedPiece() : Piece(_type) {}
     };
 
@@ -138,6 +155,9 @@ namespace orz {
     template<Piece::Type _type, typename T>
     class ValuedPiece : public TypedPiece<_type> {
     public:
+        using supper = TypedPiece<_type>;
+        using self = ValuedPiece;
+
         ValuedPiece() : m_val(defualt_value<T>()) {}
 
         ValuedPiece(const T &val) : m_val(val) {}
@@ -159,26 +179,87 @@ namespace orz {
             return this->m_val;
         }
 
-        virtual std::istream &read(std::istream &bin) override {
+        std::istream &read(std::istream &bin) override {
             return binio<T>::read(bin, m_val);
         }
 
-        virtual std::ostream &write(std::ostream &bin) const override {
+        std::ostream &write(std::ostream &bin) const override {
             binio<char>::write(bin, static_cast<char>(this->type()));
             binio<T>::write(bin, m_val);
             return bin;
+        }
+
+        const std::string str() const override {
+            std::stringstream oss;
+            oss << m_val;
+            return oss.str();
+        }
+
+        const std::string repr() const override {
+            std::stringstream oss;
+            oss << m_val;
+            return oss.str();
         }
 
     private:
         T m_val;
     };
 
-    using NilPiece = ValuedPiece<Piece::NIL, char>;
+    class NilPiece :public ValuedPiece<Piece::NIL, char> {
+        using supper = ValuedPiece<Piece::NIL, char>;
+        using self = NilPiece;
+
+        using supper::ValuedPiece;
+
+        const std::string str() const override {
+            std::stringstream oss;
+            oss << "null";
+            return oss.str();
+        }
+
+        const std::string repr() const override {
+            std::stringstream oss;
+            oss << "null";
+            return oss.str();
+        }
+    };
+
     using IntPiece = ValuedPiece<Piece::INT, int>;
+
     using FloatPiece = ValuedPiece<Piece::FLOAT, float>;
-    using StringPiece = ValuedPiece<Piece::STRING, std::string>;
+
+    class StringPiece : public ValuedPiece<Piece::STRING, std::string> {
+        using supper = ValuedPiece<Piece::STRING, std::string>;
+        using self = StringPiece;
+
+        using supper::ValuedPiece;
+
+        const std::string repr() const override {
+            std::stringstream oss;
+            oss << '\"' << get() << '\"';
+            return oss.str();
+        }
+    };
+
     // using BinaryPiece = ValuedPiece<Piece::BINARY, std::string>;
-    using BooleanPiece = ValuedPiece<Piece::BOOLEAN, char>;
+    class BooleanPiece : public ValuedPiece<Piece::BOOLEAN, char> {
+        using supper = ValuedPiece<Piece::BOOLEAN, char>;
+        using self = BooleanPiece;
+
+        using supper::ValuedPiece;
+
+        const std::string str() const override {
+            std::stringstream oss;
+            oss << std::boolalpha << (get() != 0);
+            return oss.str();
+        }
+
+        const std::string repr() const override {
+            std::stringstream oss;
+            oss << std::boolalpha << (get() != 0);
+            return oss.str();
+        }
+    };
 
     class BinaryPiece : public TypedPiece<Piece::BINARY> {
     public:
@@ -207,8 +288,8 @@ namespace orz {
             return this->m_buff;
         }
 
-        std::string str() {
-            return std::string(this->m_buff.data<char>(), this->m_buff.size());
+        const binary get() const {
+            return this->m_buff;
         }
 
         void clear() {
@@ -219,7 +300,7 @@ namespace orz {
             this->m_buff.dispose();
         }
 
-        size_t size() {
+        size_t size() const {
             return m_buff.size();
         }
 
@@ -250,6 +331,18 @@ namespace orz {
             binio<char>::write(bin, static_cast<char>(this->type()));
             binio<binary>::write(bin, m_buff);
             return bin;
+        }
+
+        const std::string str() const override {
+            std::stringstream oss;
+            oss << "\"@binary@" << size() << '\"';
+            return oss.str();
+        }
+
+        const std::string repr() const override {
+            std::stringstream oss;
+            oss << "\"@binary@" << size() << '\"';
+            return oss.str();
         }
 
     private:
@@ -321,6 +414,30 @@ namespace orz {
             return bin;
         }
 
+        const std::string str() const override {
+            std::stringstream oss;
+            oss << '[';
+            for (size_t i = 0; i < size(); ++i) {
+                /// TODO: check pointer pie valid
+                if (i) oss << ", ";
+                oss << index(i)->repr();
+            }
+            oss << ']';
+            return oss.str();
+        }
+
+        const std::string repr() const override {
+            std::stringstream oss;
+            oss << '[';
+            for (size_t i = 0; i < size(); ++i) {
+                /// TODO: check pointer pie valid
+                if (i) oss << ", ";
+                oss << index(i)->repr();
+            }
+            oss << ']';
+            return oss.str();
+        }
+
     private:
         std::vector<std::shared_ptr<Piece>> m_list;
     };
@@ -341,12 +458,16 @@ namespace orz {
             return m_dict.erase(key);
         }
 
-        bool has_key(const std::string &key) {
+        bool has_key(const std::string &key) const {
             return m_dict.find(key) != m_dict.end();
         }
 
         std::shared_ptr<Piece> &index(const std::string &key) {
-            return m_dict[key];
+            return m_dict.at(key);
+        }
+
+        const std::shared_ptr<Piece> &index(const std::string &key) const {
+            return m_dict.at(key);
         }
 
         std::shared_ptr<Piece> &index(const std::string &key, const std::shared_ptr<Piece> &value) {
@@ -370,8 +491,17 @@ namespace orz {
             return this->index(std::string(key));
         }
 
+        template<size_t _size>
+        const std::shared_ptr<Piece> &operator[](const char (&key)[_size]) const {
+            return this->index(std::string(key));
+        }
+
         std::shared_ptr<Piece> &operator[](const std::string &key) {
-            return m_dict[key];
+            return m_dict.at(key);
+        }
+
+        const std::shared_ptr<Piece> &operator[](const std::string &key) const {
+            return m_dict.at(key);
         }
 
         virtual std::istream &read(std::istream &bin) override {
@@ -397,6 +527,34 @@ namespace orz {
                 pie->write(bin);
             }
             return bin;
+        }
+
+        const std::string str() const override {
+            std::stringstream oss;
+            oss << '{';
+            bool first = true;
+            for (auto &key : keys()) {
+                /// TODO: check pointer pie valid
+                if (first) first = false;
+                else oss << ", ";
+                oss << '\"' << key << "\": " << index(key)->repr();
+            }
+            oss << '}';
+            return oss.str();
+        }
+
+        const std::string repr() const override {
+            std::stringstream oss;
+            oss << '{';
+            bool first = true;
+            for (auto &key : keys()) {
+                /// TODO: check pointer pie valid
+                if (first) first = false;
+                else oss << ", ";
+                oss << '\"' << key << "\": " << index(key)->repr();
+            }
+            oss << '}';
+            return oss.str();
         }
 
     private:
@@ -444,7 +602,6 @@ namespace orz {
         pie->read(bin);
         return std::move(pie);
     }
-
 }
 
 

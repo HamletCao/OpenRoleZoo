@@ -14,8 +14,7 @@ namespace orz {
     public:
         using self = binary;
 
-        enum class pos
-        {
+        enum class pos {
             now,
             beg,
             end,
@@ -24,6 +23,7 @@ namespace orz {
         using size_t = ::size_t;
 
         binary();
+
         binary(const void *_buffer, size_t _size);
         // binary(const std::string &str);
 
@@ -54,13 +54,14 @@ namespace orz {
         void shift(int _size);
 
         const void *data() const;
+
         void *data();
 
-        template <typename T>
-        const T *data() const {return reinterpret_cast<const T*>(data());}
+        template<typename T>
+        const T *data() const { return reinterpret_cast<const T *>(data()); }
 
-        template <typename T>
-        T *data() {return reinterpret_cast<T*>(data());}
+        template<typename T>
+        T *data() { return reinterpret_cast<T *>(data()); }
 
         // return a clone of this binary
         binary clone() const;
@@ -90,10 +91,17 @@ namespace orz {
         mutable size_t m_index = 0;
 
         size_t correct_index(int _index);
+
         size_t correct_index(pos _pos, int _shift);
+
         void *now_data();
+
         const void *now_data() const;
     };
+
+    std::string to_string(const binary &str);
+
+    binary to_binary(const std::string &bin);
 }
 
 

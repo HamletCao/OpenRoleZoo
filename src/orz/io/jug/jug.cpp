@@ -220,7 +220,7 @@ namespace orz {
                 m_pie = Piece::Get(Piece::LIST);
             case Piece::LIST: {
                 auto list = reinterpret_cast<ListPiece *>(m_pie.get());
-                if (i < 0 || i < list->size()) {
+                if (i < 0 || i >= list->size()) {
                     throw Exception("Index out of range");
                 } else {
                     return list->index(i, value.m_pie);
@@ -324,46 +324,16 @@ namespace orz {
         return m_pie.get();
     }
 
-    std::ostream &operator<<(std::ostream &out, const jug &e) {
-        auto &m_pie = e.m_pie;
-        switch (m_pie->type()) {
-            case Piece::NIL:
-                return out << '\"' << "@nil" << '\"';
-            case Piece::BOOLEAN:
-                return out << std::boolalpha << (reinterpret_cast<BooleanPiece *>(m_pie.get())->get() != 0);
-            case Piece::INT:
-                return out << reinterpret_cast<IntPiece *>(m_pie.get())->get();
-            case Piece::FLOAT:
-                return out << reinterpret_cast<FloatPiece *>(m_pie.get())->get();
-            case Piece::STRING:
-                return out << '\"' << reinterpret_cast<StringPiece *>(m_pie.get())->get() << '\"';
-            case Piece::BINARY:
-                return out << '\"' << "@binary:" << reinterpret_cast<BinaryPiece *>(m_pie.get())->size() << '\"';
-            case Piece::LIST: {
-                auto list = reinterpret_cast<ListPiece *>(m_pie.get());
-                out << '[';
-                for (size_t i = 0; i < list->size(); ++i) {
-                    if (i) out << ',' << ' ';
-                    out << jug(list->index(i));
-                }
-                out << ']';
-                return out;
-            }
-            case Piece::DICT: {
-                auto dict = reinterpret_cast<DictPiece *>(m_pie.get());
-                out << '{';
-                bool first = true;
-                for (auto &key : dict->keys()) {
-                    if (!first) out << ',' << ' ';
-                    else first = false;
-                    out << "\"" << key << "\": " << jug(dict->index(key));
-                }
-                out << '}';
-                return out;
-            }
-        }
+    const std::string jug::str() const {
+        return m_pie->str();
+    }
 
-        return out;
+    const std::string jug::repr() const {
+        return m_pie->repr();
+    }
+
+    std::ostream &operator<<(std::ostream &out, const jug &e) {
+        return out << e.repr();
     }
 
 
@@ -432,6 +402,10 @@ namespace orz {
     void sta_write(std::ostream &out, const jug &j, int mask) {
         binio<int>::write(out, mask);
         Piece::Write(out, j.m_pie);
+    }
+
+    std::string to_string(const jug &obj) {
+        return obj.str();
     }
 
 }
