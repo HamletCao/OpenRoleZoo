@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.7)
 project(ORZ)
 
+option(WITH_OPENSSL "Supporting AES and RAS with OpenSSL" ON)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
@@ -40,6 +42,15 @@ target_link_libraries(${PROJECT_NAME}_SHARED ${PROJECT_NAME}_STATIC)
 
 target_link_libraries(${PROJECT_NAME}_SHARED pthread)
 target_link_libraries(${PROJECT_NAME}_STATIC pthread)
+
+if (WITH_OPENSSL)
+    message(STATUS "Build with OpenSSL")
+    add_definitions(-DWITH_OPENSSL)
+    find_package(OpenSSL REQUIRED)
+    include_directories(${OPENSSL_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_NAME}_SHARED ${OPENSSL_CRYPTO_LIBRARY})
+    target_link_libraries(${PROJECT_NAME}_STATIC ${OPENSSL_CRYPTO_LIBRARY})
+endif (WITH_OPENSSL)
 
 if (WIN32)
     target_link_libraries(${PROJECT_NAME}_SHARED wininet.lib)

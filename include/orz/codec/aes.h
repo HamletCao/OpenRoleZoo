@@ -7,10 +7,16 @@
 
 #include <string>
 
-namespace orz
-{
-    std::string aes128_encode(const std::string &bin);
-    std::string aes128_decode(const std::string &codes);
+namespace orz {
+    enum CRYPTO_MODE {
+        CBC
+    };
+
+    std::string
+    aes128_encode(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv = "");
+
+    std::string
+    aes128_decode(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv = "");
 }
 
 

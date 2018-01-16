@@ -4,12 +4,27 @@
 
 #include "orz/codec/aes.h"
 
+#include "orz/utils/log.h"
+
+#ifndef WITH_OPENSSL
+
 #include <cstring>
 #include <cstdint>
 #include <cassert>
 #include <memory>
 
+#else   // WITH_OPENSSL
+
+#include <openssl/aes.h>
+#include <memory>
+#include <cstring>
+
+#endif  // !WITH_OPENSSL
+
 namespace orz {
+
+#ifndef WITH_OPENSSL
+
     class block4x4 {
     public:
         block4x4(char *data) : m_data(data) {}
@@ -128,20 +143,80 @@ namespace orz {
         std::memcpy(block.data(), result, 16);
     }
 
-    std::string aes128_encode(const std::string &bin) {
-        std::unique_ptr<char[]> codes(new char[bin.size()]);
-        std::memcpy(codes.get(), bin.data(), bin.size());
-        shift_rows_encode(codes.get());
-        mix_columns_encode(codes.get());
-        return std::string(codes.get(), bin.size());
+#endif  // !WITH_OPENSSL
+
+    std::string
+    aes128_encode(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv) {
+#ifndef WITH_OPENSSL
+        std::unique_ptr<char[]> rdata(new char[bin.size()]);
+        std::memcpy(rdata.get(), bin.data(), bin.size());
+        shift_rows_encode(rdata.get());
+        mix_columns_encode(rdata.get());
+        return std::string(rdata.get(), bin.size());
+#else   // WITH_OPENSSL
+        if (key.length() != 16) ORZ_LOG(ERROR) << "key.length should be 16 vs. " << key.length() << crash;
+        if (data.length() % AES_BLOCK_SIZE != 0)
+            ORZ_LOG(ERROR) << "length of data is not a multiplier of " << AES_BLOCK_SIZE << crash;
+        std::string iv_copy = iv;
+        unsigned char iv_buff[AES_BLOCK_SIZE];
+        if (mode == CBC) {
+            if (iv_copy.empty()) iv_copy = std::string(AES_BLOCK_SIZE, 0);
+            if (iv_copy.length() != AES_BLOCK_SIZE)
+                ORZ_LOG(ERROR) << "iv.length should be " << AES_BLOCK_SIZE << " vs. " << iv_copy.length() << crash;
+            std::memcpy(iv_buff, iv_copy.data(), AES_BLOCK_SIZE);
+        }
+        AES_KEY aes = {0};
+        if (AES_set_encrypt_key(reinterpret_cast<const unsigned char *>(key.data()), 128, &aes)) {
+            ORZ_LOG(ERROR) << "openssl: can not init key: " << key << crash;
+        }
+        std::unique_ptr<char[]> rdata(new char[data.size()]);
+        switch (mode) {
+            case CBC:
+                AES_cbc_encrypt(
+                        reinterpret_cast<const unsigned char *>(data.data()),
+                        reinterpret_cast<unsigned char *>(rdata.get()),
+                        data.size(), &aes, iv_buff, AES_ENCRYPT
+                );
+        }
+        return std::string(rdata.get(), data.size());
+#endif  // !WITH_OPENSSL
     }
 
-    std::string aes128_decode(const std::string &codes) {
+    std::string
+    aes128_decode(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv) {
+#ifndef WITH_OPENSSL
         std::unique_ptr<char[]> bin(new char[codes.size()]);
         std::memcpy(bin.get(), codes.data(), codes.size());
         mix_columns_decode(bin.get());
         shift_rows_decode(bin.get());
         return std::string(bin.get(), codes.size());
+#else   // WITH_OPENSSL
+        if (key.length() != 16) ORZ_LOG(ERROR) << "key.length should be 16 vs. " << key.length() << crash;
+        if (data.length() % AES_BLOCK_SIZE != 0)
+            ORZ_LOG(ERROR) << "length of data is not a multiplier of " << AES_BLOCK_SIZE << crash;
+        std::string iv_copy = iv;
+        unsigned char iv_buff[AES_BLOCK_SIZE];
+        if (mode == CBC) {
+            if (iv_copy.empty()) iv_copy = std::string(AES_BLOCK_SIZE, 0);
+            if (iv_copy.length() != AES_BLOCK_SIZE)
+                ORZ_LOG(ERROR) << "iv.length should be " << AES_BLOCK_SIZE << " vs. " << iv_copy.length() << crash;
+            std::memcpy(iv_buff, iv_copy.data(), AES_BLOCK_SIZE);
+        }
+        AES_KEY aes = {0};
+        if (AES_set_decrypt_key(reinterpret_cast<const unsigned char *>(key.data()), 128, &aes)) {
+            ORZ_LOG(ERROR) << "openssl: can not init key: " << key << crash;
+        }
+        std::unique_ptr<char[]> rdata(new char[data.size()]);
+        switch (mode) {
+            case CBC:
+                AES_cbc_encrypt(
+                        reinterpret_cast<const unsigned char *>(data.data()),
+                        reinterpret_cast<unsigned char *>(rdata.get()),
+                        data.size(), &aes, iv_buff, AES_DECRYPT
+                );
+        }
+        return std::string(rdata.get(), data.size());
+#endif  // !WITH_OPENSSL
     }
 }
 
