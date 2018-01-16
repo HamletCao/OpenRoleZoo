@@ -1,16 +1,16 @@
 //
-// Created by lby on 2018/1/15.
+// Created by lby on 2018/1/16.
 //
 
-#include <orz/codec/aes.h>
+#include <orz/codec/rsa.h>
 #include <orz/utils/log.h>
 #include <cstdlib>
 
-bool aes_test(const std::string &bin) {
-    std::string codes = orz::aes128_encode("seetatech0123456", orz::CBC, bin);
-    std::string decode_bin = orz::aes128_decode("seetatech0123456", orz::CBC, codes);
-    ORZ_LOG(orz::DEBUG) << bin << " vs. " << decode_bin;
-    return decode_bin == bin;
+bool rsa_test(const std::string &bin) {
+//    std::string codes = orz::aes128_encode("seetatech0123456", orz::CBC, bin);
+//    std::string decode_bin = orz::aes128_decode("seetatech0123456", orz::CBC, codes);
+//    ORZ_LOG(orz::DEBUG) << bin << " vs. " << decode_bin;
+//    return decode_bin == bin;
 }
 
 const std::string random_string() {
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     int count = 0;
     for (int i = 0; i < N; ++i) {
         std::string bin = random_string();
-        if (aes_test(bin)) ++count;
+        if (rsa_test(bin)) ++count;
     }
 
     ORZ_LOG(orz::INFO) << "Test count: " << N << ", Succeed count: " << count << ".";
