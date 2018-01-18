@@ -42,7 +42,7 @@ namespace orz {
         bool m_valid;
     };
 
-    std::string http_request(const URL &url, http::VERB verb, const std::string &data);
+    std::string http_request(const URL &url, http::VERB verb, const std::string &data = "");
 }
 
 

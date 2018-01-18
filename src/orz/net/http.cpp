@@ -5,10 +5,10 @@
 #include "orz/net/http.h"
 #include "orz/utils/platform.h"
 
-#if defined(ORZ_PLATFORM_CC_MSVC) || defined(ORZ_PLATFORM_CC_MINGW)
+#if ORZ_PLATFORM_CC_MSVC || ORZ_PLATFORM_CC_MINGW
 #include "http_win.h"
 #else
-#error not supported compiler
+#include "http_linux.h"
 #endif
 
 namespace orz {
