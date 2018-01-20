@@ -9,10 +9,10 @@
 
 namespace orz
 {
-    std::string ras_private_encode(const std::string &private_key, const std::string &data);
-    std::string ras_public_decode(const std::string &public_key, const std::string &data);
-    std::string ras_public_encode(const std::string &public_key, const std::string &data);
-    std::string ras_private_decode(const std::string &private_key, const std::string &data);
+    std::string rsa_private_encode(const std::string &private_key, const std::string &data);
+    std::string rsa_public_decode(const std::string &public_key, const std::string &data);
+    std::string rsa_public_encode(const std::string &public_key, const std::string &data);
+    std::string rsa_private_decode(const std::string &private_key, const std::string &data);
 }
 
 #endif //ORZ_RSA_H
