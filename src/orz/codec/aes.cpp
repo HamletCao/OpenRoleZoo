@@ -148,6 +148,7 @@ namespace orz {
     std::string
     aes128_encode(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv) {
 #ifndef WITH_OPENSSL
+#error Only support OpenSSL, please recomiple with -DWITH_OPENSSL
         std::unique_ptr<char[]> rdata(new char[bin.size()]);
         std::memcpy(rdata.get(), bin.data(), bin.size());
         shift_rows_encode(rdata.get());
@@ -185,6 +186,7 @@ namespace orz {
     std::string
     aes128_decode(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv) {
 #ifndef WITH_OPENSSL
+#error Only support OpenSSL, please recomiple with -DWITH_OPENSSL
         std::unique_ptr<char[]> bin(new char[codes.size()]);
         std::memcpy(bin.get(), codes.data(), codes.size());
         mix_columns_decode(bin.get());

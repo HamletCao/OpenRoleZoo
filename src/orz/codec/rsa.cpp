@@ -22,7 +22,7 @@ namespace orz
 {
     std::string rsa_private_encode(const std::string &private_key, const std::string &data) {
 #ifndef WITH_OPENSSL
-
+#error Only support OpenSSL, please recomiple with -DWITH_OPENSSL
 #else   // WITH_OPENSSL
         RSA *rsa = nullptr;
         FILE *key_file = std::fopen(private_key.c_str(), "rb");
@@ -50,7 +50,7 @@ namespace orz
 
     std::string rsa_public_decode(const std::string &public_key, const std::string &data) {
 #ifndef WITH_OPENSSL
-
+#error Only support OpenSSL, please recomiple with -DWITH_OPENSSL
 #else   // WITH_OPENSSL
         RSA *rsa = nullptr;
         FILE *key_file = std::fopen(public_key.c_str(), "rb");
