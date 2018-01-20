@@ -50,6 +50,8 @@ if (WITH_OPENSSL)
     include_directories(${OPENSSL_INCLUDE_DIR})
     target_link_libraries(${PROJECT_NAME}_SHARED ${OPENSSL_CRYPTO_LIBRARY})
     target_link_libraries(${PROJECT_NAME}_STATIC ${OPENSSL_CRYPTO_LIBRARY})
+    target_link_libraries(${PROJECT_NAME}_SHARED ${OPENSSL_SSL_LIBRARY})
+    target_link_libraries(${PROJECT_NAME}_STATIC ${OPENSSL_SSL_LIBRARY})
 endif (WITH_OPENSSL)
 
 if (WIN32)

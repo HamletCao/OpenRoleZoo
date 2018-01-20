@@ -45,6 +45,10 @@ namespace orz {
     }
 
     std::string http_request(const URL &url, http::VERB verb, const std::string &data) {
-        return http_request_core(url, verb, data);
+        try {
+            return http_request_core(url, verb, data);
+        } catch (const Exception &) {
+            return std::string();
+        }
     }
 }
