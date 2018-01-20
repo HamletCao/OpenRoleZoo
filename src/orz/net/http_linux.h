@@ -7,6 +7,7 @@
 
 #include "orz/utils/log.h"
 #include "orz/io/jug/binary.h"
+#include "orz/mem/need.h"
 
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -86,6 +87,7 @@ namespace orz {
         ORZ_LOG(INFO) << content;
 
         int sockfd = socket(host->h_addrtype, SOCK_STREAM, 0);
+        need close_sockfd(close, sockfd);
 
         if (sockfd < 0) ORZ_LOG(ERROR) << "socket error: " << url.host() << crash;
 
