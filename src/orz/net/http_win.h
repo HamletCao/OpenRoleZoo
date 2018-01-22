@@ -5,6 +5,10 @@
 #ifndef ORZ_NET_HTTP_WIN_H
 #define ORZ_NET_HTTP_WIN_H
 
+#include "orz/utils/platform.h"
+
+#if ORZ_PLATFORM_CC_MSVC || ORZ_PLATFORM_CC_MINGW
+
 #include "orz/net/http.h"
 #include "orz/utils/log.h"
 #include "orz/mem/need.h"
@@ -163,5 +167,11 @@ namespace orz {
         return report;
     }
 }
+
+#else // ORZ_PLATFORM_CC_MSVC || ORZ_PLATFORM_CC_MINGW
+
+#error Can not compile this file with out msvc or mingw
+
+#endif // ORZ_PLATFORM_CC_MSVC || ORZ_PLATFORM_CC_MINGW
 
 #endif //ORZ_NET_HTTP_WIN_H
