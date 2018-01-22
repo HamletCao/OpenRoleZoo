@@ -34,6 +34,17 @@
 
 namespace orz {
 
+    class linux_ssl_static_init
+    {
+    public:
+        linux_ssl_static_init() {
+#ifndef WITH_OPENSSL
+#else   // !WITH_OPENSSL
+            SSLeay_add_ssl_algorithms();
+#endif  // !WITH_OPENSSL
+        }
+    };
+
     class linux_ssl_stream {
     public:
         explicit linux_ssl_stream(int fd, bool with_ssl = false)
@@ -48,7 +59,7 @@ namespace orz {
             if (!with_ssl) return;
 
             // SSL_load_error_strings();
-            SSLeay_add_ssl_algorithms();
+            static linux_ssl_static_init static_init;
 
             m_ssl_ctx = SSL_CTX_new(SSLv23_client_method());
             if (m_ssl_ctx == nullptr) {
@@ -124,6 +135,14 @@ namespace orz {
                 if (offset >= length) return length;
                 if (reinterpret_cast<char *>(data)[offset - 1] == '\n') return offset;
             }
+        }
+
+        bool eof() const {
+            char mark;
+            auto flag = ::recv(m_fd, &mark, 1, MSG_PEEK);
+            if (flag > 0) return false;
+            if (flag < 0 && errno == EWOULDBLOCK) return false;
+            return true;
         }
 
         ~linux_ssl_stream() {
@@ -251,7 +270,10 @@ namespace orz {
         while (true) {
             len = s.readline(data, sizeof(data));
             if (len < 0) break;
-            if (len == 0) continue;
+            if (len == 0) {
+                if (s.eof()) break;
+                else continue;
+            }
             if (data[len - 1] == '\n') {
                  int tail = 1;
                  if (len >= 2 && data[len - 2] == '\r') tail++;
@@ -266,12 +288,29 @@ namespace orz {
         return true;
     }
 
+    static binary read_closed_stream(stream &s) {
+        binary data;
+        char local_buffer[1024];
+        ssize_t local_length = 0;
+        while (true) {
+            local_length = s.read(local_buffer, sizeof(local_buffer));
+            if (local_length < 0) break;
+            if (local_length == 0) {
+                if (s.eof()) break;
+                else continue;
+            }
+            data.write(local_buffer, local_length);
+        }
+        return data;
+    }
+
     static binary read_content_data(stream &s, size_t length) {
         binary data;
         data.resize(length);
         while (data.get_pos() < data.size()) {
             auto remain_size = data.size() - data.get_pos();
             auto read_size = s.read(data.data<char>() + data.get_pos(), remain_size);
+            if (read_size == 0 && s.eof()) break;
             data.shift(read_size);
         }
         return data;
@@ -295,7 +334,7 @@ namespace orz {
     std::string http_request_core(const URL &url, http::VERB verb, const std::string &data) {
         std::string report;
 
-        struct hostent host_buf = {0};
+        struct hostent host_buf = {nullptr};
         struct hostent *host = gethostbyname_local(url.host().c_str(), host_buf);
         in_addr host_addr = *reinterpret_cast<in_addr *>(host->h_addr);
         std::string ip = inet_ntoa(host_addr);
@@ -307,7 +346,7 @@ namespace orz {
         content_buffer << Concat(verb_string(verb), " ", target, " HTTP/1.1\r\n");
         content_buffer << Concat("HOST: ", ip, "\r\n");
         content_buffer << Concat("User-Agent: ", "Microsoft Internet Explorer", "\r\n");
-        content_buffer << Concat("Connection: ", "keep-alive", "\r\n");
+        // content_buffer << Concat("Connection: ", "keep-alive", "\r\n");
         content_buffer << Concat("Content-Type: application/x-www-form-urlencoded", "\r\n");
         content_buffer << Concat("Content-Length: ", data.size(), "\r\n");
         content_buffer << "\r\n";
@@ -345,7 +384,7 @@ namespace orz {
 
         while (getline(socket_stream, header)) {
             if (header.empty()) break;
-            if (header.size() >= 2) http_option.add(header.substr(0, header.size()));
+            http_option.add(header.substr(0, header.size()));
         }
 
         std::string data_length = http_option.get_one("Content-Length");
@@ -359,7 +398,9 @@ namespace orz {
         } else if (!data_encoding.empty() && data_encoding == "chunked") {
             buffer = read_chunked_data(socket_stream);
         } else {
-            ORZ_LOG(ERROR) << "Can not recognize content format";
+            if (tolower(http_option.get_one("Connection")) != "close")
+                ORZ_LOG(ERROR) << "Can not recognize content format";
+            buffer = read_closed_stream(socket_stream);
         }
 
         report = std::string(buffer.data<char>(), buffer.size());
