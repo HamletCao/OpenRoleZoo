@@ -10,6 +10,8 @@
 namespace orz {
     class progress_bar {
     public:
+        using self = progress_bar;
+
         using microseconds = std::chrono::microseconds;
         using system_clock = std::chrono::system_clock;
         using time_point = decltype(system_clock::now());
@@ -27,24 +29,33 @@ namespace orz {
         progress_bar(int max);
         progress_bar();
 
+        status stat() const;
+
         void start();
         void stop();
         void pause();
+
+        void autostop(bool flag);
+        bool autostop() const;
 
         int value() const;
         int max() const;
         int min() const;
 
-        int next();
         void set_value(int value);
-        void set_min(int value);
-        void set_max(int value);
+        void set_min(int min);
+        void set_max(int max);
+
+        int next();
 
         microseconds used_time() const;
     private:
         int m_min;
         int m_max;
         int m_value;
+        int m_step = 1;
+
+        bool m_autostop = true;
 
         status m_stat = WAITING;
 
