@@ -1,12 +1,22 @@
 cmake_minimum_required(VERSION 2.7)
 project(ORZ)
 
-option(WITH_OPENSSL "Supporting AES and RAS with OpenSSL" ON)
+# global root dir
+set(SOLUTION_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+# dir for common cmake files
+list(APPEND CMAKE_MODULE_PATH ${SOLUTION_DIR}/cmake)
+list(APPEND CMAKE_PREFIX_PATH ${SOLUTION_DIR}/cmake)
+
+# option for platform
+set(PLATFORM "auto" CACHE STRING "auto, x86 or x64")
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Debug or Release")
+set(CONFIGURATION ${CMAKE_BUILD_TYPE})
+
+# set common compiler flags
+include(LOCAL_FLAGS)
+
+option(WITH_OPENSSL "Supporting AES, RAS and SSL with OpenSSL" ON)
 
 set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/build CACHE STRING "set install prefix" FORCE)
 
@@ -44,10 +54,7 @@ set(LOCAL_OUTPUT_DIR ${PROJECT_SOURCE_DIR})
 
 add_library(${PROJECT_NAME}_STATIC STATIC ${INCLUDE_FILES} ${SRC_INCLUDE_FILES} ${SRC_FILES})
 add_library(${PROJECT_NAME}_SHARED SHARED ${INCLUDE_FILES} ${SRC_INCLUDE_FILES} ${SRC_FILES})
-target_link_libraries(${PROJECT_NAME}_SHARED ${PROJECT_NAME}_STATIC)
-
-target_link_libraries(${PROJECT_NAME}_SHARED pthread)
-target_link_libraries(${PROJECT_NAME}_STATIC pthread)
+# target_link_libraries(${PROJECT_NAME}_SHARED ${PROJECT_NAME}_STATIC)
 
 if (WITH_OPENSSL)
     message(STATUS "Build with OpenSSL")
@@ -63,6 +70,10 @@ endif (WITH_OPENSSL)
 if (WIN32)
     target_link_libraries(${PROJECT_NAME}_SHARED wininet.lib)
     target_link_libraries(${PROJECT_NAME}_STATIC wininet.lib)
+endif ()
+if (UNIX)
+    target_link_libraries(${PROJECT_NAME}_SHARED pthread)
+    target_link_libraries(${PROJECT_NAME}_STATIC pthread)
 endif ()
 
 set_target_properties(${PROJECT_NAME}_SHARED PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
