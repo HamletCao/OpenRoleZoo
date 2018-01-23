@@ -158,6 +158,8 @@ namespace orz {
         using supper = TypedPiece<_type>;
         using self = ValuedPiece;
 
+        using Value = T;
+
         ValuedPiece() : m_val(defualt_value<T>()) {}
 
         ValuedPiece(const T &val) : m_val(val) {}
@@ -205,11 +207,16 @@ namespace orz {
         T m_val;
     };
 
-    class NilPiece :public ValuedPiece<Piece::NIL, char> {
+    class NilPiece : public ValuedPiece<Piece::NIL, char> {
+    public:
         using supper = ValuedPiece<Piece::NIL, char>;
         using self = NilPiece;
 
-        using supper::ValuedPiece;
+        NilPiece() : supper() {}
+
+        NilPiece(const supper::Value &val) : supper(val) {}
+
+        NilPiece(std::istream &bin) : supper(bin) {}
 
         const std::string str() const override {
             std::stringstream oss;
@@ -229,10 +236,15 @@ namespace orz {
     using FloatPiece = ValuedPiece<Piece::FLOAT, float>;
 
     class StringPiece : public ValuedPiece<Piece::STRING, std::string> {
+    public:
         using supper = ValuedPiece<Piece::STRING, std::string>;
         using self = StringPiece;
 
-        using supper::ValuedPiece;
+        StringPiece() : supper() {}
+
+        StringPiece(const supper::Value &val) : supper(val) {}
+
+        StringPiece(std::istream &bin) : supper(bin) {}
 
         const std::string repr() const override {
             std::stringstream oss;
@@ -243,10 +255,15 @@ namespace orz {
 
     // using BinaryPiece = ValuedPiece<Piece::BINARY, std::string>;
     class BooleanPiece : public ValuedPiece<Piece::BOOLEAN, char> {
+    public:
         using supper = ValuedPiece<Piece::BOOLEAN, char>;
         using self = BooleanPiece;
 
-        using supper::ValuedPiece;
+        BooleanPiece() : supper() {}
+
+        BooleanPiece(const supper::Value &val) : supper(val) {}
+
+        BooleanPiece(std::istream &bin) : supper(bin) {}
 
         const std::string str() const override {
             std::stringstream oss;

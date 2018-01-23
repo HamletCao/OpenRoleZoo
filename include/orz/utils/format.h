@@ -14,7 +14,7 @@
 #endif
 
 namespace orz {
-    static void _Concat_str(std::ostream &out) { UNUSED(_Concat_str); }
+    static void _Concat_str(std::ostream &out) { (decltype(_Concat_str(out))()); }
 
     template<typename T, typename... Args>
     static void _Concat_str(std::ostream &out, const T &t, Args... args) { _Concat_str(out << t, args...); }

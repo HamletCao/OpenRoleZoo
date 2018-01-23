@@ -6,7 +6,9 @@
 #include "orz/utils/platform.h"
 
 #if ORZ_PLATFORM_CC_MSVC || ORZ_PLATFORM_CC_MINGW
+
 #include "http_win.h"
+
 #else
 #include "http_linux.h"
 #endif
@@ -33,7 +35,7 @@ namespace orz {
             if (target_anchor == std::string::npos) port_string = m_url.substr(port_anchor + 1);
             else port_string = m_url.substr(port_anchor + 1, target_anchor - port_anchor);
             m_port = std::atoi(port_string.c_str());
-        } else{
+        } else {
             m_host = m_url.substr(anchor, target_anchor - anchor);
             m_port = 0;
         }

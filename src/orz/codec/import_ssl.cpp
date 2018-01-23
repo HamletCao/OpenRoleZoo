@@ -2,12 +2,10 @@
 // Created by lby on 2018/1/16.
 //
 
+#include "orz/utils/platform.h"
+
 #ifdef WITH_OPENSSL
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
-//#import <openssl/applink.c>
-//#ifdef __cplusplus
-//}
-//#endif
+#if ORZ_PLATFORM_CC_MSVC
+#include <openssl/applink.c>
+#endif
 #endif

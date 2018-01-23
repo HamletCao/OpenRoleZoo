@@ -69,13 +69,12 @@ namespace orz {
         return std::rename(oldname.c_str(), newname.c_str()) == 0;
     }
 
-	bool copy(const std::string& fromfile, const std::string& tofile, bool force)
-	{
+    bool copy(const std::string &fromfile, const std::string &tofile, bool force) {
 #if ORZ_PLATFORM_OS_WINDOWS
-		return CopyFileA(fromfile.c_str(), tofile.c_str(), !force);
+        return CopyFileA(fromfile.c_str(), tofile.c_str(), !force) != FALSE;
 #else
-		return false;
+        return false;
 #endif
-	}
+    }
 }
 

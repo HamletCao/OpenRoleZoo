@@ -13,14 +13,15 @@
 #include "orz/utils/log.h"
 #include "orz/mem/need.h"
 
-#include <windows.h>
-#include <wininet.h>
+#include <Windows.h>
+#include <WinInet.h>
 
 #include "orz/io/jug/binary.h"
+#include <cctype>
 
 namespace orz {
 
-    int defulat_protocol_port(const std::string &protocal, int port) {
+    static int defulat_protocol_port(const std::string &protocal, int port) {
         if (port > 0) return port;
         std::string local_protocal = protocal;
         for (auto &ch : local_protocal) ch = std::tolower(ch);
@@ -29,7 +30,7 @@ namespace orz {
         return 0;
     }
 
-    const char *verb_string(http::VERB verb) {
+    static const char *verb_string(http::VERB verb) {
         switch (verb) {
             case http::GET:
                 return "GET";
@@ -40,7 +41,7 @@ namespace orz {
         }
     }
 
-    DWORD default_http_flags() {
+    static DWORD default_http_flags() {
         return //flags common to open functions
                 INTERNET_FLAG_RELOAD |
                 //flags
@@ -64,7 +65,7 @@ namespace orz {
                 0;
     }
 
-    DWORD default_https_flags() {
+    static DWORD default_https_flags() {
         return //flags common to open functions
                 INTERNET_FLAG_RELOAD |
                 //flags
@@ -88,7 +89,7 @@ namespace orz {
                 0;
     }
 
-    DWORD defulat_protocol_flags(const std::string &protocal) {
+    static DWORD defulat_protocol_flags(const std::string &protocal) {
         std::string local_protocal = protocal;
         for (auto &ch : local_protocal) ch = std::tolower(ch);
         if (local_protocal == "http") return default_http_flags();
@@ -96,7 +97,7 @@ namespace orz {
         return 0;
     }
 
-    std::string format_message(DWORD dw) {
+    static std::string format_message(DWORD dw) {
         LPVOID lpMsgBuf;
         FormatMessageA(
                 FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
@@ -135,7 +136,8 @@ namespace orz {
 
         // Request
         HINTERNET hOpenRequest = HttpOpenRequestA(hConnect, verb_string(verb), url.target().c_str(), NULL, NULL,
-                                                  (LPCSTR *) "*/*", defulat_protocol_flags(url.protocol()), 0);
+                                                  (LPCSTR *)("*/*"),
+                                                  defulat_protocol_flags(url.protocol()), 0);
         if (hOpenRequest == NULL) {
             ORZ_LOG(INFO) << "Http open request error: " << std::hex << format_message(GetLastError());
             return report;
@@ -147,8 +149,8 @@ namespace orz {
 
         // Send
         BOOL bRequest = HttpSendRequestA(hOpenRequest,
-                                         const_cast<char *>(header.data()), header.size(),
-                                         const_cast<char *>(data.data()), data.size());
+                                         const_cast<char *>(header.data()), DWORD(header.size()),
+                                         const_cast<char *>(data.data()), DWORD(data.size()));
 
         if (!bRequest) {
             ORZ_LOG(INFO) << "Http send request error: " << std::hex << format_message(GetLastError());

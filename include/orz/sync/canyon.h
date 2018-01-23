@@ -19,11 +19,10 @@ namespace orz {
     public:
         using Operation = std::function<void()>;
 
-		enum Action
-		{
-			DISCARD,
-			WAITING
-		};
+        enum Action {
+            DISCARD,
+            WAITING
+        };
 
         explicit Canyon(int size = -1, Action act = WAITING);
 
@@ -31,15 +30,15 @@ namespace orz {
 
         template<typename FUNC>
         void operator()(FUNC func) const {
-            auto op = func;
+            auto op = [&]() -> void { func(); };
             this->push(op);
-        };
+        }
 
         template<typename FUNC, typename... Args>
         void operator()(FUNC func, Args... args) const {
-            auto op = std::bind(func, std::forward<Args>(args)...);
+            auto op = [&]() -> void { func(std::forward<Args>(args)...); };
             this->push(op);
-        };
+        }
 
         void join() const;
 
@@ -57,7 +56,7 @@ namespace orz {
         mutable std::condition_variable _cond;
         std::atomic<bool> _work;
         int _size;
-		Action _act;
+        Action _act;
 
         std::thread _core;
     };

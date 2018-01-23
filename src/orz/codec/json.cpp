@@ -5,6 +5,7 @@
 #include "orz/codec/json.h"
 
 #include "json_iterator.h"
+#include <cctype>
 
 namespace orz {
     static bool is_space(char ch) {
@@ -31,10 +32,10 @@ namespace orz {
         beg = jump_space(beg);
         if (beg == beg.end()) ORZ_LOG(ERROR) << "syntax error: converting empty json to boolean" << crash;
         jug result;
-        if (beg.cut(beg + 4) == "true"){
+        if (beg.cut(beg + 4) == "true") {
             beg += 4;
             result = true;
-        }else if (beg.cut(beg + 5) == "false") {
+        } else if (beg.cut(beg + 5) == "false") {
             beg += 5;
             result = false;
         }
@@ -145,7 +146,7 @@ namespace orz {
         auto ivalue = static_cast<int>(value);
         if (double(ivalue) == value) result = ivalue;
         else result = value;
-        beg += end_ptr - number_c_string;
+        beg += int(end_ptr - number_c_string);
         return result;
     }
 
@@ -182,7 +183,8 @@ namespace orz {
             if (it == it.end() || *it == '}') break;
             std::string local_key = parse_string(it);
             it = jump_space(it);
-            if (it == it.end() || *it != ':') ORZ_LOG(ERROR) << "syntax error: dict key:value must split with :" << crash;
+            if (it == it.end() || *it != ':')
+                ORZ_LOG(ERROR) << "syntax error: dict key:value must split with :" << crash;
             ++it;
             jug local_value = parse_value(it);
             value.index(local_key, local_value);
