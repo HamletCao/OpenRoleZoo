@@ -14,7 +14,7 @@ bool aes_test(const std::string &bin) {
 }
 
 const std::string random_string() {
-    int size = 16; //std::rand() % 1024;
+    int size = std::rand() % 1024;
     std::string bin(size, 0);
     for (auto &ch : bin) {
         ch = char(std::rand() % 256);
