@@ -7,12 +7,28 @@
 
 #include <string>
 
-namespace orz
-{
-    std::string rsa_private_encode(const std::string &private_key, const std::string &data);
-    std::string rsa_public_decode(const std::string &public_key, const std::string &data);
-    std::string rsa_public_encode(const std::string &public_key, const std::string &data);
-    std::string rsa_private_decode(const std::string &private_key, const std::string &data);
+namespace orz {
+    class rsa_key;
+
+    rsa_key *load_public_rsa_key(const std::string &filename);
+
+    rsa_key *load_private_rsa_key(const std::string &filename);
+
+    void free_rsa_key(const rsa_key *key);
+
+    // encode with OPENSSL_PKCS1_PADDING, data length can not greater than 117
+    std::string rsa_encode_block(rsa_key *key, const std::string &data);
+
+    // decode with OPENSSL_PKCS1_PADDING, data length should be 128
+    std::string rsa_decode_block(rsa_key *key, const std::string &data);
+
+    std::string rsa_private_encode(const std::string &filename, const std::string &data);
+
+    std::string rsa_public_decode(const std::string &filename, const std::string &data);
+
+    std::string rsa_public_encode(const std::string &filename, const std::string &data);
+
+    std::string rsa_private_decode(const std::string &filename, const std::string &data);
 }
 
 #endif //ORZ_RSA_H

@@ -146,7 +146,7 @@ namespace orz {
 #endif  // !WITH_OPENSSL
 
     std::string
-    aes128_encode(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv) {
+    aes128_encode_block(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv) {
 #ifndef WITH_OPENSSL
 #error Only support OpenSSL, please recomiple with -DWITH_OPENSSL
         std::unique_ptr<char[]> rdata(new char[data.size()]);
@@ -184,7 +184,7 @@ namespace orz {
     }
 
     std::string
-    aes128_decode(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv) {
+    aes128_decode_block(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv) {
 #ifndef WITH_OPENSSL
 #error Only support OpenSSL, please recomiple with -DWITH_OPENSSL
         std::unique_ptr<char[]> rdata(new char[data.size()]);
@@ -219,6 +219,56 @@ namespace orz {
         }
         return std::string(rdata.get(), data.size());
 #endif  // !WITH_OPENSSL
+    }
+
+    static bool feak_tail(const std::string &data) {
+        size_t len = data.size();
+        char ch = data.back();
+        size_t num = static_cast<size_t>(ch);
+        if (num < len) {
+            for (auto i = len - num; i < len; ++i) {
+                if (data[i] != ch) return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    void aes128_PKCS7_add_padding(std::string &data) {
+        static size_t block_size = 16;
+        auto tail_size = data.size() % block_size;
+        if (tail_size > 0) {
+            auto padding_size = block_size - tail_size;
+            data.insert(data.end(), padding_size, (unsigned char) (padding_size));
+        } else if (feak_tail(data)) {
+            data.insert(data.end(), block_size, (unsigned char) (block_size));
+        }
+    }
+
+    void aes128_PKCS7_reamove_padding(std::string &data) {
+        size_t len = data.size();
+        char ch = data.back();
+        size_t num = static_cast<size_t>(ch);
+        if (num < len) {
+            for (auto i = len - num; i < len; ++i) {
+                if (data[i] != ch) return;
+            }
+            data.erase(len - num);
+        }
+    }
+
+    std::string aes128_encode(const std::string &key, CRYPTO_MODE mode, const std::string &data,
+                              const std::string &iv) {
+        auto padded_data = data;
+        aes128_PKCS7_add_padding(padded_data);
+        return aes128_encode_block(key, mode, padded_data, iv);
+    }
+
+    std::string aes128_decode(const std::string &key, CRYPTO_MODE mode, const std::string &data,
+                              const std::string &iv) {
+        auto padded_data = aes128_decode_block(key, mode, data, iv);
+        aes128_PKCS7_reamove_padding(padded_data);
+        return std::move(padded_data);
     }
 }
 
