@@ -14,12 +14,12 @@ namespace orz {
 
         template<typename FUNC>
         need(FUNC func) {
-            task = [&]() -> void { func(); };
+            task = [=]() -> void { func(); };
         }
 
         template<typename FUNC, typename... Args>
         need(FUNC func, Args... args) {
-            task = [&]() -> void { func(std::forward<Args>(args)...); };
+            task = [=]() -> void { func(args...); };
         }
 
         ~need() { task(); }
