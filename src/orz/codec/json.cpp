@@ -233,7 +233,7 @@ namespace orz {
 
     static std::string HH(unsigned char ch) {
         char buff[3];
-        sprintf(buff, "%02X", ch);
+        std::sprintf(buff, "%02X", ch);
         return std::string(buff, buff + 2);
     }
 

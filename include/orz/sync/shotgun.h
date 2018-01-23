@@ -65,7 +65,7 @@ namespace orz {
 
         /**
          * @brief recycling_cartridge 回收子弹放入枪膛
-         * @param cart 待回收的子弹
+         * @param signet 待回收的子弹
          */
         void recycling_cartridge(int signet);
 
