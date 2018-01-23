@@ -83,30 +83,30 @@ namespace orz {
         rsa_key::free(key);
     }
 
+    static std::string block_transfer(const std::string &data, size_t block_size,
+                                      std::function<std::string(const std::string &)> transfer) {
+        std::string rdata;
+        std::string block;
+
+        size_t index = 0;
+        while (true) {
+            if (index >= data.length()) break;
+            block = data.substr(index, block_size);
+            if (block.empty()) break;
+            block = transfer(block);
+            rdata.insert(rdata.end(), block.begin(), block.end());
+            index += block_size;
+        }
+        return std::move(rdata);
+    }
+
     std::string rsa_private_encode(const std::string &filename, const std::string &data) {
         auto key = load_private_rsa_key(filename);
         if (key == nullptr) return std::string();
         need free_key(free_rsa_key, key);
 
-        std::string rdata;
-        std::string block;
-        size_t block_size = 100;
-
-        try {
-            // split and encode
-            size_t index = 0;
-            while (true) {
-                if (index >= data.length()) break;
-                block = data.substr(index, block_size);
-                if (block.empty()) break;
-                block = rsa_encode_block(key, block);
-                rdata.insert(rdata.end(), block.begin(), block.end());
-                index += block_size;
-            }
-            return std::move(rdata);
-        } catch (const Exception &) {
-            return std::string();
-        }
+        try { return block_transfer(data, 100, std::bind(rsa_encode_block, key, std::placeholders::_1)); }
+        catch (const Exception &) { return std::string(); }
     }
 
     std::string rsa_public_decode(const std::string &filename, const std::string &data) {
@@ -114,25 +114,8 @@ namespace orz {
         if (key == nullptr) return std::string();
         need free_key(free_rsa_key, key);
 
-        std::string rdata;
-        std::string block;
-        size_t block_size = 128;
-
-        try {
-            // split and encode
-            size_t index = 0;
-            while (true) {
-                if (index >= data.length()) break;
-                block = data.substr(index, block_size);
-                if (block.empty()) break;
-                block = rsa_decode_block(key, block);
-                rdata.insert(rdata.end(), block.begin(), block.end());
-                index += block_size;
-            }
-            return std::move(rdata);
-        } catch (const Exception &) {
-            return std::string();
-        }
+        try { return block_transfer(data, 128, std::bind(rsa_decode_block, key, std::placeholders::_1)); }
+        catch (const Exception &) { return std::string(); }
     }
 
     std::string rsa_public_encode(const std::string &filename, const std::string &data) {
@@ -140,25 +123,8 @@ namespace orz {
         if (key == nullptr) return std::string();
         need free_key(free_rsa_key, key);
 
-        std::string rdata;
-        std::string block;
-        size_t block_size = 100;
-
-        try {
-            // split and encode
-            size_t index = 0;
-            while (true) {
-                if (index >= data.length()) break;
-                block = data.substr(index, block_size);
-                if (block.empty()) break;
-                block = rsa_encode_block(key, block);
-                rdata.insert(rdata.end(), block.begin(), block.end());
-                index += block_size;
-            }
-            return std::move(rdata);
-        } catch (const Exception &) {
-            return std::string();
-        }
+        try { return block_transfer(data, 100, std::bind(rsa_encode_block, key, std::placeholders::_1)); }
+        catch (const Exception &) { return std::string(); }
     }
 
     std::string rsa_private_decode(const std::string &filename, const std::string &data) {
@@ -166,25 +132,8 @@ namespace orz {
         if (key == nullptr) return std::string();
         need free_key(free_rsa_key, key);
 
-        std::string rdata;
-        std::string block;
-        size_t block_size = 128;
-
-        try {
-            // split and encode
-            size_t index = 0;
-            while (true) {
-                if (index >= data.length()) break;
-                block = data.substr(index, block_size);
-                if (block.empty()) break;
-                block = rsa_decode_block(key, block);
-                rdata.insert(rdata.end(), block.begin(), block.end());
-                index += block_size;
-            }
-            return std::move(rdata);
-        } catch (const Exception &) {
-            return std::string();
-        }
+        try { return block_transfer(data, 128, std::bind(rsa_decode_block, key, std::placeholders::_1)); }
+        catch (const Exception &) { return std::string(); }
     }
 
     std::string rsa_encode_block(rsa_key *key, const std::string &data) {
