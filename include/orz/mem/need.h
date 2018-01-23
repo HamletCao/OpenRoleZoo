@@ -5,7 +5,7 @@
 #ifndef ORZ_MEM_NEED_H
 #define ORZ_MEM_NEED_H
 
-#include <functional>
+#include "orz/tools/void_bind.h"
 
 namespace orz {
 
@@ -14,12 +14,12 @@ namespace orz {
 
         template<typename FUNC>
         need(FUNC func) {
-            task = [=]() -> void { func(); };
+            task = void_bind(func);
         }
 
         template<typename FUNC, typename... Args>
-        need(FUNC func, Args... args) {
-            task = [=]() -> void { func(args...); };
+        need(FUNC func, Args &&... args) {
+            task = void_bind(func, std::forward<Args>(args)...);
         }
 
         ~need() { task(); }
@@ -29,7 +29,7 @@ namespace orz {
 
         need &operator=(const need &that) = delete;
 
-        std::function<void()> task;
+        VoidOperator task;
     };
 }
 

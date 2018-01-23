@@ -23,7 +23,7 @@ namespace orz {
         while (_task.size()) _cond.wait(_locker);
     }
 
-    void Canyon::push(const Operation &op) const {
+    void Canyon::push(const VoidOperator &op) const {
         std::unique_lock<std::mutex> _locker(_mutex);
         while (_size > 0 && _task.size() >= static_cast<size_t>(_size)) {
             switch (_act) {

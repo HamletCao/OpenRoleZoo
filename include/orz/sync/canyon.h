@@ -13,12 +13,12 @@
 #include <queue>
 #include <future>
 
+#include "orz/tools/void_bind.h"
+
 namespace orz {
 
     class Canyon {
     public:
-        using Operation = std::function<void()>;
-
         enum Action {
             DISCARD,
             WAITING
@@ -31,13 +31,12 @@ namespace orz {
         template<typename FUNC>
         void operator()(FUNC func) const {
             auto op = [=]() -> void { func(); };
-            this->push(op);
+            this->push(void_bind(func));
         }
 
         template<typename FUNC, typename... Args>
-        void operator()(FUNC func, Args... args) const {
-			auto op = [=]() -> void { func(args...); };
-            this->push(op);
+        void operator()(FUNC func, Args &&... args) const {
+            this->push(void_bind(func, std::forward<Args>(args)...));
         }
 
         void join() const;
@@ -47,11 +46,11 @@ namespace orz {
 
         const Canyon &operator=(const Canyon &that) = delete;
 
-        void push(const Operation &op) const;
+        void push(const VoidOperator &op) const;
 
         void operating() const;
 
-        mutable std::queue<Operation> _task;
+        mutable std::queue<VoidOperator> _task;
         mutable std::mutex _mutex;
         mutable std::condition_variable _cond;
         std::atomic<bool> _work;
