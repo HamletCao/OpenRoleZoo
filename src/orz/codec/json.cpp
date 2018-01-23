@@ -224,6 +224,29 @@ namespace orz {
         return obj.repr();
     }
 
+    static bool is_alphanumeric(char ch) {
+        if ('a' <= ch && ch <= 'z') return true;
+        if ('A' <= ch && ch <= 'Z') return true;
+        if ('0' <= ch && ch <= '9') return true;
+        return false;
+    }
+
+    static std::string HH(unsigned char ch) {
+        char buff[3];
+        sprintf(buff, "%02X", ch);
+        return std::string(buff, buff + 2);
+    }
+
+    static std::string form_encode(const std::string &str) {
+        std::ostringstream oss;
+        for (auto ch : str) {
+            if (ch == ' ') oss << char('+');
+            else if (is_alphanumeric(ch)) oss << char(ch);
+            else oss << '%' << HH(ch);
+        }
+        return oss.str();
+    }
+
     std::string form_encode(const orz::jug &obj) {
         if (!obj.valid(Piece::DICT)) ORZ_LOG(ERROR) << "form encoding only supporting dict" << crash;
         std::ostringstream oss;
@@ -231,7 +254,7 @@ namespace orz {
         for (auto &key : obj.keys()) {
             if (first) first = false;
             else oss << "&";
-            oss << key << "=" << obj[key].str();
+            oss << key << "=" << form_encode(obj[key].str());
         }
         return oss.str();
     }

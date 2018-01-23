@@ -33,13 +33,13 @@ namespace orz
         if (rsa == nullptr) ORZ_LOG(ERROR) << "can not read key: " << private_key << crash;
         need free_rsa(RSA_free, rsa);
         auto rsa_len = RSA_size(rsa);
-        std::unique_ptr<char[]> rdata(new char[data.length()]);
-        std::memset(rdata.get(), 0, data.length());
+        std::unique_ptr<char[]> rdata(new char[rsa_len + 1]);
+        std::memset(rdata.get(), 0, rsa_len + 1);
         auto rsize = RSA_private_encrypt(
                 static_cast<int>(data.size()),
                 reinterpret_cast<const unsigned char *>(data.data()),
                 reinterpret_cast<unsigned char *>(rdata.get()),
-                rsa, RSA_NO_PADDING /* RSA_PKCS1_PADDING RSA_NO_PADDING */);
+                rsa, RSA_PKCS1_PADDING /* RSA_PKCS1_PADDING RSA_NO_PADDING */);
         if (rsize < 0) {
             ERR_print_errors_fp(stdout);
             ORZ_LOG(ERROR) << "OpenSSL RAS error." << crash;
@@ -65,8 +65,8 @@ namespace orz
         }
         need free_rsa(RSA_free, rsa);
         auto rsa_len = RSA_size(rsa);
-        std::unique_ptr<char[]> rdata(new char[rsa_len]);
-        std::memset(rdata.get(), 0, rsa_len);
+        std::unique_ptr<char[]> rdata(new char[rsa_len + 1]);
+        std::memset(rdata.get(), 0, rsa_len + 1);
         auto rsize = RSA_public_decrypt(
                 static_cast<int>(data.size()),
                 reinterpret_cast<const unsigned char *>(data.data()),
@@ -94,13 +94,13 @@ namespace orz
         if (rsa == nullptr) ORZ_LOG(ERROR) << "can not read key: " << public_key << crash;
         need free_rsa(RSA_free, rsa);
         auto rsa_len = RSA_size(rsa);
-        std::unique_ptr<char[]> rdata(new char[data.length()]);
-        std::memset(rdata.get(), 0, data.length());
+        std::unique_ptr<char[]> rdata(new char[rsa_len + 1]);
+        std::memset(rdata.get(), 0, rsa_len + 1);
         auto rsize = RSA_public_encrypt(
                 static_cast<int>(data.size()),
                 reinterpret_cast<const unsigned char *>(data.data()),
                 reinterpret_cast<unsigned char *>(rdata.get()),
-                rsa, RSA_NO_PADDING /* RSA_PKCS1_PADDING RSA_NO_PADDING */);
+                rsa, RSA_PKCS1_PADDING /* RSA_PKCS1_PADDING RSA_NO_PADDING */);
         if (rsize < 0) {
             ERR_print_errors_fp(stdout);
             ORZ_LOG(ERROR) << "OpenSSL RAS error." << crash;
@@ -122,13 +122,13 @@ namespace orz
         if (rsa == nullptr) ORZ_LOG(ERROR) << "can not read key: " << private_key << crash;
         need free_rsa(RSA_free, rsa);
         auto rsa_len = RSA_size(rsa);
-        std::unique_ptr<char[]> rdata(new char[data.length()]);
-        std::memset(rdata.get(), 0, data.length());
+        std::unique_ptr<char[]> rdata(new char[rsa_len + 1]);
+        std::memset(rdata.get(), 0, rsa_len + 1);
         auto rsize = RSA_private_decrypt(
                 static_cast<int>(data.size()),
                 reinterpret_cast<const unsigned char *>(data.data()),
                 reinterpret_cast<unsigned char *>(rdata.get()),
-                rsa, RSA_NO_PADDING /* RSA_PKCS1_PADDING RSA_NO_PADDING */);
+                rsa, RSA_PKCS1_PADDING /* RSA_PKCS1_PADDING RSA_NO_PADDING */);
         if (rsize < 0) {
             ERR_print_errors_fp(stdout);
             ORZ_LOG(ERROR) << "OpenSSL RAS error." << crash;
