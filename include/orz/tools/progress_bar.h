@@ -6,8 +6,12 @@
 #define ORZ_TOOLS_PROGRESS_BAR_H
 
 #include <chrono>
+#include <string>
+#include <iostream>
 
 namespace orz {
+    std::string to_string(std::chrono::microseconds us, size_t limit = 8);
+
     class progress_bar {
     public:
         using self = progress_bar;
@@ -47,8 +51,14 @@ namespace orz {
         void set_max(int max);
 
         int next();
+        int next(int step);
 
         microseconds used_time() const;
+        microseconds left_time() const;
+
+        int percent() const;
+
+        std::ostream &show(std::ostream &out) const;
     private:
         int m_min;
         int m_max;
@@ -63,6 +73,8 @@ namespace orz {
         time_point m_stop_time_point;
         time_point m_pause_time_point;
         microseconds m_paused_duration;
+
+        mutable int m_show_count = 0;
     };
 }
 
