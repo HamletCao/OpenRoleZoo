@@ -8,12 +8,15 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <chrono>
 
 #ifndef UNUSED
 #define UNUSED(val) (void)(val)
 #endif
 
 namespace orz {
+    using time_point = decltype(std::chrono::system_clock::now());
+
     static void _Concat_str(std::ostream &out) { (decltype(_Concat_str(out))()); }
 
     template<typename T, typename... Args>
@@ -44,6 +47,16 @@ namespace orz {
         out << "]";
         return out;
     }
+
+    std::string to_string(time_point tp, const std::string &format = "%Y-%m-%d %H:%M:%S");
+
+    /**
+     * return format now time string
+     * @param format same as strftime
+     * @return string contains now time
+     * @see strftime
+     */
+    std::string now_time(const std::string &format = "%Y-%m-%d %H:%M:%S");
 }
 
 #endif //ORZ_UTILS_FORMAT_H
