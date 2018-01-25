@@ -47,8 +47,6 @@ namespace orz {
         if (second && !append_string(format, concat_string(oss, second, 's'), limit)) return format;
         if (!day && !hour && !minute && ms && !append_string(format, concat_string(oss, ms, "ms"), limit)) return format;
 
-        if (format.empty()) format = "none";
-
         return format;
     }
 
