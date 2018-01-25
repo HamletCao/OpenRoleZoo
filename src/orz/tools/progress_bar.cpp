@@ -26,7 +26,7 @@ namespace orz {
         return oss.str();
     }
 
-    std::string to_string(std::chrono::microseconds us, size_t limit) {
+    std::string to_string(microseconds us, size_t limit) {
         auto count = us.count();
         count /= 1000L;    // ms
         auto day = count / (24L * 60L * 60L * 1000L);
@@ -68,8 +68,7 @@ namespace orz {
         return m_value;
     }
 
-    progress_bar::microseconds progress_bar::used_time() const {
-        using std::chrono::duration_cast;
+    microseconds progress_bar::used_time() const {
         switch (m_stat)
         {
             default:
@@ -85,7 +84,7 @@ namespace orz {
         }
     }
 
-    progress_bar::microseconds progress_bar::left_time() const {
+    microseconds progress_bar::left_time() const {
         if (m_vpus == 0) {
             auto used_time = self::used_time();
             if (used_time.count() == 0) return microseconds(0);
@@ -111,7 +110,6 @@ namespace orz {
     progress_bar::progress_bar() : progress_bar(0, 100, 0) {}
 
     void progress_bar::start() {
-        using std::chrono::duration_cast;
         switch (m_stat)
         {
             default:
@@ -139,7 +137,6 @@ namespace orz {
     }
 
     void progress_bar::stop() {
-        using std::chrono::duration_cast;
         switch (m_stat)
         {
             default:
@@ -163,7 +160,6 @@ namespace orz {
     }
 
     void progress_bar::pause() {
-        using std::chrono::duration_cast;
         switch (m_stat)
         {
             default:
@@ -282,9 +278,6 @@ namespace orz {
 
     void progress_bar::sample() {
         // 60 count or 1 secend simple rate
-        using std::chrono::duration_cast;
-        using std::chrono::seconds;
-
         auto now_value = value();
         auto now_time_point = system_clock::now();
         auto sample_time_duration = duration_cast<microseconds>(now_time_point - m_sample_time_point);
@@ -297,9 +290,6 @@ namespace orz {
     }
 
     std::ostream &progress_bar::wait_show(int ms, std::ostream &out) const {
-        using std::chrono::duration_cast;
-        using std::chrono::milliseconds;
-
         auto now_time_point = system_clock::now();
         auto wait_duration = duration_cast<milliseconds>(now_time_point - m_last_show_time_point);
         if (wait_duration.count() >= ms) {

@@ -10,15 +10,18 @@
 #include <iostream>
 
 namespace orz {
-    std::string to_string(std::chrono::microseconds us, size_t limit = 8);
+    using system_clock = std::chrono::system_clock;
+    using time_point = decltype(system_clock::now());
+    using microseconds = std::chrono::microseconds;
+    using milliseconds = std::chrono::milliseconds;
+    using seconds = std::chrono::seconds;
+    using std::chrono::duration_cast;
+
+    std::string to_string(microseconds us, size_t limit = 8);
 
     class progress_bar {
     public:
         using self = progress_bar;
-
-        using microseconds = std::chrono::microseconds;
-        using system_clock = std::chrono::system_clock;
-        using time_point = decltype(system_clock::now());
 
         enum status
         {
