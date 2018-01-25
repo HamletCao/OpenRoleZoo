@@ -100,7 +100,9 @@ namespace orz {
     }
 
     progress_bar::progress_bar(int min, int max, int value)
-        : m_min(min), m_max(max), m_value(value), m_paused_duration(0){}
+        : m_min(min), m_max(max), m_value(value), m_paused_duration(0){
+        m_last_show_time_point = system_clock::now() - std::chrono::seconds(3600);
+    }
 
     progress_bar::progress_bar(int min, int max) : progress_bar(min, max, min){}
 
@@ -292,5 +294,18 @@ namespace orz {
             m_sample_value = now_value;
             m_sample_time_point = now_time_point;
         }
+    }
+
+    std::ostream &progress_bar::wait_show(int ms, std::ostream &out) const {
+        using std::chrono::duration_cast;
+        using std::chrono::milliseconds;
+
+        auto now_time_point = system_clock::now();
+        auto wait_duration = duration_cast<milliseconds>(now_time_point - m_last_show_time_point);
+        if (wait_duration.count() >= ms) {
+            m_last_show_time_point = now_time_point;
+            return show(out);
+        }
+        return out;
     }
 }

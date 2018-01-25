@@ -59,6 +59,7 @@ namespace orz {
         int percent() const;
 
         std::ostream &show(std::ostream &out) const;
+        std::ostream &wait_show(int ms, std::ostream &out) const;
     private:
         // reset sample
         void reset();
@@ -84,6 +85,8 @@ namespace orz {
         int m_sample_value;
         time_point m_sample_time_point;
         double m_vpus; // values per microseconds
+
+        mutable time_point m_last_show_time_point;
     };
 }
 
