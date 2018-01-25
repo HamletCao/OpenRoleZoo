@@ -120,5 +120,7 @@ namespace orz {
 #endif
 
 #define ORZ_LOG(level) (orz::Log(level))("[")(ORZ_LOCAL_FILE)(":")(__LINE__)("]: ")
+#define ORZ_TIME(level) (orz::Log(level))("[")(orz::now_time())("]: ")
+#define ORZ_TIME_LOG(level) (orz::Log(level))("[")(orz::now_time())("][")(ORZ_LOCAL_FILE)(":")(__LINE__)("]: ")
 
 #endif //ORZ_UTILS_LOG_H
