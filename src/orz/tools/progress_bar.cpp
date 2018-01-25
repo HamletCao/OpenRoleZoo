@@ -133,7 +133,7 @@ namespace orz {
                 break;
             case WAITING:
                 m_start_time_point = system_clock::now();
-                m_stop_time_point = system_clock::now();
+                m_stop_time_point = m_start_time_point;
                 break;
             case RUNNING:
                 m_stop_time_point = system_clock::now();
@@ -157,7 +157,7 @@ namespace orz {
                 break;
             case WAITING:
                 m_start_time_point = system_clock::now();
-                m_pause_time_point = system_clock::now();
+                m_pause_time_point = m_start_time_point;
                 break;
             case RUNNING:
                 m_pause_time_point = system_clock::now();
