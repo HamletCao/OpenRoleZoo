@@ -71,9 +71,9 @@ namespace orz {
     std::string to_string(time_point tp, const std::string &format) {
         std::time_t tt = std::chrono::system_clock::to_time_t(tp);
         std::tm even = time2tm(tt);
-        std::ostringstream oss;
-        oss << std::put_time(&even, format.c_str());
-        return oss.str();
+        char tmp[64];
+        std::strftime(tmp, sizeof(tmp), format.c_str(), &even);
+        return std::string(tmp);
     }
 
     std::string now_time(const std::string &format) {
