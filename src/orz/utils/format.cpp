@@ -3,6 +3,7 @@
 //
 
 #include "orz/utils/format.h"
+#include "orz/utils/platform.h"
 #include <ctime>
 
 namespace orz {
@@ -56,11 +57,20 @@ namespace orz {
         return oss.str();
     }
 
+    static struct tm time2tm(time_t from) {
+        struct tm to = {0};
+#if ORZ_PLATFORM_CC_MSVC
+        localtime_s(&to, &from);
+#else
+        localtime_r(&from, &to);
+#endif
+        return to;
+    }
+
     std::string to_string(time_point tp, const std::string &format) {
         std::time_t tt = std::chrono::system_clock::to_time_t(tp);
         char tmp[64];
-        struct tm even = {0};
-        localtime_s(&even, &tt);
+        struct tm even = time2tm(tt);
         std::strftime(tmp, sizeof(tmp), format.c_str(), &even);
         return std::string(tmp);
     }
