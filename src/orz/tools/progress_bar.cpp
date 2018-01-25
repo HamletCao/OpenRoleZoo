@@ -45,7 +45,7 @@ namespace orz {
         if (hour && !append_string(format, concat_string(oss, hour, 'h'), limit)) return format;
         if (minute && !append_string(format, concat_string(oss, minute, 'm'), limit)) return format;
         if (second && !append_string(format, concat_string(oss, second, 's'), limit)) return format;
-        if (ms && !append_string(format, concat_string(oss, ms, "ms"), limit)) return format;
+        if (!day && !hour && !minute && ms && !append_string(format, concat_string(oss, ms, "ms"), limit)) return format;
 
         if (format.empty()) format = "none";
 
@@ -62,6 +62,11 @@ namespace orz {
             self::stop();
             m_value = m_max;
         }
+
+        if (stat() == RUNNING) {
+            sample();
+        }
+
         return m_value;
     }
 
@@ -83,12 +88,17 @@ namespace orz {
     }
 
     progress_bar::microseconds progress_bar::left_time() const {
-        auto used_time = self::used_time();
-        if (used_time.count() == 0) return microseconds(0);
-        auto proessed_count = m_value - m_min;
+        if (m_vpus == 0) {
+            auto used_time = self::used_time();
+            if (used_time.count() == 0) return microseconds(0);
+            auto proessed_count = m_value - m_min;
+            auto left_count = m_max - m_value;
+            if (proessed_count == 0) return microseconds(0);
+            return used_time * left_count / proessed_count;
+        }
+
         auto left_count = m_max - m_value;
-        if (proessed_count == 0) return microseconds(0);
-        return used_time * left_count / proessed_count;
+        return microseconds(int64_t(left_count / m_vpus));
     }
 
     progress_bar::progress_bar(int min, int max, int value)
@@ -106,19 +116,23 @@ namespace orz {
         {
             default:
                 m_start_time_point = system_clock::now();
+                reset();
                 break;
             case WAITING:
                 m_start_time_point = system_clock::now();
                 m_paused_duration = microseconds(0);
+                reset();
                 break;
             case RUNNING:
                 break;
             case PAUSED:
                 m_paused_duration += duration_cast<microseconds>(system_clock::now() - m_pause_time_point);
+                reset();
                 break;
             case STOPPED:
                 m_start_time_point = system_clock::now();
                 m_paused_duration = microseconds(0);
+                reset();
                 break;
         }
         m_stat = RUNNING;
@@ -258,5 +272,27 @@ namespace orz {
         auto fpercent = float(m_value - m_min) / (m_max - m_min) * 100;
         auto ipercent = static_cast<int>(fpercent);
         return ipercent;
+    }
+
+    void progress_bar::reset() {
+        m_sample_value = value();
+        m_sample_time_point = system_clock::now();
+        m_vpus = 0;
+    }
+
+    void progress_bar::sample() {
+        // 60 count or 1 secend simple rate
+        using std::chrono::duration_cast;
+        using std::chrono::seconds;
+
+        auto now_value = value();
+        auto now_time_point = system_clock::now();
+        auto sample_time_duration = duration_cast<microseconds>(now_time_point - m_sample_time_point);
+        auto sample_value_duration = now_value - m_sample_value;
+        if (sample_time_duration > seconds(10) && sample_value_duration > 0) {
+            m_vpus = double(sample_value_duration) / sample_time_duration.count();
+            m_sample_value = now_value;
+            m_sample_time_point = now_time_point;
+        }
     }
 }

@@ -60,6 +60,11 @@ namespace orz {
 
         std::ostream &show(std::ostream &out) const;
     private:
+        // reset sample
+        void reset();
+        // sample value and time point, calculate speed
+        void sample();
+
         int m_min;
         int m_max;
         int m_value;
@@ -75,6 +80,10 @@ namespace orz {
         microseconds m_paused_duration;
 
         mutable int m_show_count = 0;
+
+        int m_sample_value;
+        time_point m_sample_time_point;
+        double m_vpus; // values per microseconds
     };
 }
 
