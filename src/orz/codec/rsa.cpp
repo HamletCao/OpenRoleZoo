@@ -105,7 +105,10 @@ namespace orz {
         if (key == nullptr) return std::string();
         need free_key(free_rsa_key, key);
 
-        try { return block_transfer(data, 100, std::bind(rsa_encode_block, key, std::placeholders::_1)); }
+        auto rsa_len = RSA_size(key->inner());
+        auto block_size = rsa_len - 11; // RSA_PKCS1_PADDING
+
+        try { return block_transfer(data, size_t(block_size), std::bind(rsa_encode_block, key, std::placeholders::_1)); }
         catch (const Exception &) { return std::string(); }
     }
 
@@ -114,7 +117,10 @@ namespace orz {
         if (key == nullptr) return std::string();
         need free_key(free_rsa_key, key);
 
-        try { return block_transfer(data, 128, std::bind(rsa_decode_block, key, std::placeholders::_1)); }
+        auto rsa_len = RSA_size(key->inner());
+        auto block_size = rsa_len;
+
+        try { return block_transfer(data, size_t(block_size), std::bind(rsa_decode_block, key, std::placeholders::_1)); }
         catch (const Exception &) { return std::string(); }
     }
 
@@ -123,7 +129,10 @@ namespace orz {
         if (key == nullptr) return std::string();
         need free_key(free_rsa_key, key);
 
-        try { return block_transfer(data, 100, std::bind(rsa_encode_block, key, std::placeholders::_1)); }
+        auto rsa_len = RSA_size(key->inner());
+        auto block_size = rsa_len - 11; // RSA_PKCS1_PADDING
+
+        try { return block_transfer(data, size_t(block_size), std::bind(rsa_encode_block, key, std::placeholders::_1)); }
         catch (const Exception &) { return std::string(); }
     }
 
@@ -132,7 +141,10 @@ namespace orz {
         if (key == nullptr) return std::string();
         need free_key(free_rsa_key, key);
 
-        try { return block_transfer(data, 128, std::bind(rsa_decode_block, key, std::placeholders::_1)); }
+        auto rsa_len = RSA_size(key->inner());
+        auto block_size = rsa_len;
+
+        try { return block_transfer(data, size_t(block_size), std::bind(rsa_decode_block, key, std::placeholders::_1)); }
         catch (const Exception &) { return std::string(); }
     }
 
