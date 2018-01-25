@@ -17,13 +17,13 @@ namespace orz {
     static void _Concat_str(std::ostream &out) { (decltype(_Concat_str(out))()); }
 
     template<typename T, typename... Args>
-    static void _Concat_str(std::ostream &out, const T &t, Args... args) { _Concat_str(out << t, args...); }
+    static void _Concat_str(std::ostream &out, T &&t, Args&&... args) { _Concat_str(out << std::forward<T>(t), std::forward<Args>(args)...); }
 
     template<typename... Args>
-    inline const std::string Concat(Args... args) {
+    inline const std::string Concat(Args&&... args) {
         std::ostringstream oss;
-        _Concat_str(oss, args...);
-        return std::move(oss.str());
+        _Concat_str(oss, std::forward<Args>(args)...);
+        return oss.str();
     }
 
     const std::string Format(const std::string &f);
