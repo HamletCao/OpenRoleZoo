@@ -9,6 +9,7 @@
 #include <sstream>
 #include "format.h"
 #include "except.h"
+#include <cstring>
 
 namespace orz {
 
@@ -108,6 +109,16 @@ namespace orz {
     }
 }
 
-#define ORZ_LOG(level) (orz::Log(level))("[")(orz::Split(__FILE__, R"(/\)").back())(":")(__LINE__)("]: ")
+#ifdef ORZ_SOLUTION_DIR
+#define ORZ_LOCAL_FILE ( \
+    std::strlen(ORZ_SOLUTION_DIR) + 1 < std::strlen(__FILE__) \
+    ? ((const char *)(__FILE__ + std::strlen(ORZ_SOLUTION_DIR) + 1)) \
+    : ((const char *)(__FILE__)) \
+    )
+#else
+#define ORZ_LOCAL_FILE (__FILE__)
+#endif
+
+#define ORZ_LOG(level) (orz::Log(level))("[")(ORZ_LOCAL_FILE)(":")(__LINE__)("]: ")
 
 #endif //ORZ_UTILS_LOG_H
