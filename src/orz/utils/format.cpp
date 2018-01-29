@@ -5,6 +5,7 @@
 #include "orz/utils/format.h"
 #include "orz/utils/platform.h"
 #include <ctime>
+#include <iomanip>
 
 namespace orz {
     const std::string Format(const std::string &f) {
@@ -57,8 +58,8 @@ namespace orz {
         return oss.str();
     }
 
-    static struct tm time2tm(time_t from) {
-        struct tm to = {0};
+    static struct tm time2tm(std::time_t from) {
+        std::tm to = {0};
 #if ORZ_PLATFORM_CC_MSVC
         localtime_s(&to, &from);
 #else
@@ -69,8 +70,8 @@ namespace orz {
 
     std::string to_string(time_point tp, const std::string &format) {
         std::time_t tt = std::chrono::system_clock::to_time_t(tp);
+        std::tm even = time2tm(tt);
         char tmp[64];
-        struct tm even = time2tm(tt);
         std::strftime(tmp, sizeof(tmp), format.c_str(), &even);
         return std::string(tmp);
     }
