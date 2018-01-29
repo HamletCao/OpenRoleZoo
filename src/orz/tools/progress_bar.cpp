@@ -17,10 +17,12 @@ namespace orz {
     static void output_string(std::ostream &out) { (decltype(output_string(out))()); }
 
     template<typename T, typename... Args>
-    static void output_string(std::ostream &out, T &&t, Args&&... args) { output_string(out << std::forward<T>(t), std::forward<Args>(args)...); }
+    static void output_string(std::ostream &out, T &&t, Args &&... args) {
+        output_string(out << std::forward<T>(t), std::forward<Args>(args)...);
+    }
 
     template<typename... Args>
-    inline const std::string concat_string(std::ostringstream &oss, Args&&... args) {
+    inline const std::string concat_string(std::ostringstream &oss, Args &&... args) {
         oss.str("");
         output_string(oss, std::forward<Args>(args)...);
         return oss.str();
@@ -45,7 +47,8 @@ namespace orz {
         if (hour && !append_string(format, concat_string(oss, hour, 'h'), limit)) return format;
         if (minute && !append_string(format, concat_string(oss, minute, 'm'), limit)) return format;
         if (second && !append_string(format, concat_string(oss, second, 's'), limit)) return format;
-        if (!day && !hour && !minute && ms && !append_string(format, concat_string(oss, ms, "ms"), limit)) return format;
+        if (!day && !hour && !minute && ms && !append_string(format, concat_string(oss, ms, "ms"), limit))
+            return format;
 
         return format;
     }
@@ -69,8 +72,7 @@ namespace orz {
     }
 
     microseconds progress_bar::used_time() const {
-        switch (m_stat)
-        {
+        switch (m_stat) {
             default:
                 return microseconds(0);
             case WAITING:
@@ -99,19 +101,18 @@ namespace orz {
     }
 
     progress_bar::progress_bar(int min, int max, int value)
-        : m_min(min), m_max(max), m_value(value), m_paused_duration(0){
+            : m_min(min), m_max(max), m_value(value), m_paused_duration(0) {
         m_last_show_time_point = system_clock::now() - std::chrono::seconds(3600);
     }
 
-    progress_bar::progress_bar(int min, int max) : progress_bar(min, max, min){}
+    progress_bar::progress_bar(int min, int max) : progress_bar(min, max, min) {}
 
     progress_bar::progress_bar(int max) : progress_bar(0, max, 0) {}
 
     progress_bar::progress_bar() : progress_bar(0, 100, 0) {}
 
     void progress_bar::start() {
-        switch (m_stat)
-        {
+        switch (m_stat) {
             default:
                 m_start_time_point = system_clock::now();
                 reset();
@@ -137,8 +138,7 @@ namespace orz {
     }
 
     void progress_bar::stop() {
-        switch (m_stat)
-        {
+        switch (m_stat) {
             default:
                 m_stop_time_point = system_clock::now();
                 break;
@@ -160,8 +160,7 @@ namespace orz {
     }
 
     void progress_bar::pause() {
-        switch (m_stat)
-        {
+        switch (m_stat) {
             default:
                 m_pause_time_point = system_clock::now();
                 break;
@@ -216,14 +215,13 @@ namespace orz {
         return m_stat;
     }
 
-    static const char running_status[] = { '-', '\\', '|', '/'};
+    static const char running_status[] = {'-', '\\', '|', '/'};
     static const auto running_status_num = sizeof(running_status) / sizeof(running_status[0]);
 
     std::ostream &progress_bar::show(std::ostream &out) const {
         std::ostringstream oss;
 
-        switch (m_stat)
-        {
+        switch (m_stat) {
             case WAITING:
                 oss << "[~]";
                 break;

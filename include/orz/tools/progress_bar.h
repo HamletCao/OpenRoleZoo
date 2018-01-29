@@ -23,8 +23,7 @@ namespace orz {
     public:
         using self = progress_bar;
 
-        enum status
-        {
+        enum status {
             WAITING,
             RUNNING,
             PAUSED,
@@ -32,40 +31,55 @@ namespace orz {
         };
 
         progress_bar(int min, int max, int value);
+
         progress_bar(int min, int max);
+
         progress_bar(int max);
+
         progress_bar();
 
         status stat() const;
 
         void start();
+
         void stop();
+
         void pause();
 
         void autostop(bool flag);
+
         bool autostop() const;
 
         int value() const;
+
         int max() const;
+
         int min() const;
 
         void set_value(int value);
+
         void set_min(int min);
+
         void set_max(int max);
 
         int next();
+
         int next(int step);
 
         microseconds used_time() const;
+
         microseconds left_time() const;
 
         int percent() const;
 
         std::ostream &show(std::ostream &out) const;
+
         std::ostream &wait_show(int ms, std::ostream &out) const;
+
     private:
         // reset sample
         void reset();
+
         // sample value and time point, calculate speed
         void sample();
 
