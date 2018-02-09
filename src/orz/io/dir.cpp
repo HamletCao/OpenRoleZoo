@@ -120,21 +120,21 @@ namespace orz {
     }
 
     std::string cut_path_tail(const std::string &path) {
-        std::string filename;
-        return cut_path_tail(path, filename);
+        std::string tail;
+        return cut_path_tail(path, tail);
     }
 
-    std::string cut_path_tail(const std::string &path, std::string &filename) {
+    std::string cut_path_tail(const std::string &path, std::string &tail) {
         auto win_sep_pos = path.rfind('\\');
         auto unix_sep_pos = path.rfind('/');
         auto sep_pos = win_sep_pos;
         if (sep_pos == std::string::npos) sep_pos = unix_sep_pos;
         else if (unix_sep_pos != std::string::npos && unix_sep_pos > sep_pos) sep_pos = unix_sep_pos;
         if (sep_pos == std::string::npos) {
-            filename = path;
+            tail = path;
             return std::string();
         }
-        filename = path.substr(sep_pos + 1);
+        tail = path.substr(sep_pos + 1);
         return path.substr(0, sep_pos);
     }
 

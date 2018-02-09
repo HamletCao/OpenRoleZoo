@@ -70,10 +70,10 @@ namespace orz {
 
     /**
 	 * \brief Cut file path, like /path/to/file => [/path/to, file]
-	 * \param [out] filename return tail  directory
+	 * \param [out] tail return tail  directory
 	 * \return return path without tail directory
 	 */
-    std::string cut_path_tail(const std::string &path, std::string &filename);
+    std::string cut_path_tail(const std::string &path, std::string &tail);
 
     /**
 	 * \brief cut filename and ext, like name.ext => [name, ext]
