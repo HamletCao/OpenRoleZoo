@@ -2,28 +2,28 @@
 // Created by lby on 2018/1/15.
 //
 
-#include "orz/codec/aes.h"
+#include "orz/ssl/aes.h"
 
 #include "orz/utils/log.h"
 
-#ifndef WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
 
 #include <cstring>
 #include <cstdint>
 #include <cassert>
 #include <memory>
 
-#else   // WITH_OPENSSL
+#else   // ORZ_WITH_OPENSSL
 
 #include <openssl/aes.h>
 #include <memory>
 #include <cstring>
 
-#endif  // !WITH_OPENSSL
+#endif  // !ORZ_WITH_OPENSSL
 
 namespace orz {
 
-#ifndef WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
 
     class block4x4 {
     public:
@@ -143,18 +143,18 @@ namespace orz {
         std::memcpy(block.data(), result, 16);
     }
 
-#endif  // !WITH_OPENSSL
+#endif  // !ORZ_WITH_OPENSSL
 
     std::string
     aes128_encode_block(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv) {
-#ifndef WITH_OPENSSL
-#error Only support OpenSSL, please recomiple with -DWITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
+#warning Only support OpenSSL, please recomiple with -DORZ_WITH_OPENSSL
         std::unique_ptr<char[]> rdata(new char[data.size()]);
         std::memcpy(rdata.get(), data.data(), data.size());
         shift_rows_encode(rdata.get());
         mix_columns_encode(rdata.get());
         return std::string(rdata.get(), data.size());
-#else   // WITH_OPENSSL
+#else   // ORZ_WITH_OPENSSL
         if (key.length() != 16) ORZ_LOG(ERROR) << "key.length should be 16 vs. " << key.length() << crash;
         if (data.length() % AES_BLOCK_SIZE != 0)
             ORZ_LOG(ERROR) << "length of data is not a multiplier of " << AES_BLOCK_SIZE << crash;
@@ -180,19 +180,19 @@ namespace orz {
                 );
         }
         return std::string(rdata.get(), data.size());
-#endif  // !WITH_OPENSSL
+#endif  // !ORZ_WITH_OPENSSL
     }
 
     std::string
     aes128_decode_block(const std::string &key, CRYPTO_MODE mode, const std::string &data, const std::string &iv) {
-#ifndef WITH_OPENSSL
-#error Only support OpenSSL, please recomiple with -DWITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
+#warning Only support OpenSSL, please recomiple with -ORZ_WITH_OPENSSL
         std::unique_ptr<char[]> rdata(new char[data.size()]);
         std::memcpy(rdata.get(), data.data(), data.size());
         mix_columns_decode(rdata.get());
         shift_rows_decode(rdata.get());
         return std::string(rdata.get(), data.size());
-#else   // WITH_OPENSSL
+#else   // ORZ_WITH_OPENSSL
         if (key.length() != 16) ORZ_LOG(ERROR) << "key.length should be 16 vs. " << key.length() << crash;
         if (data.length() % AES_BLOCK_SIZE != 0)
             ORZ_LOG(ERROR) << "length of data is not a multiplier of " << AES_BLOCK_SIZE << crash;
@@ -218,7 +218,7 @@ namespace orz {
                 );
         }
         return std::string(rdata.get(), data.size());
-#endif  // !WITH_OPENSSL
+#endif  // !ORZ_WITH_OPENSSL
     }
 
     static bool feak_tail(const std::string &data) {

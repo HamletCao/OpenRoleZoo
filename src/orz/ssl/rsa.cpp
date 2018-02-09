@@ -2,12 +2,14 @@
 // Created by lby on 2018/1/16.
 //
 
-#include "orz/codec/rsa.h"
+#include "orz/ssl/rsa.h"
 #include "orz/utils/log.h"
 
-#ifndef WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
 
-#else   // WITH_OPENSSL
+#include <functional>
+
+#else   // ORZ_WITH_OPENSSL
 
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
@@ -16,12 +18,12 @@
 #include <cstring>
 #include "orz/mem/need.h"
 
-#endif  // !WITH_OPENSSL
+#endif  // !ORZ_WITH_OPENSSL
 
 namespace orz {
     class rsa_key {
-#ifndef WITH_OPENSSL
-#else   // !WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
+#else   // !ORZ_WITH_OPENSSL
     public:
         using inner_type = rsa_st;
         enum key_type {
@@ -68,7 +70,7 @@ namespace orz {
             if (key) RSA_free(key->m_rsa);
         }
 
-#endif  // !WITH_OPENSSL
+#endif  // !ORZ_WITH_OPENSSL
     };
 
     rsa_key *load_public_rsa_key(const std::string &filename) {
@@ -149,9 +151,9 @@ namespace orz {
     }
 
     std::string rsa_encode_block(rsa_key *key, const std::string &data) {
-#ifndef WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
 
-#else   // WITH_OPENSSL
+#else   // ORZ_WITH_OPENSSL
         RSA *rsa = key->inner();
         auto rsa_len = RSA_size(rsa);
         std::unique_ptr<char[]> rdata(new char[rsa_len + 1]);
@@ -182,9 +184,9 @@ namespace orz {
     }
 
     std::string rsa_decode_block(rsa_key *key, const std::string &data) {
-#ifndef WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
 
-#else   // WITH_OPENSSL
+#else   // ORZ_WITH_OPENSSL
         RSA *rsa = key->inner();
         auto rsa_len = RSA_size(rsa);
         std::unique_ptr<char[]> rdata(new char[rsa_len + 1]);

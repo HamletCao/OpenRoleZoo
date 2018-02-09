@@ -2,7 +2,7 @@
 // Created by lby on 2018/1/16.
 //
 
-#include <orz/codec/rsa.h>
+#include <orz/ssl/rsa.h>
 #include <orz/utils/log.h>
 #include <cstdlib>
 

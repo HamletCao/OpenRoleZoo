@@ -22,15 +22,15 @@
 #include <cstring>
 #include <map>
 
-#ifndef WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
 
-#else   // WITH_OPENSSL
+#else   // ORZ_WITH_OPENSSL
 
 #include <cstdio>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#endif  // !WITH_OPENSSL
+#endif  // !ORZ_WITH_OPENSSL
 
 namespace orz {
 
@@ -38,10 +38,10 @@ namespace orz {
     {
     public:
         linux_ssl_static_init() {
-#ifndef WITH_OPENSSL
-#else   // !WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
+#else   // !ORZ_WITH_OPENSSL
             SSLeay_add_ssl_algorithms();
-#endif  // !WITH_OPENSSL
+#endif  // !ORZ_WITH_OPENSSL
         }
     };
 
@@ -49,13 +49,13 @@ namespace orz {
     public:
         explicit linux_ssl_stream(int fd, bool with_ssl = false)
                 : m_fd(fd), m_with_ssl(with_ssl) {
-#ifndef WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
             if (with_ssl) {
                 ORZ_LOG(ERROR) << "Can not open a stream without OpenSSL." << crash;
             } else {
                 return;
             }
-#else   // !WITH_OPENSSL
+#else   // !ORZ_WITH_OPENSSL
             if (!with_ssl) return;
 
             // SSL_load_error_strings();
@@ -78,16 +78,16 @@ namespace orz {
                 SSL_CTX_free(m_ssl_ctx);
                 ORZ_LOG(ERROR) << "Can not connect SSL to " << fd << crash;
             }
-#endif   // !WITH_OPENSSL
+#endif   // !ORZ_WITH_OPENSSL
             // verify
         }
 
         bool const verify() {
             if (!m_with_ssl) return true;
-#ifndef WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
             ORZ_LOG(ERROR) << "Can not verify a stream without OpenSSL." << crash;
             return false;
-#else   // !WITH_OPENSSL
+#else   // !ORZ_WITH_OPENSSL
             auto cipher = SSL_get_cipher(m_ssl);
             UNUSED(cipher);
             auto cert = SSL_get_peer_certificate(m_ssl);
@@ -99,29 +99,29 @@ namespace orz {
             need free_issuer(CRYPTO_free, issuer);
             // TODO: really verify cert
             return true;
-#endif   // !WITH_OPENSSL
+#endif   // !ORZ_WITH_OPENSSL
         }
 
         ssize_t read(void *data, size_t length) {
             if (m_with_ssl) {
-#ifndef WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
                 ORZ_LOG(ERROR) << "Can not read a stream without OpenSSL." << crash;
                 return -1;
-#else   // !WITH_OPENSSL
+#else   // !ORZ_WITH_OPENSSL
                 return SSL_read(m_ssl, data, static_cast<int>(length));
-#endif  // !WITH_OPENSSL
+#endif  // !ORZ_WITH_OPENSSL
             }
             return ::read(m_fd, data, length);
         }
 
         ssize_t write(const void *data, size_t length) {
             if (m_with_ssl) {
-#ifndef WITH_OPENSSL
+#ifndef ORZ_WITH_OPENSSL
                 ORZ_LOG(ERROR) << "Can not write a stream without OpenSSL." << crash;
                 return -1;
-#else   // !WITH_OPENSSL
+#else   // !ORZ_WITH_OPENSSL
                 return SSL_write(m_ssl, data, static_cast<int>(length));
-#endif  // !WITH_OPENSSL
+#endif  // !ORZ_WITH_OPENSSL
             }
             return ::write(m_fd, data, length);
         }
@@ -146,13 +146,13 @@ namespace orz {
         }
 
         ~linux_ssl_stream() {
-#ifdef WITH_OPENSSL
+#ifdef ORZ_WITH_OPENSSL
             if (m_with_ssl) {
                 SSL_shutdown(m_ssl);
                 SSL_free(m_ssl);
                 SSL_CTX_free(m_ssl_ctx);
             }
-#endif  // WITH_OPENSSL
+#endif  // ORZ_WITH_OPENSSL
         }
     private:
         linux_ssl_stream(const linux_ssl_stream &other) = delete;
@@ -160,10 +160,10 @@ namespace orz {
 
         int m_fd = 0;
         bool m_with_ssl = false;
-#ifdef WITH_OPENSSL
+#ifdef ORZ_WITH_OPENSSL
         SSL_CTX *m_ssl_ctx = nullptr;
         SSL *m_ssl = nullptr;
-#endif  // WITH_OPENSSL
+#endif  // ORZ_WITH_OPENSSL
 
     };
 
