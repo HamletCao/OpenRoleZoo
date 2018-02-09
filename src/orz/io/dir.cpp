@@ -91,6 +91,13 @@ namespace orz {
 
     std::string getself() {
 #if ORZ_PLATFORM_OS_WINDOWS
+        char exed[1024];
+        auto exed_size = sizeof(exed) / sizeof(exed[0]);
+        auto link_size = GetModuleFileNameA(nullptr, exed, exed_size);
+
+        if (link_size <= 0) return std::string();
+
+        return std::string(exed, exed + link_size);
 #else
         char exed[1024];
         auto exed_size = sizeof(exed) / sizeof(exed[0]);
@@ -105,17 +112,41 @@ namespace orz {
 
     std::string getexed() {
         auto self = getself();
-        auto win_sep_pos = self.rfind('\\');
-        auto unix_sep_pos = self.rfind('/');
-        auto sep_pos = win_sep_pos;
-        if (sep_pos == std::string::npos) sep_pos = unix_sep_pos;
-        else if (unix_sep_pos != std::string::npos && unix_sep_pos > sep_pos) sep_pos = unix_sep_pos;
-        if (sep_pos == std::string::npos) return self;
-        return self.substr(0, sep_pos);
+        return cut_path_tail(self);
     }
 
     bool cd(const std::string &path) {
         return CHDIR(path.c_str()) == 0;
+    }
+
+    std::string cut_path_tail(const std::string &path) {
+        std::string filename;
+        return cut_path_tail(path, filename);
+    }
+
+    std::string cut_path_tail(const std::string &path, std::string &filename) {
+        auto win_sep_pos = path.rfind('\\');
+        auto unix_sep_pos = path.rfind('/');
+        auto sep_pos = win_sep_pos;
+        if (sep_pos == std::string::npos) sep_pos = unix_sep_pos;
+        else if (unix_sep_pos != std::string::npos && unix_sep_pos > sep_pos) sep_pos = unix_sep_pos;
+        if (sep_pos == std::string::npos) {
+            filename = path;
+            return std::string();
+        }
+        filename = path.substr(sep_pos + 1);
+        return path.substr(0, sep_pos);
+    }
+
+    std::string cut_name_ext(const std::string &name_ext, std::string &ext) {
+        auto dot_pos = name_ext.rfind('.');
+        auto sep_pos = dot_pos;
+        if (sep_pos == std::string::npos) {
+            ext = std::string();
+            return name_ext;
+        }
+        ext = name_ext.substr(sep_pos + 1);
+        return name_ext.substr(0, sep_pos);
     }
 }
 
