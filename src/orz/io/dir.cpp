@@ -73,7 +73,7 @@ namespace orz {
 #if ORZ_PLATFORM_OS_WINDOWS
         return CopyFileA(fromfile.c_str(), tofile.c_str(), !force) != FALSE;
 #else
-        return false;
+        return std::system(orz::Concat(force ? "cp -f " : "cp ", fromfile, ' ', tofile).c_str()) == 0;
 #endif
     }
 }

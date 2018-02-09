@@ -21,12 +21,14 @@ include(LOCAL_FLAGS)
 
 set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/build CACHE STRING "set install prefix" FORCE)
 
-add_subdirectory(src)
+set(LOCAL_OUTPUT_DIR ${PROJECT_SOURCE_DIR})
 
 if (LOCAL_OUTPUT_DIR)
     set(EXECUTABLE_OUTPUT_PATH ${LOCAL_OUTPUT_DIR}/bin)
     set(LIBRARY_OUTPUT_PATH ${LOCAL_OUTPUT_DIR}/lib)
 endif ()
+
+add_subdirectory(src)
 
 # project files for clion
 FILE(GLOB_RECURSE TEST_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp)
