@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.7)
 project(ORZ)
 
+option(ORZ_INSTALL "Supporting install script" ON)
+
 # global root dir
 set(SOLUTION_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 add_definitions(-DORZ_SOLUTION_DIR="${SOLUTION_DIR}")
@@ -48,11 +50,3 @@ foreach (path ${TOOL_FILES})
     target_link_libraries(tool_${file} ${PROJECT_NAME}_STATIC)
     install(TARGETS tool_${file} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 endforeach ()
-
-#install(TARGETS ${PROJECT_NAME}_SHARED DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-#install(TARGETS ${PROJECT_NAME}_STATIC DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-#install(FILES ${INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/orz)
-
-#if (WIN32)
-#    install(FILES ${LOCAL_OUTPUT_DIR}/lib/lib${PROJECT_NAME}.dll DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-#endif ()
