@@ -11,6 +11,7 @@
 
 #define ACCESS ::_access
 #define MKDIR(a) ::_mkdir((a))
+#define GETCWD(buffer, length) ::_getcwd((buffer), (length))
 
 #include <Windows.h>
 
@@ -22,6 +23,7 @@
 
 #define ACCESS ::access
 #define MKDIR(a) ::mkdir((a),0755)
+#define GETCWD(buffer, length) ::getcwd((buffer), (length))
 
 #endif
 
@@ -75,6 +77,14 @@ namespace orz {
 #else
         return std::system(orz::Concat(force ? "cp -f " : "cp ", fromfile, ' ', tofile).c_str()) == 0;
 #endif
+    }
+
+    std::string getcwd() {
+        char pwd[1025];
+        auto pwd_size = sizeof(pwd) / sizeof(pwd[0]);
+        auto succeed = GETCWD(pwd, pwd_size);
+        if (!succeed) return std::string();
+        return std::string(pwd);
     }
 }
 

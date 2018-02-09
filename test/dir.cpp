@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     auto result = orz::copy("1.jpg", "3.jpg");
     ORZ_LOG(orz::INFO) << "Copy 1.jpg to 3.jpg, status: " << std::boolalpha << result;
 
-
+    ORZ_LOG(orz::INFO) << "Current working dir: " << orz::getcwd();
 
     return 0;
 }

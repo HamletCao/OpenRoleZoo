@@ -37,6 +37,8 @@ namespace orz {
 	 * \return return true only if success
 	 */
 	bool copy(const std::string &fromfile, const std::string &tofile, bool force = true);
+
+    std::string getcwd();
 }
 
 #endif //ORZ_IO_DIR_H
