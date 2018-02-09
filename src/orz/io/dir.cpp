@@ -12,6 +12,7 @@
 #define ACCESS ::_access
 #define MKDIR(a) ::_mkdir((a))
 #define GETCWD(buffer, length) ::_getcwd((buffer), (length))
+#define CHDIR(path) ::_chdir(path)
 
 #include <Windows.h>
 
@@ -24,6 +25,7 @@
 #define ACCESS ::access
 #define MKDIR(a) ::mkdir((a),0755)
 #define GETCWD(buffer, length) ::getcwd((buffer), (length))
+#define CHDIR(path) ::chdir(path)
 
 #endif
 
@@ -80,11 +82,40 @@ namespace orz {
     }
 
     std::string getcwd() {
-        char pwd[1025];
-        auto pwd_size = sizeof(pwd) / sizeof(pwd[0]);
-        auto succeed = GETCWD(pwd, pwd_size);
-        if (!succeed) return std::string();
-        return std::string(pwd);
+        auto pwd = GETCWD(nullptr, 0);
+        if (pwd == nullptr) return std::string();
+        std::string pwd_str = pwd;
+        free(pwd);
+        return std::move(pwd_str);
+    }
+
+    std::string getself() {
+#if ORZ_PLATFORM_OS_WINDOWS
+#else
+        char exed[1024];
+        auto exed_size = sizeof(exed) / sizeof(exed[0]);
+
+        auto link_size = readlink("/proc/self/exe", exed, exed_size);
+
+        if (link_size <= 0) return std::string();
+
+        return std::string(exed, exed + link_size);
+#endif
+    }
+
+    std::string getexed() {
+        auto self = getself();
+        auto win_sep_pos = self.rfind('\\');
+        auto unix_sep_pos = self.rfind('/');
+        auto sep_pos = win_sep_pos;
+        if (sep_pos == std::string::npos) sep_pos = unix_sep_pos;
+        else if (unix_sep_pos != std::string::npos && unix_sep_pos > sep_pos) sep_pos = unix_sep_pos;
+        if (sep_pos == std::string::npos) return self;
+        return self.substr(0, sep_pos);
+    }
+
+    bool cd(const std::string &path) {
+        return CHDIR(path.c_str()) == 0;
     }
 }
 

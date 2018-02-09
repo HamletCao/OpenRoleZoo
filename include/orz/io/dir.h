@@ -39,6 +39,12 @@ namespace orz {
 	bool copy(const std::string &fromfile, const std::string &tofile, bool force = true);
 
     std::string getcwd();
+
+    std::string getself();
+
+    std::string getexed();
+
+    bool cd(const std::string &path);
 }
 
 #endif //ORZ_IO_DIR_H
