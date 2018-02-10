@@ -22,7 +22,7 @@ namespace orz {
         FATAL = 5,
     };
 
-    static LogLevel InnerGlobalLogLevel = STATUS;
+    extern LogLevel InnerGlobalLogLevel;
 
     inline LogLevel GlobalLogLevel(LogLevel level) {
         LogLevel pre_level = InnerGlobalLogLevel;
