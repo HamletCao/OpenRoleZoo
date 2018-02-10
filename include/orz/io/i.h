@@ -9,6 +9,7 @@
 
 namespace orz {
     binary read_file(const std::string &filename);
+	std::string read_txt_file(const std::string &filename);
 }
 
 #endif //ORZ_IO_I_H

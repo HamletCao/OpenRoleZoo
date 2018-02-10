@@ -4,6 +4,7 @@
 
 #include "orz/io/i.h"
 #include <fstream>
+#include <sstream>
 
 namespace orz {
     binary read_file(const std::string &filename) {
@@ -18,4 +19,12 @@ namespace orz {
         in.close();
         return bin;
     }
+
+	std::string read_txt_file(const std::string& filename)
+	{
+		std::ifstream in(filename);
+		std::ostringstream tmp;
+		tmp << in.rdbuf();
+		return tmp.str();
+	}
 }
