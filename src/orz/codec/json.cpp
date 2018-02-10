@@ -233,7 +233,11 @@ namespace orz {
 
     static std::string HH(unsigned char ch) {
         char buff[3];
+#if _MSC_VER >= 1600
+		sprintf_s(buff, "%02X", ch);
+#else
         std::sprintf(buff, "%02X", ch);
+#endif
         return std::string(buff, buff + 2);
     }
 

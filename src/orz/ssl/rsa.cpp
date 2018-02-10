@@ -49,7 +49,12 @@ namespace orz {
         key_type m_type;
 
         static rsa_key *load_public(const std::string &filename) {
+#if _MSC_VER >= 1600
+            FILE *key_file = nullptr;
+            fopen_s(&key_file, filename.c_str(), "rb");
+#else
             FILE *key_file = std::fopen(filename.c_str(), "rb");
+#endif
             if (key_file == nullptr) return nullptr;
             need close_file(fclose, key_file);
             rsa_st *rsa = PEM_read_RSA_PUBKEY(key_file, nullptr, nullptr, nullptr);
@@ -58,7 +63,12 @@ namespace orz {
         }
 
         static rsa_key *load_private(const std::string &filename) {
+#if _MSC_VER >= 1600
+            FILE *key_file = nullptr;
+            fopen_s(&key_file, filename.c_str(), "rb");
+#else
             FILE *key_file = std::fopen(filename.c_str(), "rb");
+#endif
             if (key_file == nullptr) return nullptr;
             need close_file(fclose, key_file);
             rsa_st *rsa = PEM_read_RSAPrivateKey(key_file, nullptr, nullptr, nullptr);
