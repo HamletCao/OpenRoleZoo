@@ -116,7 +116,7 @@ namespace orz {
     : ((const char *)(__FILE__)) \
     )
 #else
-#define ORZ_LOCAL_FILE (__FILE__)
+#define ORZ_LOCAL_FILE (orz::Split(__FILE__, R"(/\)").back())
 #endif
 
 #define ORZ_LOG(level) (orz::Log(level))("[")(ORZ_LOCAL_FILE)(":")(__LINE__)("]: ")
