@@ -216,8 +216,13 @@ namespace orz {
     }
 
     jug json2jug(const std::string &json) {
-        json_iterator it(json.c_str(), static_cast<int>(json.length()));
-        return parse_value(it);
+        try {
+            json_iterator it(json.c_str(), static_cast<int>(json.length()));
+            return parse_value(it);
+        } catch (const Exception &) {
+            return orz::jug();
+        }
+
     }
 
     std::string jug2json(const orz::jug &obj) {
