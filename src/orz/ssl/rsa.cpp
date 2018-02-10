@@ -66,6 +66,66 @@ namespace orz {
             return new rsa_key(rsa, PRIVATE);
         }
 
+        static rsa_key *load_mem_public(const std::string &buffer) {
+            auto key_str = buffer;
+            auto key_length = key_str.size();
+            for (size_t i = 64; i < key_length; i += 64) {
+                if (key_str[i] != '\n') {
+                    key_str.insert(i, "\n");
+                }
+                i++;
+            }
+            key_str.insert(0, "-----BEGIN PUBLIC KEY-----\n");
+            key_str.append("\n-----END PUBLIC KEY-----\n");
+            char *key_c_str = const_cast<char *>(key_str.c_str());
+            BIO *bp = BIO_new_mem_buf(key_c_str, -1);
+            if (bp == nullptr) {
+                ORZ_LOG(ERROR) << "BIO_new_mem_buf failed.";
+                return nullptr;
+            }
+            need free_bio(BIO_free_all, bp);
+
+            rsa_st *rsa = PEM_read_bio_RSA_PUBKEY(bp, nullptr, nullptr, nullptr);
+            if (rsa == nullptr) {
+                ERR_load_crypto_strings();
+                char err_str[512];
+                ERR_error_string_n(ERR_get_error(), err_str, sizeof(err_str));
+                ORZ_LOG(ERROR) << "load public key failed[" << err_str << "]";
+                return nullptr;
+            }
+            return new rsa_key(rsa, PUBLIC);
+        }
+
+        static rsa_key *load_mem_private(const std::string &buffer) {
+            auto key_str = buffer;
+            auto key_length = key_str.size();
+            for (size_t i = 64; i < key_length; i += 64) {
+                if (key_str[i] != '\n') {
+                    key_str.insert(i, "\n");
+                }
+                i++;
+            }
+            key_str.insert(0, "-----BEGIN RSA PRIVATE KEY-----\n");
+            key_str.append("\n-----END RSA PRIVATE KEY-----\n");
+            char *key_c_str = const_cast<char *>(key_str.c_str());
+            BIO *bp = BIO_new_mem_buf(key_c_str, -1);
+            if (bp == nullptr) {
+                ORZ_LOG(ERROR) << "BIO_new_mem_buf failed.";
+                return nullptr;
+            }
+            need free_bio(BIO_free_all, bp);
+
+            rsa_st *rsa = PEM_read_bio_RSAPrivateKey(bp, nullptr, nullptr, nullptr);
+            if (rsa == nullptr) {
+                ERR_load_crypto_strings();
+                char err_str[512];
+                ERR_error_string_n(ERR_get_error(), err_str, sizeof(err_str));
+                ORZ_LOG(ERROR) << "load private key failed[" << err_str << "]";
+                return nullptr;
+            }
+            return new rsa_key(rsa, PRIVATE);
+        }
+
         static void free(const rsa_key *key) {
             if (key) RSA_free(key->m_rsa);
         }
@@ -79,6 +139,14 @@ namespace orz {
 
     rsa_key *load_private_rsa_key(const std::string &filename) {
         return rsa_key::load_private(filename);
+    }
+
+    rsa_key *load_mem_public_rsa_key(const std::string &buffer) {
+        return rsa_key::load_mem_public(buffer);
+    }
+
+    rsa_key *load_mem_private_rsa_key(const std::string &buffer) {
+        return rsa_key::load_mem_private(buffer);
     }
 
     void free_rsa_key(const rsa_key *key) {
@@ -107,6 +175,69 @@ namespace orz {
         if (key == nullptr) return std::string();
         need free_key(free_rsa_key, key);
 
+        return rsa_private_encode(key, data);
+    }
+
+    std::string rsa_public_decode(const std::string &filename, const std::string &data) {
+        auto key = load_public_rsa_key(filename);
+        if (key == nullptr) return std::string();
+        need free_key(free_rsa_key, key);
+
+        return rsa_public_decode(key, data);
+    }
+
+    std::string rsa_public_encode(const std::string &filename, const std::string &data) {
+        auto key = load_public_rsa_key(filename);
+        if (key == nullptr) return std::string();
+        need free_key(free_rsa_key, key);
+
+        return rsa_public_encode(key, data);
+    }
+
+    std::string rsa_private_decode(const std::string &filename, const std::string &data) {
+        auto key = load_private_rsa_key(filename);
+        if (key == nullptr) return std::string();
+        need free_key(free_rsa_key, key);
+
+        return rsa_private_decode(key, data);
+    }
+
+    std::string rsa_mem_private_encode(const std::string &buffer, const std::string &data) {
+        auto key = load_mem_private_rsa_key(buffer);
+        if (key == nullptr) return std::string();
+        need free_key(free_rsa_key, key);
+
+        return rsa_private_encode(key, data);
+    }
+
+    std::string rsa_mem_public_decode(const std::string &buffer, const std::string &data) {
+        auto key = load_mem_public_rsa_key(buffer);
+        if (key == nullptr) return std::string();
+        need free_key(free_rsa_key, key);
+
+        return rsa_public_decode(key, data);
+    }
+
+    std::string rsa_mem_public_encode(const std::string &buffer, const std::string &data) {
+        auto key = load_mem_public_rsa_key(buffer);
+        if (key == nullptr) return std::string();
+        need free_key(free_rsa_key, key);
+
+        return rsa_public_encode(key, data);
+    }
+
+    std::string rsa_mem_private_decode(const std::string &buffer, const std::string &data) {
+        auto key = load_mem_private_rsa_key(buffer);
+        if (key == nullptr) return std::string();
+        need free_key(free_rsa_key, key);
+
+        return rsa_private_decode(key, data);
+    }
+
+
+    std::string rsa_private_encode(rsa_key *key, const std::string &data) {
+        if (key == nullptr) return std::string();
+
         auto rsa_len = RSA_size(key->inner());
         auto block_size = rsa_len - 11; // RSA_PKCS1_PADDING
 
@@ -114,10 +245,8 @@ namespace orz {
         catch (const Exception &) { return std::string(); }
     }
 
-    std::string rsa_public_decode(const std::string &filename, const std::string &data) {
-        auto key = load_public_rsa_key(filename);
+    std::string rsa_public_decode(rsa_key *key, const std::string &data) {
         if (key == nullptr) return std::string();
-        need free_key(free_rsa_key, key);
 
         auto rsa_len = RSA_size(key->inner());
         auto block_size = rsa_len;
@@ -126,10 +255,8 @@ namespace orz {
         catch (const Exception &) { return std::string(); }
     }
 
-    std::string rsa_public_encode(const std::string &filename, const std::string &data) {
-        auto key = load_public_rsa_key(filename);
+    std::string rsa_public_encode(rsa_key *key, const std::string &data) {
         if (key == nullptr) return std::string();
-        need free_key(free_rsa_key, key);
 
         auto rsa_len = RSA_size(key->inner());
         auto block_size = rsa_len - 11; // RSA_PKCS1_PADDING
@@ -138,10 +265,8 @@ namespace orz {
         catch (const Exception &) { return std::string(); }
     }
 
-    std::string rsa_private_decode(const std::string &filename, const std::string &data) {
-        auto key = load_private_rsa_key(filename);
+    std::string rsa_private_decode(rsa_key *key, const std::string &data) {
         if (key == nullptr) return std::string();
-        need free_key(free_rsa_key, key);
 
         auto rsa_len = RSA_size(key->inner());
         auto block_size = rsa_len;
