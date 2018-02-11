@@ -6,6 +6,6 @@
 
 #ifdef WITH_OPENSSL
 #if ORZ_PLATFORM_CC_MSVC
-#include <openssl/applink.c>
+//#include <openssl/applink.c>
 #endif
 #endif

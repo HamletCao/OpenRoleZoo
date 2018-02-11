@@ -24,5 +24,6 @@
   <ItemGroup>
     <ClCompile Include="$(ORZHome)\src\orz\ssl\aes.cpp"><Filter>ssl</Filter></ClCompile>
     <ClCompile Include="$(ORZHome)\src\orz\ssl\rsa.cpp"><Filter>ssl</Filter></ClCompile>
+    <ClCompile Include="$(ORZHome)\src\orz\ssl\import_ssl.cpp"><Filter>ssl</Filter></ClCompile>
   </ItemGroup>
 </Project>
