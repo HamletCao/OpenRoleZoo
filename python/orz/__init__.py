@@ -11,3 +11,5 @@ from sta2json import sta2json
 from sta2json import sta2obj
 from sta import binary
 
+from . import ssl
+
