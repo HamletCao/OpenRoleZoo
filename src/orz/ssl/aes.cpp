@@ -270,5 +270,145 @@ namespace orz {
         aes128_PKCS7_reamove_padding(padded_data);
         return std::move(padded_data);
     }
+
+    binary
+    aes128_encode_block(const std::string &key, CRYPTO_MODE mode, const binary &data, const std::string &iv) {
+#ifndef ORZ_WITH_OPENSSL
+        #warning Only support OpenSSL, please recomiple with -DORZ_WITH_OPENSSL
+        std::unique_ptr<char[]> rdata(new char[data.size()]);
+        std::memcpy(rdata.get(), data.data(), data.size());
+        shift_rows_encode(rdata.get());
+        mix_columns_encode(rdata.get());
+        return std::string(rdata.get(), data.size());
+#else   // ORZ_WITH_OPENSSL
+        if (key.length() != 16) ORZ_LOG(ERROR) << "key.length should be 16 vs. " << key.length() << crash;
+        if (data.size() % AES_BLOCK_SIZE != 0)
+            ORZ_LOG(ERROR) << "length of data is not a multiplier of " << AES_BLOCK_SIZE << crash;
+        std::string iv_copy = iv;
+        unsigned char iv_buff[AES_BLOCK_SIZE];
+        if (mode == CBC) {
+            if (iv_copy.empty()) iv_copy = std::string(AES_BLOCK_SIZE, 0);
+            if (iv_copy.length() != AES_BLOCK_SIZE)
+                ORZ_LOG(ERROR) << "iv.length should be " << AES_BLOCK_SIZE << " vs. " << iv_copy.length() << crash;
+            std::memcpy(iv_buff, iv_copy.data(), AES_BLOCK_SIZE);
+        }
+        AES_KEY aes = {0};
+        if (AES_set_encrypt_key(reinterpret_cast<const unsigned char *>(key.data()), 128, &aes)) {
+            ORZ_LOG(ERROR) << "openssl: can not init key: " << key << crash;
+        }
+        binary rdata(data.size());
+        switch (mode) {
+            case CBC:
+                AES_cbc_encrypt(
+                        data.data<unsigned char>(),
+                        rdata.data<unsigned char>(),
+                        data.size(), &aes, iv_buff, AES_ENCRYPT
+                );
+        }
+        return std::move(rdata);
+#endif  // !ORZ_WITH_OPENSSL
+    }
+
+    binary
+    aes128_decode_block(const std::string &key, CRYPTO_MODE mode, const binary &data, const std::string &iv) {
+#ifndef ORZ_WITH_OPENSSL
+        #warning Only support OpenSSL, please recomiple with -ORZ_WITH_OPENSSL
+        std::unique_ptr<char[]> rdata(new char[data.size()]);
+        std::memcpy(rdata.get(), data.data(), data.size());
+        mix_columns_decode(rdata.get());
+        shift_rows_decode(rdata.get());
+        return std::string(rdata.get(), data.size());
+#else   // ORZ_WITH_OPENSSL
+        if (key.length() != 16) ORZ_LOG(ERROR) << "key.length should be 16 vs. " << key.length() << crash;
+        if (data.size() % AES_BLOCK_SIZE != 0)
+            ORZ_LOG(ERROR) << "length of data is not a multiplier of " << AES_BLOCK_SIZE << crash;
+        std::string iv_copy = iv;
+        unsigned char iv_buff[AES_BLOCK_SIZE];
+        if (mode == CBC) {
+            if (iv_copy.empty()) iv_copy = std::string(AES_BLOCK_SIZE, 0);
+            if (iv_copy.length() != AES_BLOCK_SIZE)
+                ORZ_LOG(ERROR) << "iv.length should be " << AES_BLOCK_SIZE << " vs. " << iv_copy.length() << crash;
+            std::memcpy(iv_buff, iv_copy.data(), AES_BLOCK_SIZE);
+        }
+        AES_KEY aes = {0};
+        if (AES_set_decrypt_key(reinterpret_cast<const unsigned char *>(key.data()), 128, &aes)) {
+            ORZ_LOG(ERROR) << "openssl: can not init key: " << key << crash;
+        }
+        binary rdata(data.size());
+        switch (mode) {
+            case CBC:
+                AES_cbc_encrypt(
+                        data.data<unsigned char>(),
+                        rdata.data<unsigned char>(),
+                        data.size(), &aes, iv_buff, AES_DECRYPT
+                );
+        }
+        return std::move(rdata);
+#endif  // !ORZ_WITH_OPENSSL
+    }
+
+    binary aes128_encode(const std::string &key, CRYPTO_MODE mode, const binary &data, const std::string &iv) {
+        if (data.size() == 0) return data;
+
+        auto padded_data = data;
+        aes128_PKCS7_add_padding(padded_data);
+        return aes128_encode_block(key, mode, padded_data, iv);
+    }
+
+    binary aes128_decode(const std::string &key, CRYPTO_MODE mode, const binary &data, const std::string &iv) {
+        if (data.size() == 0) return data;
+
+        auto padded_data = aes128_decode_block(key, mode, data, iv);
+        aes128_PKCS7_reamove_padding(padded_data);
+        return std::move(padded_data);
+    }
+
+    static bool feak_tail(const binary &data) {
+        if (data.size() == 0) return false;
+
+        size_t len = data.size();
+        char ch = data.data<char>()[data.size() - 1];
+        size_t num = static_cast<size_t>(ch);
+        if (num < len) {
+            for (auto i = len - num; i < len; ++i) {
+                if (data.data<char>()[i] != ch) return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    void aes128_PKCS7_add_padding(binary &data) {
+        if (data.size() == 0) return;
+
+        static size_t block_size = 16;
+        auto tail_size = data.size() % block_size;
+        size_t padding_size = 0;
+        if (tail_size > 0) {
+            padding_size = block_size - tail_size;
+        } else if (feak_tail(data)) {
+            padding_size = block_size;
+        }
+
+        if (padding_size == 0) return;
+
+        std::string padding( padding_size, (unsigned char) (padding_size));
+        data.set_pos(binary::pos::end, 0);
+        data.write(padding.data(), padding.size());
+    }
+
+    void aes128_PKCS7_reamove_padding(binary &data) {
+        if (data.size() == 0) return;
+
+        size_t len = data.size();
+        char ch = data.data<char>()[data.size() - 1];
+        size_t num = static_cast<size_t>(ch);
+        if (num < len) {
+            for (auto i = len - num; i < len; ++i) {
+                if (data.data<char>()[i] != ch) return;
+            }
+            data.resize(len - num);
+        }
+    }
 }
 

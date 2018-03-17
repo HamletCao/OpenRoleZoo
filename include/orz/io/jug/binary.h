@@ -24,6 +24,8 @@ namespace orz {
 
         binary();
 
+        binary(size_t size);
+
         binary(const void *_buffer, size_t _size);
         // binary(const std::string &str);
 
@@ -102,6 +104,10 @@ namespace orz {
     std::string to_string(const binary &str);
 
     binary to_binary(const std::string &bin);
+
+    bool operator==(const binary &lhs, const binary &rhs);
+
+    bool operator!=(const binary &lhs, const binary &rhs);
 }
 
 

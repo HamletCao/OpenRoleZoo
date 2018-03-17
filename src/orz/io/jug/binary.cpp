@@ -11,6 +11,10 @@ namespace orz {
 
     binary::binary() {}
 
+    binary::binary(size_t _size) {
+        resize(_size);
+    }
+
     binary::binary(const void *_buffer, size_t _size) {
         write(_buffer, _size);
     }
@@ -140,5 +144,24 @@ namespace orz {
 
     binary to_binary(const std::string &bin) {
         return binary(bin.data(), bin.size());
+    }
+
+    bool operator==(const binary &lhs, const binary &rhs) {
+        if (lhs.size() != rhs.size()) return false;
+        using long_step_type = size_t;
+        size_t size = lhs.size();
+        size_t long_step = sizeof(long_step_type);
+        size_t long_step_size = size / long_step;
+        for (size_t i = 0;i < long_step_size; ++i) {
+            if (lhs.data<long_step_type>()[i] != rhs.data<long_step_type>()[i]) return false;
+        }
+        for (size_t i = long_step_size * long_step; i < size; ++i) {
+            if (lhs.data<unsigned char>()[i] != rhs.data<unsigned char>()[i]) return false;
+        }
+        return true;
+    }
+
+    bool operator!=(const binary &lhs, const binary &rhs) {
+        return !operator==(lhs, rhs);
     }
 }
