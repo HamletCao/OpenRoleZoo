@@ -93,7 +93,7 @@ namespace orz {
 #if ORZ_PLATFORM_OS_WINDOWS
         char exed[1024];
         auto exed_size = sizeof(exed) / sizeof(exed[0]);
-        auto link_size = GetModuleFileNameA(nullptr, exed, exed_size);
+        auto link_size = GetModuleFileNameA(nullptr, exed, DWORD(exed_size));
 
         if (link_size <= 0) return std::string();
 
