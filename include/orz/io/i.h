@@ -15,7 +15,7 @@ namespace orz {
 
 	class imemorystream : public std::istream {
 	public:
-		imemorystream(const char *data, size_t size) :
+		imemorystream(const void *data, size_t size) :
 				std::istream(&m_buffer),
 				m_buffer(data, size) {
 			rdbuf(&m_buffer); // reset the buffer after it has been properly constructed
@@ -24,7 +24,7 @@ namespace orz {
 	private:
 		class imemorybuffer : public std::basic_streambuf<char> {
 		public:
-			imemorybuffer(const char *data, size_t size) {
+			imemorybuffer(const void *data, size_t size) {
 				setg((char *) data, (char *) data, (char *) data + size);
 			}
 		};
