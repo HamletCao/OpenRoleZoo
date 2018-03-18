@@ -18,8 +18,10 @@ set(CONFIGURATION ${CMAKE_BUILD_TYPE})
 
 # set common compiler flags
 include(LOCAL_FLAGS)
+include(LOCAL_ENV)
 
-set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/build CACHE STRING "set install prefix" FORCE)
+set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/build CACHE STRING "set install prefix")
+install(CODE "MESSAGE(\"Installing into ${CMAKE_INSTALL_PREFIX}\")")
 
 set(LOCAL_OUTPUT_DIR ${PROJECT_SOURCE_DIR})
 
@@ -50,5 +52,7 @@ foreach (path ${TOOL_FILES})
     add_executable(tool_${file} ${path})
     set_target_properties(tool_${file} PROPERTIES OUTPUT_NAME ${file})
     target_link_libraries(tool_${file} ${PROJECT_NAME}_STATIC)
-    install(TARGETS tool_${file} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+    install(TARGETS tool_${file}
+		RUNTIME DESTINATION bin
+	)
 endforeach ()
