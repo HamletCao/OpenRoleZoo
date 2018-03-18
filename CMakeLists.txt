@@ -53,6 +53,6 @@ foreach (path ${TOOL_FILES})
     set_target_properties(tool_${file} PROPERTIES OUTPUT_NAME ${file})
     target_link_libraries(tool_${file} ${PROJECT_NAME}_STATIC)
     install(TARGETS tool_${file}
-		RUNTIME DESTINATION bin
+		RUNTIME DESTINATION ${ENV_RUNTIME_DIR}
 	)
 endforeach ()
