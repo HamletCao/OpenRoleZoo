@@ -7,30 +7,44 @@
 
 #include "jug/binary.h"
 
-#include <iostream>
+#include <istream>
 
 namespace orz {
     binary read_file(const std::string &filename);
-	std::string read_txt_file(const std::string &filename);
 
-	class imemorystream : public std::istream {
-	public:
-		imemorystream(const void *data, size_t size) :
-				std::istream(&m_buffer),
-				m_buffer(data, size) {
-			rdbuf(&m_buffer); // reset the buffer after it has been properly constructed
-		}
+    std::string read_txt_file(const std::string &filename);
 
-	private:
-		class imemorybuffer : public std::basic_streambuf<char> {
-		public:
-			imemorybuffer(const void *data, size_t size) {
-				setg((char *) data, (char *) data, (char *) data + size);
-			}
-		};
+    class imemorystream : public std::istream {
+    public:
+        imemorystream(const void *data, size_t size);
 
-		imemorybuffer m_buffer;
-	};
+    private:
+        class imemorybuffer : public std::streambuf {
+
+        public:
+            imemorybuffer(const void *data, size_t size);
+
+        protected:
+            int_type overflow(int_type c) override;
+
+            std::streambuf *setbuf(char *s, std::streamsize n);
+
+            int_type underflow() override;
+
+            int_type uflow() override;
+
+            streampos seekoff(streamoff off, ios_base::seekdir way,
+                              ios_base::openmode which) override;
+
+            streampos seekpos(streampos sp, ios_base::openmode which) override;
+
+        private:
+            const void *m_data;
+            size_t m_size;
+        };
+
+        imemorybuffer m_buffer;
+    };
 }
 
 #endif //ORZ_IO_I_H
