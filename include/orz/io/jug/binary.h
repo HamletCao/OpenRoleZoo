@@ -86,6 +86,8 @@ namespace orz {
         // clear and free the data
         void dispose();
 
+        bool empty() const;
+
     private:
         std::shared_ptr<void> m_data;
         size_t m_capacity = 0;

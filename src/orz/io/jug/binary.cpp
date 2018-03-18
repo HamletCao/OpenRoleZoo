@@ -138,6 +138,10 @@ namespace orz {
 
     const void *binary::now_data() const { return const_cast<self *>(this)->now_data(); }
 
+    bool binary::empty() const {
+        return m_size == 0;
+    }
+
     std::string to_string(const binary &str) {
         return std::string(str.data<char>(), str.size());
     }
