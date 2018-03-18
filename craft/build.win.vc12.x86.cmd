@@ -29,3 +29,5 @@ cmake "%~dp0.." ^
 -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"
 
 jom -j16 install
+
+exit /b
