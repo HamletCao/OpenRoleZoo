@@ -45,6 +45,37 @@ namespace orz {
 
         imemorybuffer m_buffer;
     };
+
+    class MemoryFILE {
+    public:
+        using self = MemoryFILE;
+
+        explicit MemoryFILE(::FILE *file);
+
+        MemoryFILE(void *data, size_t size);
+
+        friend size_t fread(void *ptr, size_t size, size_t count, MemoryFILE *stream);
+
+        friend size_t fwrite(const void *ptr, size_t size, size_t count, MemoryFILE *stream);
+
+        friend int fseek(MemoryFILE *stream, long int offset, int origin);
+
+        friend long int ftell(MemoryFILE *stream);
+
+        friend void rewind(MemoryFILE *stream);
+
+        friend int ferror(MemoryFILE *stream);
+
+        friend int feof(MemoryFILE *stream);
+
+    private:
+        ::FILE *m_file = nullptr;
+        char *m_data = nullptr;
+        size_t m_size = 0;
+        size_t m_index = 0;
+    };
+
+    using FILE = MemoryFILE;
 }
 
 #endif //ORZ_IO_I_H
