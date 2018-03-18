@@ -8,7 +8,7 @@ set "PLATFORM_TARGET=x86"
 set "WITH_SSL=ON"
 set "SSL_HOME=D:\3rd\OpenSSL32"
 
-set "INSTALL_DIR=D:\3rd\local\"
+set "INSTALL_DIR=D:\3rd\local"
 
 call "%VS120COMNTOOLS%..\..\VC\vcvarsall.bat" %PLATFORM%
 
