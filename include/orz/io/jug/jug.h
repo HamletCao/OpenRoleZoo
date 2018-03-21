@@ -17,6 +17,7 @@ namespace orz {
      */
     class jug {
     public:
+        using self = jug;
 
         jug();
 
@@ -60,6 +61,10 @@ namespace orz {
         bool valid(Piece::Type type) const;
 
         bool valid() const;
+
+        bool invalid(Piece::Type type) const {return !this->valid(type);}
+
+        bool invalid() const {return !this->valid();}
 
         // common type set function
         jug &operator=(nullptr_t _);
