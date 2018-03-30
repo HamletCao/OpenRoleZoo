@@ -24,6 +24,7 @@ cmake "$HOME/.." \
 -DORZ_WITH_OPENSSL="$WITH_SSL" \
 -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR"
 
-make -j16 install
+make -j16
+make install
 
 
