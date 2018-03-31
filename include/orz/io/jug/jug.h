@@ -105,6 +105,17 @@ namespace orz {
         jug &operator=(bool val);
 
         // common type function
+        bool to_bool() const;
+
+        int to_int() const;
+
+        float to_float() const;
+
+        std::string to_string() const;
+
+        binary to_binary() const;
+
+        // common type function
         operator bool() const;
 
         operator int() const;

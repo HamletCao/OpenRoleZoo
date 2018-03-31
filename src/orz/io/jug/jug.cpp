@@ -108,7 +108,7 @@ namespace orz {
         return *this;
     }
 
-    jug::operator bool() const {
+    bool jug::to_bool() const {
         switch (m_pie->type()) {
             case Piece::NIL:
                 return false;
@@ -122,7 +122,7 @@ namespace orz {
         }
     }
 
-    jug::operator int() const {
+    int jug::to_int() const {
         switch (m_pie->type()) {
             case Piece::INT:
                 return reinterpret_cast<IntPiece *>(m_pie.get())->get();
@@ -137,7 +137,7 @@ namespace orz {
         }
     }
 
-    jug::operator float() const {
+    float jug::to_float() const {
         switch (m_pie->type()) {
             case Piece::INT:
                 return static_cast<float>(
@@ -152,7 +152,7 @@ namespace orz {
         }
     }
 
-    jug::operator std::string() const {
+    std::string jug::to_string() const {
         switch (m_pie->type()) {
             case Piece::STRING:
                 return reinterpret_cast<StringPiece *>(m_pie.get())->get();
@@ -166,7 +166,7 @@ namespace orz {
         }
     }
 
-    jug::operator binary() const {
+    binary jug::to_binary() const {
         switch (m_pie->type()) {
             case Piece::STRING:
             {
@@ -410,6 +410,26 @@ namespace orz {
     void sta_write(std::ostream &out, const jug &j, int mask) {
         binio<int>::write(out, mask);
         Piece::Write(out, j.m_pie);
+    }
+
+    jug::operator bool() const {
+        return to_bool();
+    }
+
+    jug::operator int() const {
+        return to_int();
+    }
+
+    jug::operator float() const {
+        return to_float();
+    }
+
+    jug::operator std::string() const {
+        return to_string();
+    }
+
+    jug::operator binary() const {
+        return to_binary();
     }
 
     std::string to_string(const jug &obj) {
