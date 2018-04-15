@@ -11,6 +11,13 @@
 #include "except.h"
 #include <cstring>
 
+#undef NONE
+#undef DEBUG
+#undef STATUS
+#undef INFO
+#undef ERROR
+#undef FATAL
+
 namespace orz {
 
     enum LogLevel {
