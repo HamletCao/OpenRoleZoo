@@ -91,8 +91,8 @@ namespace orz {
             if (m_level >= InnerGlobalLogLevel) {
                 auto msg = m_buffer.str();
                 m_buffer.str("");
-                m_buffer << level_str << ": " << msg;
-                m_log << m_buffer.str() << std::endl;
+                m_buffer << level_str << ": " << msg << std::endl;
+                m_log << m_buffer.str();
             }
             m_level = NONE;
             m_buffer.str("");
