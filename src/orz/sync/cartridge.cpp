@@ -22,8 +22,10 @@ namespace orz {
     }
 
     bool Cartridge::busy() {
-        std::unique_lock<std::mutex> _(fire_mutex);
-        return bullet != nullptr;
+        if (!fire_mutex.try_lock()) return false;
+        bool is_busy = bullet != nullptr;
+        fire_mutex.unlock();
+        return is_busy;
     }
 
     void Cartridge::join() {

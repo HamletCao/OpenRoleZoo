@@ -59,8 +59,10 @@ namespace orz {
     }
 
     bool Shotgun::busy() {
-        std::unique_lock <std::mutex> _(chest_mutex);
-        return this->chest.size() != this->clip.size();
+        if (!chest_mutex.try_lock()) return false;
+        bool is_busy = this->chest.size() != this->clip.size();
+        chest_mutex.unlock();
+        return is_busy;
     }
 
     size_t Shotgun::size() const {
