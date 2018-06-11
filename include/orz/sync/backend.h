@@ -22,6 +22,7 @@ namespace orz {
 
         void put(const Mission &mission) {
             if (!this->m_busy) {
+                this->m_busy = true;
                 this->m_cart.fire(0, [this, mission](int) {
                     T a = mission();
                     std::unique_lock<std::mutex> _locker(this->m_mutex);
@@ -29,7 +30,6 @@ namespace orz {
                 }, [this](int) {
                     this->m_busy = false;
                 });
-                this->m_busy = true;
             }
         }
 
