@@ -8,38 +8,26 @@
 #include <functional>
 
 namespace orz {
-    class VOID {
-    public:
-        template<typename ANY>
-        VOID(ANY any) {}
-
-        VOID() {}
-    };
-
     using VoidOperator = std::function<void()>;
 
-    template<typename Ret, typename FUNC, typename... Args>
-    class Operator {
+    template<typename Ret, typename FUNC>
+    class _Operator {
     public:
-        static VoidOperator bind(FUNC func, Args &&... args) {
-            std::function<VOID()> void_op = std::bind<VOID>(func, std::forward<Args>(args)...);
-            return [void_op]() -> void { void_op(); };
-        }
+        static VoidOperator bind(FUNC func) { return [func]() -> void { func(); }; }
     };
 
-    template<typename FUNC, typename... Args>
-    class Operator<void, FUNC, Args...> {
+    template<typename FUNC>
+    class _Operator<void, FUNC> {
     public:
-        static VoidOperator bind(FUNC func, Args &&... args) {
-            return std::bind(func, std::forward<Args>(args)...);
-        }
+        static VoidOperator bind(FUNC func) { return func; }
     };
 
     template<typename FUNC, typename... Args>
     static VoidOperator void_bind(FUNC func, Args &&... args) {
-        using Ret = decltype(func(std::forward<Args>(args)...));
-        using RetOperator = Operator<Ret, FUNC, Args...>;
-        return RetOperator::bind(func, std::forward<Args>(args)...);
+        auto inner_func = std::bind(func, std::forward<Args>(args)...);
+        using Ret = decltype(inner_func());
+        using RetOperator = _Operator<Ret, decltype(inner_func)>;
+        return RetOperator::bind(inner_func);
     }
 }
 
