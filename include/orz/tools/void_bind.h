@@ -23,12 +23,17 @@ namespace orz {
     };
 
     template<typename FUNC, typename... Args>
-    static VoidOperator void_bind(FUNC func, Args &&... args) {
+    inline VoidOperator void_bind(FUNC func, Args &&... args) {
         auto inner_func = std::bind(func, std::forward<Args>(args)...);
         using Ret = decltype(inner_func());
         using RetOperator = _Operator<Ret, decltype(inner_func)>;
         return RetOperator::bind(inner_func);
     }
+
+    template<typename FUNC, typename... Args>
+    inline void void_call(FUNC func, Args &&... args) {
+        std::bind(func, std::forward<Args>(args)...)();
+    };
 }
 
 #endif //ORZ_TOOLS_VOID_BIND_H
