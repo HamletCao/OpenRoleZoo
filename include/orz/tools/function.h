@@ -8,6 +8,11 @@
 #include <functional>
 
 namespace orz {
+
+    /**
+     * Not support std::function, so not using now
+     * @tparam FUNC
+     */
     template<typename FUNC>
     class Function;
 
