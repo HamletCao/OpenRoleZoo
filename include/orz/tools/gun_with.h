@@ -15,13 +15,19 @@ namespace orz {
         using self = GunWithMulti;
         using supper = Multi<T>;
 
+        using Mission = std::function<void(T*)>;
+
         template<typename... Args>
         explicit GunWithMulti(size_t N, Args &&... args)
                 : supper(N, std::forward<Args>(args)...), m_gun(N) {
         }
 
+        void fire(const Mission &mission) {
+            this->m_gun.fire([this, mission](int id) { mission(this->core(id)); });
+        }
+
         template<typename FUNC, typename... Args>
-        void fire(FUNC func, Args &&... args) {
+        void bind(FUNC func, Args &&... args) {
             this->m_gun.fire(this->bind_core(func, std::forward<Args>(args)...));
         }
 

@@ -11,12 +11,26 @@ namespace orz {
     template<typename T>
     class Backend {
     public:
+        using self = Backend;
         using Mission = std::function<T()>;
+
+        Backend()
+                : m_busy(false) {
+        }
+
+        explicit Backend(const T &value)
+                : m_busy(false), m_future(value) {
+        }
 
         T fire(const Mission &mission) {
             this->put(mission);
             return this->get();
         }
+
+        template <typename FUNC, typename... Args>
+        T bind(FUNC func, Args &&... args) {
+            return this->fire(std::bind(func, std::forward<Args>(args)...));
+        };
 
         bool busy() const { return this->m_busy; }
 
@@ -38,11 +52,16 @@ namespace orz {
             return this->m_future;
         }
 
+        void set(const T &value) {
+            std::unique_lock<std::mutex> _locker(this->m_mutex);
+            this->m_future = value;
+        }
+
     private:
         mutable std::mutex m_mutex;
         T m_future;
         orz::Cartridge m_cart;
-        mutable std::atomic<bool> m_busy = false;
+        mutable std::atomic<bool> m_busy;
     };
 }
 
