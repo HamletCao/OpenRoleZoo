@@ -10,10 +10,18 @@
 namespace orz {
     using VoidOperator = std::function<void()>;
 
+    // for error C3848 in MSVC
+
     template<typename Ret, typename FUNC>
     class _Operator {
     public:
-        static VoidOperator bind(FUNC func) { return [func]() -> void { func(); }; }
+        static VoidOperator bind(FUNC func) {
+            return [func]() -> void {
+                // for error C3848 in MSVC
+                FUNC non_const_func = func;
+                non_const_func();
+            };
+        }
     };
 
     template<typename FUNC>
