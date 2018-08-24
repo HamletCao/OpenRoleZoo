@@ -65,7 +65,7 @@ int main()
 
     mb.each(&add);
     mb.each(&add_const);
-    mb.each(&add_ref);
-    mb.each(&add_const_ref);
+    // mb.each(&add_ref);
+    // mb.each(&add_const_ref);
     return 0;
 }
