@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 
 namespace orz {
     template<typename T>
