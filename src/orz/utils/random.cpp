@@ -59,7 +59,8 @@ namespace orz {
     }
 
     int Random::next(int min, int max) {
-        return min + (int) ((max - min) * u());
+        // return min + (int) ((max - min) * u());
+        return min + (mt.rand() % (max - min + 1));
     }
 
     double Random::u() {
