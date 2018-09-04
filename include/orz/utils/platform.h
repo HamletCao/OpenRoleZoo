@@ -21,20 +21,30 @@
 #   define ORZ_PLATFORM_OS_WINDOWS 1
 #   define ORZ_PLATFORM_OS_MAC     0
 #   define ORZ_PLATFORM_OS_LINUX   0
-#elif defined(__APPLE__) || defined(__apple__) || defined(__MACOSX) || defined(__MACOS_CLASSIC__)
+#   define ORZ_PLATFORM_OS_IOS     0
+#elif defined(__MACOSX) || defined(__MACOS_CLASSIC__)
 #   define ORZ_PLATFORM_OS_WINDOWS 0
 #   define ORZ_PLATFORM_OS_MAC     1
 #   define ORZ_PLATFORM_OS_LINUX   0
+#   define ORZ_PLATFORM_OS_IOS     0
+#elif defined(__APPLE__) || defined(__apple__)
+#   define ORZ_PLATFORM_OS_WINDOWS 0
+#   define ORZ_PLATFORM_OS_MAC     0
+#   define ORZ_PLATFORM_OS_LINUX   0
+#   define ORZ_PLATFORM_OS_IOS     1
 #elif defined(__linux__) || defined(linux) || defined(__linux) || defined(__LINUX__) || \
     defined(LINUX) || defined(_LINUX)
 #   define ORZ_PLATFORM_OS_WINDOWS 0
 #   define ORZ_PLATFORM_OS_MAC     0
 #   define ORZ_PLATFORM_OS_LINUX   1
+#   define ORZ_PLATFORM_OS_IOS     0
 #else
 //#   error Unknown OS
 #   define ORZ_PLATFORM_OS_WINDOWS 0
 #   define ORZ_PLATFORM_OS_MAC     0
 #   define ORZ_PLATFORM_OS_LINUX   0
+#   define ORZ_PLATFORM_OS_IOS     0
+
 #endif
 
 /**

@@ -67,7 +67,7 @@ namespace orz {
         bool invalid() const {return !this->valid();}
 
         // common type set function
-        jug &operator=(nullptr_t _);
+        jug &operator=(std::nullptr_t _);
 
         jug &operator=(int val);
 

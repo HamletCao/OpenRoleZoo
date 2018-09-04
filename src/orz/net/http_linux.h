@@ -254,12 +254,16 @@ namespace orz {
 
     static struct hostent *gethostbyname_local(const char *name, struct hostent &result_buf) {
         struct hostent *result = nullptr;
+#if ORZ_PLATFORM_OS_IOS
+        result=gethostbyname(name);
+#else
         char buf[1024];
         size_t buflen = sizeof(buf);
         int err;
         if (gethostbyname_r(name, &result_buf, buf, buflen, &result, &err) != 0 || result == nullptr) {
             return nullptr;
         }
+#endif
         return result;
     }
 

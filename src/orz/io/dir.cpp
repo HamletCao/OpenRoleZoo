@@ -16,11 +16,12 @@
 
 #include <Windows.h>
 
-#elif  ORZ_PLATFORM_OS_LINUX || ORZ_PLATFORM_OS_MAC
+#elif  ORZ_PLATFORM_OS_LINUX || ORZ_PLATFORM_OS_MAC || ORZ_PLATFORM_OS_IOS
 
 #include <unistd.h>
 #include <stdarg.h>
 #include <sys/stat.h>
+#include <fstream>
 
 #define ACCESS ::access
 #define MKDIR(a) ::mkdir((a),0755)
@@ -76,8 +77,13 @@ namespace orz {
     bool copy(const std::string &fromfile, const std::string &tofile, bool force) {
 #if ORZ_PLATFORM_OS_WINDOWS
         return CopyFileA(fromfile.c_str(), tofile.c_str(), !force) != FALSE;
-#else
+#elif ORZ_PLATFORM_OS_LINUX
         return std::system(orz::Concat(force ? "cp -f " : "cp ", fromfile, ' ', tofile).c_str()) == 0;
+#else
+        std::ifstream input(fromfile, std::ios::binary);
+        std::ofstream output(tofile, std::ios::binary);
+        output << input.rdbuf();
+        return true;
 #endif
     }
 

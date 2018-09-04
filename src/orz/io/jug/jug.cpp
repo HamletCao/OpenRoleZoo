@@ -37,7 +37,7 @@ namespace orz {
         return !valid(Piece::NIL);
     }
 
-    jug &jug::operator=(nullptr_t _) {
+    jug &jug::operator=(std::nullptr_t _) {
         switch (m_pie->type()) {
             case Piece::NIL:
                 break;
