@@ -340,6 +340,10 @@ namespace orz {
 
         struct hostent host_buf = {nullptr};
         struct hostent *host = gethostbyname_local(url.host().c_str(), host_buf);
+        if (host == nullptr)
+        {
+            ORZ_LOG(ERROR) << "gethostbyname error" << crash;
+        }
         in_addr host_addr = *reinterpret_cast<in_addr *>(host->h_addr);
         std::string ip = inet_ntoa(host_addr);
 
