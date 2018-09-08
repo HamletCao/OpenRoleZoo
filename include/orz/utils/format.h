@@ -17,7 +17,7 @@
 namespace orz {
     using time_point = decltype(std::chrono::system_clock::now());
 
-    static void _Concat_str(std::ostream &out) { (decltype(_Concat_str(out))()); }
+    static void _Concat_str(std::ostream &out) { (void)(_Concat_str); (void)(out); }
 
     template<typename T, typename... Args>
     static void _Concat_str(std::ostream &out, T &&t, Args&&... args) { _Concat_str(out << std::forward<T>(t), std::forward<Args>(args)...); }
