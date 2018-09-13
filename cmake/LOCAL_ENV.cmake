@@ -37,3 +37,6 @@ endif()
 if ("${CONFIGURATION}" STREQUAL "Debug")
 	set(ENV_SUFFIX "d")
 endif ()
+
+set(ENV_INCLUDE_DIR ${ENV_HEADER_DIR})
+
