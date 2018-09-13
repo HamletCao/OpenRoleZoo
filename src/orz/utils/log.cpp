@@ -5,6 +5,6 @@
 #include "orz/utils/log.h"
 
 namespace orz {
-    LogLevel InnerGlobalLogLevel = STATUS;
+    LogLevel InnerGlobalLogLevel = INFO;
 }
 
