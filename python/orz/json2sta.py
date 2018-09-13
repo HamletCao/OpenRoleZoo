@@ -43,16 +43,16 @@ def pack_float(obj, **kwargs):
 
 
 def pack_raw_string(obj, **kwargs):
-    s = obj
-    if isinstance(obj, str):
+    s = str(obj)
+    if not isinstance(s, bytes):
         s = s.encode()
     byte = struct.pack('=i%ds' % len(s), len(s), s)
     return byte
 
 
 def pack_string(obj, **kwargs):
-    s = obj
-    if isinstance(obj, str):
+    s = str(obj)
+    if not isinstance(s, bytes):
         s = s.encode()
     byte = struct.pack('=bi%ds' % len(s), STA_STRING, len(s), s)
     return byte
@@ -60,7 +60,7 @@ def pack_string(obj, **kwargs):
 
 def pack_binary(obj, **kwargs):
     s = obj
-    if isinstance(obj, str):
+    if not isinstance(s, bytes):
         s = s.encode()
     byte = struct.pack('=bi%ds' % len(s), STA_BINARY, len(s), s)
     return byte
