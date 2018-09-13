@@ -3,7 +3,7 @@
 
 import json
 import os
-from sta import *
+from .sta import *
 import struct
 import time
 import base64
@@ -43,19 +43,25 @@ def pack_float(obj, **kwargs):
 
 
 def pack_raw_string(obj, **kwargs):
-    s = str(obj)
+    s = obj
+    if isinstance(obj, str):
+        s = s.encode()
     byte = struct.pack('=i%ds' % len(s), len(s), s)
     return byte
 
 
 def pack_string(obj, **kwargs):
-    s = str(obj)
+    s = obj
+    if isinstance(obj, str):
+        s = s.encode()
     byte = struct.pack('=bi%ds' % len(s), STA_STRING, len(s), s)
     return byte
 
 
 def pack_binary(obj, **kwargs):
-    s = str(obj)
+    s = obj
+    if isinstance(obj, str):
+        s = s.encode()
     byte = struct.pack('=bi%ds' % len(s), STA_BINARY, len(s), s)
     return byte
 
@@ -78,10 +84,14 @@ def pack_dict(obj, **kwargs):
 
 
 def pack_value(value, **kwargs):
+    try:
+        if isinstance(value, unicode):
+            return pack_value(value.encode("UTF-8"), **kwargs)
+    except NameError:
+        pass
+
     if value is None:
         return pack_nil(**kwargs)
-    elif isinstance(value, unicode):
-        return pack_value(value.encode("UTF-8"), **kwargs)
     elif isinstance(value, str):
         if len(value) > 0 and value[0] == '@':
             return pack_command(value, **kwargs)
