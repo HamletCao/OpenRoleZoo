@@ -54,7 +54,7 @@ namespace orz {
         }
     }
 
-    std::string orz::http_request(const URL &url, http::VERB verb, const std::string &data, header::TYPE header) {
+    std::string http_request(const URL &url, http::VERB verb, const std::string &data, header::TYPE header) {
         std::string header_str;
         switch (header) {
             case header::JSON:
@@ -67,7 +67,7 @@ namespace orz {
         return http_request(url, verb, data, header_str);
     }
 
-    std::string orz::http_request(const URL &url, http::VERB verb, const std::string &data) {
+    std::string http_request(const URL &url, http::VERB verb, const std::string &data) {
         return http_request(url, verb, data, header::FORM);
     }
 }
