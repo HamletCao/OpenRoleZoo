@@ -8,6 +8,7 @@
 #include <string>
 #include <memory>
 #include <iostream>
+#include <set>
 
 namespace orz {
 
@@ -488,17 +489,119 @@ namespace orz {
 
         class Option {
         public:
+            using self = Option;
+
             enum Property {
                 REQUIRED = 0x1,
                 OPTIONAL = 0x1 << 1,
             };
 
-            void set_property(Property prop) { m_prop = prop; }
+            self *property(Property _prop) {
+                m_prop = _prop;
+                return this;
+            }
 
-            Property get_property() const { return m_prop; }
+            Property property() const { return m_prop; }
+
+            self *name(const std::string &_name) { return this->name(std::set<std::string>(&_name, &_name + 1)); }
+
+            self *name(const std::set<std::string> &_name) {
+                m_names = _name;
+                return this;
+            }
+
+            self *name(std::set<std::string> &&_name) {
+                m_names = std::move(_name);
+                return this;
+            }
+
+            const std::set<std::string> &name() const { return m_names; }
+
+            self *description(const std::string &_desc) {
+                m_description = _desc;
+                return this;
+            }
+
+            const std::string &description() { return m_description; }
+
+            self *type(ValueType _type) {
+                m_value.reset(_type);
+                return this;
+            }
+
+            int type() { return m_value.type(); }
+
+            self *value(const std::string &_value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(const char *_value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(float _value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(double _value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(char _value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(unsigned char _value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(short _value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(unsigned short _value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(int _value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(unsigned int _value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(long _value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            self *value(unsigned long _value) {
+                m_value.set(_value);
+                return this;
+            }
+
+            const ValueCommon &value() { return m_value; }
+
+            bool match(const std::string &_name) const {
+                return m_names.find(std::string("-") + _name) != m_names.end();
+            }
 
         private:
             Property m_prop = OPTIONAL;
+            std::set<std::string> m_names;
+            std::string m_description;
+            ValueCommon m_value;
         };
     }
 }
