@@ -14,9 +14,9 @@ namespace orz {
     namespace arg {
 
         enum ValueType {
-            STRING  = 1,
-            FLOAT   = 2,
-            INT     = 3,
+            STRING = 1,
+            FLOAT = 2,
+            INT = 3,
             BOOLEAN = 4,
         };
 
@@ -153,6 +153,32 @@ namespace orz {
             int type() const {
                 if (m_value == nullptr) return 0;
                 return int(m_value->type());
+            }
+
+            self &reset() {
+                m_value.reset();
+                return *this;
+            }
+
+            self &reset(ValueType type) {
+                m_value.reset();
+                switch (type) {
+                    default:
+                        break;
+                    case STRING:
+                        m_value.reset(new ValueDefinition<STRING>);
+                        break;
+                    case FLOAT:
+                        m_value.reset(new ValueDefinition<FLOAT>);
+                        break;
+                    case INT:
+                        m_value.reset(new ValueDefinition<INT>);
+                        break;
+                    case BOOLEAN:
+                        m_value.reset(new ValueDefinition<BOOLEAN>);
+                        break;
+                }
+                return *this;
             }
 
             bool set(const std::string &value) {
