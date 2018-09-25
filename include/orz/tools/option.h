@@ -8,7 +8,11 @@
 #include <string>
 #include <memory>
 #include <iostream>
+#include <iomanip>
 #include <set>
+#include <map>
+#include <vector>
+#include <sstream>
 
 namespace orz {
 
@@ -37,7 +41,7 @@ namespace orz {
         };
         template<>
         struct Type<INT> {
-            using declare = int;
+            using declare = long;
             static const declare default_value;
         };
         template<>
@@ -132,16 +136,16 @@ namespace orz {
 
             ValueCommon() {}
 
-            ValueCommon(const std::string &value)
+            ValueCommon(const Type<STRING>::declare &value)
                     : m_value(new ValueDefinition<STRING>(value)) {}
 
-            ValueCommon(float value)
+            ValueCommon(Type<FLOAT>::declare value)
                     : m_value(new ValueDefinition<FLOAT>(value)) {}
 
-            ValueCommon(int value)
+            ValueCommon(Type<INT>::declare value)
                     : m_value(new ValueDefinition<INT>(value)) {}
 
-            ValueCommon(bool value)
+            ValueCommon(Type<BOOLEAN>::declare value)
                     : m_value(new ValueDefinition<BOOLEAN>(value)) {}
 
             ValueCommon(ValueType type)
@@ -182,7 +186,7 @@ namespace orz {
                 return *this;
             }
 
-            bool set(const std::string &value) {
+            bool set(const Type<STRING>::declare &value) {
                 if (m_value == nullptr) {
                     m_value.reset(new ValueDefinition<STRING>(value));
                     return true;
@@ -215,7 +219,7 @@ namespace orz {
                 return false;
             }
 
-            bool set(float value) {
+            bool set(Type<FLOAT>::declare value) {
                 if (m_value == nullptr) {
                     m_value.reset(new ValueDefinition<FLOAT>(value));
                     return true;
@@ -230,7 +234,7 @@ namespace orz {
                     }
                     case FLOAT: {
                         auto self_value = dynamic_cast<ValueDefinition<FLOAT> *>(m_value.get());
-                        self_value->set(value);
+                        self_value->set(Type<FLOAT>::declare(value));
                         return true;
                     }
                     case INT: {
@@ -247,7 +251,7 @@ namespace orz {
                 return false;
             }
 
-            bool set(int value) {
+            bool set(Type<INT>::declare value) {
                 if (m_value == nullptr) {
                     m_value.reset(new ValueDefinition<INT>(value));
                     return true;
@@ -267,7 +271,7 @@ namespace orz {
                     }
                     case INT: {
                         auto self_value = dynamic_cast<ValueDefinition<INT> *>(m_value.get());
-                        self_value->set(value);
+                        self_value->set(Type<INT>::declare(value));
                         return true;
                     }
                     case BOOLEAN: {
@@ -279,7 +283,7 @@ namespace orz {
                 return false;
             }
 
-            bool set(bool value) {
+            bool set(Type<BOOLEAN>::declare value) {
                 if (m_value == nullptr) {
                     m_value.reset(new ValueDefinition<BOOLEAN>(value));
                     return true;
@@ -311,25 +315,25 @@ namespace orz {
                 return false;
             }
 
-            bool set(const char *value) { return set(std::string(value)); }
+            bool set(const char *value) { return set(Type<STRING>::declare(value)); }
 
-            bool set(double value) { return set(float(value)); }
+            bool set(double value) { return set(Type<FLOAT>::declare(value)); }
 
-            bool set(char value) { return set(int(value)); }
+            bool set(char value) { return set(Type<INT>::declare(value)); }
 
-            bool set(unsigned char value) { return set(int(value)); }
+            bool set(unsigned char value) { return set(Type<INT>::declare(value)); }
 
-            bool set(short value) { return set(int(value)); }
+            bool set(short value) { return set(Type<INT>::declare(value)); }
 
-            bool set(unsigned short value) { return set(int(value)); }
+            bool set(unsigned short value) { return set(Type<INT>::declare(value)); }
 
-            bool set(unsigned int value) { return set(int(value)); }
+            bool set(int value) { return set(Type<INT>::declare(value)); }
 
-            bool set(long value) { return set(int(value)); }
+            bool set(unsigned int value) { return set(Type<INT>::declare(value)); }
 
-            bool set(unsigned long value) { return set(int(value)); }
+            bool set(unsigned long value) { return set(Type<INT>::declare(value)); }
 
-            std::string to_string() const {
+            Type<STRING>::declare to_string() const {
                 if (m_value == nullptr) {
                     return Type<STRING>::default_value;
                 }
@@ -355,7 +359,7 @@ namespace orz {
                 }
             }
 
-            float to_float() const {
+            Type<FLOAT>::declare to_float() const {
                 if (m_value == nullptr) {
                     return Type<FLOAT>::default_value;
                 }
@@ -364,24 +368,24 @@ namespace orz {
                         return Type<FLOAT>::default_value;
                     case STRING: {
                         auto self_value = dynamic_cast<ValueDefinition<STRING> *>(m_value.get());
-                        return float(std::atof(self_value->get().c_str()));
+                        return Type<FLOAT>::declare(std::atof(self_value->get().c_str()));
                     }
                     case FLOAT: {
                         auto self_value = dynamic_cast<ValueDefinition<FLOAT> *>(m_value.get());
-                        return float(self_value->get());
+                        return Type<FLOAT>::declare(self_value->get());
                     }
                     case INT: {
                         auto self_value = dynamic_cast<ValueDefinition<INT> *>(m_value.get());
-                        return float(self_value->get());
+                        return Type<FLOAT>::declare(self_value->get());
                     }
                     case BOOLEAN: {
                         auto self_value = dynamic_cast<ValueDefinition<BOOLEAN> *>(m_value.get());
-                        return float(self_value->get());
+                        return Type<FLOAT>::declare(self_value->get());
                     }
                 }
             }
 
-            int to_int() const {
+            Type<INT>::declare to_int() const {
                 if (m_value == nullptr) {
                     return Type<INT>::default_value;
                 }
@@ -390,24 +394,24 @@ namespace orz {
                         return Type<INT>::default_value;
                     case STRING: {
                         auto self_value = dynamic_cast<ValueDefinition<STRING> *>(m_value.get());
-                        return int(std::atol(self_value->get().c_str()));
+                        return Type<INT>::declare(std::atol(self_value->get().c_str()));
                     }
                     case FLOAT: {
                         auto self_value = dynamic_cast<ValueDefinition<FLOAT> *>(m_value.get());
-                        return int(self_value->get());
+                        return Type<INT>::declare(self_value->get());
                     }
                     case INT: {
                         auto self_value = dynamic_cast<ValueDefinition<INT> *>(m_value.get());
-                        return int(self_value->get());
+                        return Type<INT>::declare(self_value->get());
                     }
                     case BOOLEAN: {
                         auto self_value = dynamic_cast<ValueDefinition<BOOLEAN> *>(m_value.get());
-                        return int(self_value->get());
+                        return Type<INT>::declare(self_value->get());
                     }
                 }
             }
 
-            bool to_boolean() const {
+            Type<BOOLEAN>::declare to_boolean() const {
                 if (m_value == nullptr) {
                     return Type<BOOLEAN>::default_value;
                 }
@@ -437,13 +441,13 @@ namespace orz {
 
             operator std::string() const { return to_string(); }
 
-            operator float() const { return to_float(); }
+            operator float() const { return (float) (to_float()); }
 
-            operator int() const { return to_int(); }
+            operator int() const { return (int) (to_int()); }
 
-            operator bool() const { return to_boolean(); }
+            operator bool() const { return (bool) (to_boolean()); }
 
-            operator double() const { return double(to_float()); }
+            operator double() const { return (double) (to_float()); }
 
             operator char() const { return (char) (to_int()); }
 
@@ -482,7 +486,7 @@ namespace orz {
                 case INT:
                     return out << object.to_int();
                 case BOOLEAN:
-                    return out << std::boolalpha << object.to_boolean() << std::noboolalpha;
+                    return out << (object.to_boolean() ? "true" : "false");
             }
             return out;
         }
@@ -495,6 +499,8 @@ namespace orz {
         class Option {
         public:
             using self = Option;
+
+            static const char prefix;
 
             self *property(OptionProperty _prop) {
                 m_prop = _prop;
@@ -513,12 +519,12 @@ namespace orz {
             }
 
             self *name(std::set<std::string> &&_name) {
-                m_names = std::move(_name);
+                m_names = std::forward<std::set<std::string>>(_name);
                 return this;
             }
 
             self *name(std::initializer_list<std::string> _string_list) {
-                return this->name(std::set<std::string>(_string_list));
+                return this->name(std::set<std::string>(_string_list.begin(), _string_list.end()));
             }
 
             const std::set<std::string> &name() const { return m_names; }
@@ -604,17 +610,14 @@ namespace orz {
             }
 
             bool parse(const std::string &arg) {
-                if (arg.empty() || arg[0] != '-') return false;
                 // step 0: get name and value
-                auto equal_sign_i = arg.find('=');
                 std::string name, value;
-                if (equal_sign_i == std::string::npos) {
-                    name = arg.substr(1);
-                } else {
-                    name = arg.substr(1, equal_sign_i - 1);
-                    value = arg.substr(equal_sign_i + 1);
-                }
+                split(arg, name, value);
+                return parse(name, value);
+            }
 
+            bool parse(const std::string &name, const std::string &value) {
+                if (name.empty()) return false;
                 // step 1: check if name matched
                 if (!match(name)) return false;
 
@@ -632,11 +635,123 @@ namespace orz {
                 return true;
             }
 
+            static void split(const std::string &arg, std::string &name, std::string &value) {
+                if (arg.empty() || arg[0] != prefix) return;
+                name.clear();
+                value.clear();
+                auto equal_sign_i = arg.find('=');
+                if (equal_sign_i == std::string::npos) {
+                    name = arg.substr(1);
+                } else {
+                    name = arg.substr(1, equal_sign_i - 1);
+                    value = arg.substr(equal_sign_i + 1);
+                }
+            }
+
         private:
             OptionProperty m_prop = OPTIONAL;
             std::set<std::string> m_names;
             std::string m_description;
             ValueCommon m_value;
+        };
+
+        const char Option::prefix = '-';
+
+        class OptionSet {
+        public:
+            using self = OptionSet;
+
+            Option *add(ValueType type, std::initializer_list<std::string> list) {
+                std::shared_ptr<Option> option(new Option);
+                option->type(type)->name(list);
+                return this->add(option);
+            }
+
+            Option *add(ValueType type, const std::string &name) {
+                std::shared_ptr<Option> option(new Option);
+                option->type(type)->name(name);
+                return this->add(option);
+            }
+
+            Option *add(ValueType type, const std::set<std::string> &name) {
+                std::shared_ptr<Option> option(new Option);
+                option->type(type)->name(name);
+                return this->add(option);
+            }
+
+            Option *add(ValueType type, std::set<std::string> &&name) {
+                std::shared_ptr<Option> option(new Option);
+                option->type(type)->name(name);
+                return this->add(option);
+            }
+
+            Option *add(const std::shared_ptr<Option> &option) {
+                std::shared_ptr<Option> option_copy = option;
+                for (auto name : option_copy->name()) {
+                    m_options.insert(std::make_pair(name, option_copy));
+                }
+                return option_copy.get();
+            }
+
+            void clear() {
+                m_options.clear();
+            }
+
+            std::string last_error_message() const {
+                return m_last_error_message;
+            }
+
+            bool parse(const std::string &arg) {
+                // list type of errors, check last_error_message
+                // unrecognized option
+                // option format error
+                if (arg.empty() || arg[0] != Option::prefix) {
+                    std::ostringstream oss;
+                    oss << "Argument option must start with prefix " << Option::prefix;
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+
+                std::string name, value;
+                Option::split(arg, name, value);
+                auto option_it = m_options.find(name);
+                if (option_it == m_options.end()) {
+                    std::ostringstream oss;
+                    oss << "Unrecognized option: -" << name;
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+                if (!option_it->second->parse(name, value)) {
+                    std::ostringstream oss;
+                    oss << "UnInterpretable option: -" << arg;
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+                return true;
+            }
+
+            bool parse(std::vector<std::string> &args) {
+                auto args_copy = args;
+                auto arg_it = args_copy.begin();
+                while (arg_it != args_copy.end()) {
+                    auto arg = *arg_it;
+                    if (arg.empty() || arg[0] != Option::prefix) {
+                        ++arg_it;
+                        continue;
+                    }
+                    if (parse(arg)) {
+                        arg_it = args_copy.erase(arg_it);
+                    } else {
+                        return false;
+                    }
+                }
+                args = std::move(args_copy);
+                return true;
+            }
+
+        private:
+            std::map<std::string, std::shared_ptr<Option>> m_options;
+            std::string m_last_error_message;
         };
     }
 }
