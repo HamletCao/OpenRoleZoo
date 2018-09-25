@@ -487,23 +487,25 @@ namespace orz {
             return out;
         }
 
+        enum OptionProperty {
+            REQUIRED = 0x1,
+            OPTIONAL = 0x1 << 1,
+        };
+
         class Option {
         public:
             using self = Option;
 
-            enum Property {
-                REQUIRED = 0x1,
-                OPTIONAL = 0x1 << 1,
-            };
-
-            self *property(Property _prop) {
+            self *property(OptionProperty _prop) {
                 m_prop = _prop;
                 return this;
             }
 
-            Property property() const { return m_prop; }
+            OptionProperty property() const { return m_prop; }
 
-            self *name(const std::string &_name) { return this->name(std::set<std::string>(&_name, &_name + 1)); }
+            self *name(const std::string &_name) {
+                return this->name(std::set<std::string>(&_name, &_name + 1));
+            }
 
             self *name(const std::set<std::string> &_name) {
                 m_names = _name;
@@ -515,6 +517,10 @@ namespace orz {
                 return this;
             }
 
+            self *name(std::initializer_list<std::string> _string_list) {
+                return this->name(std::set<std::string>(_string_list));
+            }
+
             const std::set<std::string> &name() const { return m_names; }
 
             self *description(const std::string &_desc) {
@@ -522,7 +528,7 @@ namespace orz {
                 return this;
             }
 
-            const std::string &description() { return m_description; }
+            const std::string &description() const { return m_description; }
 
             self *type(ValueType _type) {
                 m_value.reset(_type);
@@ -594,11 +600,40 @@ namespace orz {
             const ValueCommon &value() { return m_value; }
 
             bool match(const std::string &_name) const {
-                return m_names.find(std::string("-") + _name) != m_names.end();
+                return m_names.find(_name) != m_names.end();
+            }
+
+            bool parse(const std::string &arg) {
+                if (arg.empty() || arg[0] != '-') return false;
+                // step 0: get name and value
+                auto equal_sign_i = arg.find('=');
+                std::string name, value;
+                if (equal_sign_i == std::string::npos) {
+                    name = arg.substr(1);
+                } else {
+                    name = arg.substr(1, equal_sign_i - 1);
+                    value = arg.substr(equal_sign_i + 1);
+                }
+
+                // step 1: check if name matched
+                if (!match(name)) return false;
+
+                if (this->type() != BOOLEAN && value.empty()) {
+                    return false;
+                }
+
+                // step 2: set value
+                if (this->type() == BOOLEAN && value.empty()) {
+                    m_value.set(true);
+                } else {
+                    m_value.set(value);
+                }
+
+                return true;
             }
 
         private:
-            Property m_prop = OPTIONAL;
+            OptionProperty m_prop = OPTIONAL;
             std::set<std::string> m_names;
             std::string m_description;
             ValueCommon m_value;
