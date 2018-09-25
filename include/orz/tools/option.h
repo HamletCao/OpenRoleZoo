@@ -923,6 +923,10 @@ namespace orz {
 
             const_option_iterator end() const { return const_option_iterator(m_options.cend()); }
 
+            const_option_iterator cbegin() const { return const_option_iterator(m_options.cbegin()); }
+
+            const_option_iterator cend() const { return const_option_iterator(m_options.cend()); }
+
         private:
             std::map<std::string, std::shared_ptr<Option>> m_options;
             std::string m_last_error_message;
