@@ -13,6 +13,7 @@
 #include <map>
 #include <vector>
 #include <sstream>
+#include <cstdint>
 
 namespace orz {
 
@@ -543,6 +544,13 @@ namespace orz {
 
             int type() { return m_value.type(); }
 
+            self *found(bool _found) {
+                m_found = _found;
+                return this;
+            }
+
+            bool found() const { return m_found; }
+
             self *value(const std::string &_value) {
                 m_value.set(_value);
                 return this;
@@ -632,6 +640,7 @@ namespace orz {
                     m_value.set(value);
                 }
 
+                m_found = true;
                 return true;
             }
 
@@ -653,9 +662,50 @@ namespace orz {
             std::set<std::string> m_names;
             std::string m_description;
             ValueCommon m_value;
+            bool m_found = false;
         };
 
         const char Option::prefix = '-';
+
+        template<typename T>
+        T min(T a, T b, T c) {
+            return std::min<T>(std::min<T>(a, b), c);
+        }
+
+        static inline int edit_distance(const std::string &lhs, const std::string &rhs) {
+            const size_t M = lhs.length();  // rows
+            const size_t N = rhs.length();  // cols
+
+            if (M == 0) return int(N);
+            if (N == 0) return int(M);
+
+            std::unique_ptr<int[]> dist(new int[M * N]);
+#define __EDIT_DIST(m, n) (dist[(m) * N + (n)])
+            __EDIT_DIST(0, 0) = 0;
+            for (size_t n = 1; n < N; ++n) {
+                __EDIT_DIST(0, n) = __EDIT_DIST(0, n - 1);
+            }
+            for (size_t m = 1; m < M; ++m) {
+                __EDIT_DIST(m, 0) = __EDIT_DIST(m - 1, 0);
+            }
+            for (size_t m = 1; m < M; ++m) {
+                for (size_t n = 1; n < N; ++n) {
+                    if (lhs[m] == rhs[n]) {
+                        __EDIT_DIST(m, n) = min(
+                                __EDIT_DIST(m - 1, n),
+                                __EDIT_DIST(m, n - 1),
+                                __EDIT_DIST(m - 1, n - 1));
+                    } else {
+                        __EDIT_DIST(m, n) = min(
+                                __EDIT_DIST(m - 1, n) + 1,
+                                __EDIT_DIST(m, n - 1) + 1,
+                                __EDIT_DIST(m - 1, n - 1) + 2);
+                    }
+                }
+            }
+            return dist[M * N - 1];
+#undef __EDIT_DIST
+        }
 
         class OptionSet {
         public:
@@ -717,13 +767,17 @@ namespace orz {
                 auto option_it = m_options.find(name);
                 if (option_it == m_options.end()) {
                     std::ostringstream oss;
+                    std::string fuzzy_name = this->fuzzy_name(name);
                     oss << "Unrecognized option: -" << name;
+                    if (!fuzzy_name.empty()) {
+                        oss << ", did you mean -" << fuzzy_name << " ?";
+                    }
                     m_last_error_message = oss.str();
                     return false;
                 }
                 if (!option_it->second->parse(name, value)) {
                     std::ostringstream oss;
-                    oss << "UnInterpretable option: -" << arg;
+                    oss << "UnInterpretable option: " << arg;
                     m_last_error_message = oss.str();
                     return false;
                 }
@@ -747,6 +801,21 @@ namespace orz {
                 }
                 args = std::move(args_copy);
                 return true;
+            }
+
+            std::string fuzzy_name(const std::string &name) const {
+                if (m_options.empty()) return "";
+                int min_edit_distance = INT_MAX;
+                std::string closest_name;
+                for (auto &name_option_pair : m_options) {
+                    auto &target_name = name_option_pair.first;
+                    int dist = edit_distance(name, target_name);
+                    if (dist < min_edit_distance) {
+                        closest_name = target_name;
+                        min_edit_distance = dist;
+                    }
+                }
+                return closest_name;
             }
 
         private:
