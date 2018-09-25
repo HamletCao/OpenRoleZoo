@@ -916,9 +916,11 @@ namespace orz {
             };
 
             option_iterator begin() { return option_iterator(m_options.begin()); }
+
             option_iterator end() { return option_iterator(m_options.end()); }
 
             const_option_iterator begin() const { return const_option_iterator(m_options.cbegin()); }
+
             const_option_iterator end() const { return const_option_iterator(m_options.cend()); }
 
         private:
