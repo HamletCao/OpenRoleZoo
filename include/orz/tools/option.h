@@ -818,6 +818,109 @@ namespace orz {
                 return closest_name;
             }
 
+            class option_iterator {
+            public:
+                using self = option_iterator;
+
+                using pair_iterator = std::map<std::string, std::shared_ptr<Option>>::iterator;
+
+                option_iterator() = default;
+
+                explicit option_iterator(pair_iterator iter) : m_iter(iter) {}
+
+                self &operator++() {
+                    this->m_iter++;
+                    return *this;
+                }
+
+                const self operator++(int) {
+                    return self(this->m_iter++);
+                }
+
+                self &operator--() {
+                    this->m_iter--;
+                    return *this;
+                }
+
+                const self operator--(int) {
+                    return self(this->m_iter--);
+                }
+
+                bool operator==(const self &rhs) {
+                    return m_iter == rhs.m_iter;
+                }
+
+                bool operator!=(const self &rhs) {
+                    return m_iter != rhs.m_iter;
+                }
+
+                Option &operator*() {
+                    return *m_iter->second;
+                }
+
+                Option *operator->() {
+                    return m_iter->second.get();
+                }
+
+            private:
+                pair_iterator m_iter;
+            };
+
+            class const_option_iterator {
+            public:
+                using self = const_option_iterator;
+
+                using pair_iterator = std::map<std::string, std::shared_ptr<Option>>::const_iterator;
+
+                const_option_iterator() = default;
+
+                explicit const_option_iterator(pair_iterator iter) : m_iter(iter) {}
+
+                self &operator++() {
+                    this->m_iter++;
+                    return *this;
+                }
+
+                const self operator++(int) {
+                    return self(this->m_iter++);
+                }
+
+                self &operator--() {
+                    this->m_iter--;
+                    return *this;
+                }
+
+                const self operator--(int) {
+                    return self(this->m_iter--);
+                }
+
+                bool operator==(const self &rhs) {
+                    return m_iter == rhs.m_iter;
+                }
+
+                bool operator!=(const self &rhs) {
+                    return m_iter != rhs.m_iter;
+                }
+
+                const Option &operator*() {
+                    return *m_iter->second;
+                }
+
+                const Option *operator->() {
+                    return m_iter->second.get();
+                }
+
+            private:
+                pair_iterator m_iter;
+
+            };
+
+            option_iterator begin() { return option_iterator(m_options.begin()); }
+            option_iterator end() { return option_iterator(m_options.end()); }
+
+            const_option_iterator begin() const { return const_option_iterator(m_options.cbegin()); }
+            const_option_iterator end() const { return const_option_iterator(m_options.cend()); }
+
         private:
             std::map<std::string, std::shared_ptr<Option>> m_options;
             std::string m_last_error_message;
