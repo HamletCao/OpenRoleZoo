@@ -46,7 +46,7 @@ namespace orz {
             static const declare default_value;
         };
 
-        const Type<STRING>::declare Type<STRING>::default_value = "";
+        const Type<STRING>::declare Type<STRING>::default_value = std::string("");
         const Type<FLOAT>::declare Type<FLOAT>::default_value = 0.0f;
         const Type<INT>::declare Type<INT>::default_value = 0;
         const Type<BOOLEAN>::declare Type<BOOLEAN>::default_value = false;
