@@ -38,6 +38,8 @@ namespace orz {
                          const std::string &header_filename,
                          const std::string &source_filename);
 
+            bool compile(const std::string &path, const std::string &header_filename, const std::string &source_filename);
+
             const std::string &last_error_message() const {
                 return m_last_error_message;
             }

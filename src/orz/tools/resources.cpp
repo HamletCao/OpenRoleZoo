@@ -1,8 +1,12 @@
 //
-// Created by seetadev on 2018/9/25.
+// Created by kier on 2018/9/25.
 //
 
 #include "orz/tools/resources.h"
+#include <cstring>
+#include "orz/io/dir.h"
+#include "orz/io/walker.h"
+#include "orz/utils/log.h"
 
 namespace orz {
     namespace resources {
@@ -494,6 +498,56 @@ namespace orz {
                 return false;
             }
             return compile(in_source, out_header, out_source, get_filename(header_filename));
+        }
+
+        bool compiler::compile(const std::string &path, const std::string &header_filename,
+                               const std::string &source_filename) {
+            if (orz::isfile(path)) {
+                std::ifstream in_source(path);
+                if (!in_source.is_open()) {
+                    std::ostringstream oss;
+                    oss << "[Error] : " << "Can not access input file \"" << path << "\"";
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+                return compile(in_source, header_filename, source_filename);
+            } else if (orz::isdir(path)) {
+                std::ofstream out_header(header_filename);
+                if (!out_header.is_open()) {
+                    std::ostringstream oss;
+                    oss << "[Error] : " << "Can not open output file \"" << header_filename << "\"";
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+                std::ofstream out_source(source_filename);
+                if (!out_source.is_open()) {
+                    std::ostringstream oss;
+                    oss << "[Error] : " << "Can not open output file \"" << source_filename << "\"";
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+                auto filenames = orz::FindFilesRecursively(path);
+                Log(INFO) << "Find " << filenames.size() << " files in \"" << path << "\"";
+                std::vector<resources> in_resources(filenames.size());
+                for (size_t i = 0; i < filenames.size(); ++i) {
+                    auto &filename = filenames[i];
+                    resources res;
+                    res.line = i + 1;
+                    res.url = std::string("/") + filename;
+                    res.path = orz::Join({path, filename}, orz::FileSeparator());
+                    for (auto &ch : res.url) {
+                        if (ch == '\\') ch = '/';
+                    }
+                    in_resources[i] = res;
+                }
+                return compile(in_resources, out_header, out_source, get_filename(header_filename));
+            } else {
+                std::ostringstream oss;
+                oss << "[Error] : " << "Can not access input path \"" << path << "\", is a file or dir?";
+                m_last_error_message = oss.str();
+                return false;
+            }
+            return false;
         }
     }
 }
