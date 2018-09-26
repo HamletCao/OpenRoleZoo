@@ -43,6 +43,111 @@ namespace orz {
                 "",
         };
 
+        static const char *const code_source_include[]= {
+                "#include <string.h>",
+                "#include <stdio.h>",
+        };
+
+        static const char *const code_source_declare_ELFhash[]= {
+                "static unsigned int ELFhash(const char *str) {",
+                "    unsigned int hash = 0;",
+                "    unsigned int x = 0;",
+                "    while (*str) {",
+                "        hash = (hash << 4) + *str;",
+                "        if ((x = hash & 0xf0000000) != 0) {",
+                "            hash ^= (x >> 24);",
+                "            hash &= ~x;",
+                "        }",
+                "        str++;",
+                "    }",
+                "    return (hash & 0x7fffffff);",
+                "}",
+        };
+
+        static const char *const code_source_declare_orz_resources_node[]= {
+                "struct orz_resources_node {",
+                "    const char *key;",
+                "    unsigned int hash;",
+                "    int next;",
+                "",
+                "    const char *data;",
+                "    size_t size;",
+                "};",
+        };
+
+        static const char *const code_source_declare_orz_resources_table_head[]= {
+                "struct orz_resources_node orz_resources_table[] = {",
+        };
+
+        static const char *const code_source_declare_orz_resources_table_tail[]= {
+                "};",
+        };
+
+        static const char *const code_source_declare_orz_resources_table_size[]= {
+                "static const unsigned int orz_resources_table_size =",
+                "    sizeof(orz_resources_table) / sizeof(orz_resources_table[0]);",
+        };
+
+        static const char *const code_source_declare_orz_resources_table_find[]= {
+                "struct orz_resources_node *orz_resources_table_find(const char *key)",
+                "{",
+                "    if (orz_resources_table_size == 0) return NULL;",
+                "    unsigned int hash = ELFhash(key);",
+                "    unsigned int index = hash % orz_resources_table_size;",
+                "    while (orz_resources_table[index].key) {",
+                "        struct orz_resources_node *node = &orz_resources_table[index];",
+                "        if (hash == node->hash && strcmp(key, node->key) == 0) {",
+                "            return node;",
+                "        }",
+                "        {",
+                "            int next_index = node->next;",
+                "            if (next_index < 0) break;",
+                "            index = (unsigned int)(next_index);",
+                "        }",
+                "    }",
+                "    return NULL;",
+                "}",
+        };
+
+        static const char *const code_source_declare_orz_resources_get[]= {
+                "const struct orz_resources orz_resources_get(const char *key)",
+                "{",
+                "    struct orz_resources resources;",
+                "    struct orz_resources_node *node;",
+                "",
+                "    resources.data = NULL;",
+                "    resources.size = 0;",
+                "    if (!key)",
+                "    {",
+                "        return resources;",
+                "    }",
+                "    if (key[0] == '@')",
+                "    {",
+                "        key++;",
+                "    }",
+                "    node = orz_resources_table_find(key);",
+                "    if (!node)",
+                "    {",
+                "        return resources;",
+                "    }",
+                "    resources.data = node->data;",
+                "    resources.size = node->size;",
+                "    return resources;",
+                "}",
+        };
+
+        static inline std::ostream & write_lines(std::ostream &out, const char *const *lines, size_t num) {
+            for (size_t i = 0; i < num; ++i) {
+                out << lines[i] << std::endl;
+            }
+            return out;
+        }
+
+        template <size_t _Size>
+        static inline std::ostream & write_lines(std::ostream &out, const char *const (&lines)[_Size]) {
+            return write_lines(out, lines, _Size);
+        }
+
         static inline unsigned int ELFhash(const char *str) {
             unsigned int hash = 0;
             unsigned int x = 0;
@@ -57,46 +162,58 @@ namespace orz {
             return (hash & 0x7fffffff);
         }
 
+        struct resources {
+        public:
+            size_t line = 0;
+            std::string url;
+            std::string path;
+        };
+
         class resources_hash_node {
         public:
             using hash_type = unsigned int;
 
             resources_hash_node() = default;
-            explicit resources_hash_node(const std::string &key, ssize_t next = -1)
-                    : key(key), hash(ELFhash(key.c_str())), next(next) {}
+
+            explicit resources_hash_node(const std::string &key, const resources &value)
+                    : key(key), hash(ELFhash(key.c_str())), value(value) {}
 
             std::string key;
             hash_type hash;
             ssize_t next = -1;
+
+            resources value;
         };
 
-        class resources_has_table {
+        class resources_hash_table {
         public:
-            using self = resources_has_table;
+            using self = resources_hash_table;
 
             using hash_type = unsigned int;
             using index_type = hash_type;
 
-            explicit resources_has_table(unsigned int size) : m_nodes(size_t(size > 2 ? size : 2), nullptr) {}
+            explicit resources_hash_table(unsigned int size) : m_nodes(size_t(size > 2 ? size : 2), nullptr) {}
 
-            resources_has_table() : resources_has_table(2) {}
+            resources_hash_table() : resources_hash_table(2) {}
 
-            ~resources_has_table() {
+            ~resources_hash_table() {
                 for (auto node : m_nodes) {
                     delete node;
                 }
             }
 
-            resources_has_table(const self &) = delete;
+            resources_hash_table(const self &) = delete;
+
             self &operator==(const self &) = delete;
 
-            resources_hash_node *insert(const std::string &key) {
+            resources_hash_node *insert(const std::string &key, const resources &value) {
                 auto *found_node = this->find(key);
                 if (found_node) {
                     // TODO: set value
+                    found_node->value = value;
                     return found_node;
                 }
-                auto *new_node = new resources_hash_node(key);
+                auto *new_node = new resources_hash_node(key, value);
                 insert(new_node);
                 return new_node;
             }
@@ -105,8 +222,7 @@ namespace orz {
             resources_hash_node *find(const std::string &key) {
                 auto hash = ELFhash(key.c_str());
                 auto index = index_type(hash % m_nodes.size());
-                while (m_nodes[index] != nullptr)
-                {
+                while (m_nodes[index] != nullptr) {
                     auto node = m_nodes[index];
                     if (hash == node->hash && std::strcmp(key.c_str(), node->key.c_str()) == 0) {
                         return m_nodes[index];
@@ -120,6 +236,10 @@ namespace orz {
 
             size_t size() const {
                 return m_size;
+            }
+
+            const std::vector<resources_hash_node *> &nodes() const {
+                return m_nodes;
             }
 
         private:
@@ -161,8 +281,7 @@ namespace orz {
                             break;
                         }
                         while (m_nodes[pre_next_index]->next >= 0 &&
-                                m_nodes[pre_next_index]->next != index)
-                        {
+                               m_nodes[pre_next_index]->next != index) {
                             pre_next_index = index_type(m_nodes[pre_next_index]->next);
                         }
                         m_nodes[pre_next_index]->next = update_conflict_node(anchor);
@@ -192,7 +311,7 @@ namespace orz {
 
             void rehash(size_t size) {
                 if (size < m_nodes.size()) size = m_nodes.size();
-                resources_has_table temp((unsigned int)(size));
+                resources_hash_table temp((unsigned int) (size));
                 for (auto &node : m_nodes) {
                     if (node == nullptr) continue;
                     node->next = -1;
@@ -207,7 +326,7 @@ namespace orz {
             }
 
         private:
-            std::vector<resources_hash_node*> m_nodes;
+            std::vector<resources_hash_node *> m_nodes;
             size_t m_next_ready = 0;
             size_t m_size = 0;
         };
@@ -243,12 +362,20 @@ namespace orz {
              * "";
              */
             static void declare(std::ostream &out, const std::string &url, std::istream &mem,
-                    const std::string &indent = "") {
-                static const int loop_size = 19;
+                                const std::string &indent = "") {
                 out << indent << "static char " << to_variable(url) << "[] =" << std::endl;
+                data(out, mem, indent) << ";" << std::endl;
+            }
+
+            static std::ostream &data(std::ostream &out, std::istream &mem,
+                    const std::string &indent = "",
+                    size_t *size = nullptr)
+            {
+                static const int loop_size = 32;
                 int write_number = 0;
                 bool in_double_quotes = false;
                 char byte;
+                size_t write_size = 0;
                 out << std::hex;
                 while (mem.read(&byte, 1)) {
                     if (!in_double_quotes) {
@@ -260,13 +387,17 @@ namespace orz {
                     if (write_number >= loop_size) {
                         out << "\"" << std::endl;
                         in_double_quotes = false;
+                        write_size += write_number;
                         write_number = 0;
                     }
                 }
                 if (in_double_quotes) {
+                    write_size += write_number;
                     out << "\"" << std::endl;
                 }
-                out << indent << "\"\";" << std::endl;
+                out << indent << "\"\"";
+                if (size) *size = write_size;
+                return out;
             }
 
             /**
@@ -277,20 +408,21 @@ namespace orz {
              * }
              */
             static void usage(std::ostream &out, const std::string &url,
-                    const std::string &var_url,
-                    const std::string &var_resources,
-                    const std::string &indent = "") {
-                auto resources_data  = to_variable(url);
-                out << indent << "if (strcmp(" << var_url << ", \"" << url <<"\") == 0)" << std::endl;
+                              const std::string &var_url,
+                              const std::string &var_resources,
+                              const std::string &indent = "") {
+                auto resources_data = to_variable(url);
+                out << indent << "if (strcmp(" << var_url << ", \"" << url << "\") == 0)" << std::endl;
                 out << indent << "{" << std::endl;
                 out << indent << "    " << var_resources << ".data = " << resources_data << ";" << std::endl;
-                out << indent << "    " << var_resources << ".size = sizeof(" << resources_data << ") - 1;" << std::endl;
+                out << indent << "    " << var_resources << ".size = sizeof(" << resources_data << ") - 1;"
+                    << std::endl;
                 out << indent << "}" << std::endl;
             }
         };
 
         std::string trim(const std::string &line) {
-            std::string pattern = " \t\r\n";
+            std::string pattern = " \r\n\t";
             auto left = line.find_first_not_of(pattern);
             if (left == std::string::npos) return "";
             auto right = line.find_last_not_of(pattern);
@@ -301,25 +433,34 @@ namespace orz {
             return "";
         }
 
-        struct resources
-        {
-        public:
-            size_t line = 0;
-            std::string url;
-            std::string path;
-        };
-
         class compiler {
         public:
             static const char annotation = '#';
 
             bool compile(const std::vector<resources> &in_resources, std::ostream &out_header, std::ostream &out_source,
-                    const std::string &val_header_path = "orz_resources.h") {
+                         const std::string &val_header_path = "orz_resources.h") {
                 // TODO: check if resources urls conflict
-                std::vector<std::ifstream> in_files(in_resources.size());
+                // build table
+                resources_hash_table table;
+                for (auto &resources : in_resources) {
+                    resources_hash_node *try_found = table.find(resources.url);
+                    if (try_found) {
+                        auto &conflict_resources = try_found->value;
+                        std::ostringstream oss;
+                        oss << "[Error] line(" << resources.line << "): "
+                            << "Conflict URL with line(" << conflict_resources.line << ") \"" << resources.url << "\"";
+                        m_last_error_message = oss.str();
+                        return false;
+                    }
+                    table.insert(resources.url, resources);
+                }
+                const auto &nodes = table.nodes();
+                std::vector<std::ifstream> in_files(nodes.size());
                 // 1.0 open sources
-                for (size_t i = 0; i < in_resources.size(); ++i) {
-                    auto &res = in_resources[i];
+                for (size_t i = 0; i < nodes.size(); ++i) {
+                    auto node = nodes[i];
+                    if (node == nullptr) continue;
+                    auto &res = node->value;
                     auto &file = in_files[i];
                     file.open(res.path);
                     if (!file.is_open()) {
@@ -331,48 +472,40 @@ namespace orz {
                 }
                 out_source << "#include \"" << val_header_path << "\"" << std::endl;
                 out_source << std::endl;
-                out_source << "#include <string.h>" << std::endl;
-                out_source << "#include <stdio.h>" << std::endl;
-                out_source << std::endl;
 
-                // 1.1 write declare
-                for (size_t i = 0; i < in_files.size(); ++i) {
-                    auto &res = in_resources[i];
+                write_lines(out_source, code_source_include) << std::endl;
+                write_lines(out_source, code_source_declare_ELFhash) << std::endl;
+                write_lines(out_source, code_source_declare_orz_resources_node) << std::endl;
+                write_lines(out_source, code_source_declare_orz_resources_table_head);
+
+                // 1.2 write table
+                for (size_t i = 0; i < nodes.size(); ++i) {
+                    auto node = nodes[i];
+                    if (node == nullptr) {
+                        out_source << "{NULL, 0, -1, NULL, 0}," << std::endl;
+                        continue;
+                    }
+                    auto &res = node->value;
                     auto &file = in_files[i];
-                    code_block::declare(out_source, res.url, file);
-                    out_source << std::endl;
+
+                    out_source << std::dec;
+                    out_source << "{ \"" << res.url << "\", " << node->hash << ", " << node->next << "," << std::endl;
+
+                    size_t size = 0;
+                    code_block::data(out_source, file, "", &size) << ", ";
+
+                    out_source << std::dec;
+                    out_source << size << "UL, ";
+                    out_source << "}," << std::endl;
                 }
 
-                out_source << "const struct orz_resources orz_resources_get(const char *key)" << std::endl;
-                out_source << "{" << std::endl;
-                out_source << "    struct orz_resources resources;" << std::endl;
-                out_source << "    resources.data = NULL;" << std::endl;
-                out_source << "    resources.size = 0;" << std::endl;
-                out_source << "    if (!key)" << std::endl;
-                out_source << "    {" << std::endl;
-                out_source << "        return resources;" << std::endl;
-                out_source << "    }" << std::endl;
-                out_source << "    if (key[0] == '@')" << std::endl;
-                out_source << "    {" << std::endl;
-                out_source << "        key++;" << std::endl;
-                out_source << "    }" << std::endl;
+                write_lines(out_source, code_source_declare_orz_resources_table_tail) << std::endl;
+                write_lines(out_source, code_source_declare_orz_resources_table_size) << std::endl;
+                write_lines(out_source, code_source_declare_orz_resources_table_find) << std::endl;
+                write_lines(out_source, code_source_declare_orz_resources_get) << std::endl;
 
-                // 1.2 write usage
-                for (size_t i = 0; i < in_files.size(); ++i) {
-                    auto &res = in_resources[i];
-                    if (i) out_source << "    else" << std::endl;
-                    code_block::usage(out_source, res.url, "key", "resources", "    ");
-                    // out_source << std::endl;
-                }
-
-                out_source << "    return resources;" << std::endl;
-                out_source << "}" << std::endl;
-
-                // write header
-                static const size_t header_line_number = sizeof(code_header) / sizeof(code_header[0]);
-                for (size_t i = 0; i < header_line_number; ++i) {
-                    out_header << code_header[i] << std::endl;
-                }
+                // 2.0 write header
+                write_lines(out_header, code_header);
                 return true;
             }
 
