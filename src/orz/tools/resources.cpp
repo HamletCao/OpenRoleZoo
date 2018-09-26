@@ -405,7 +405,7 @@ namespace orz {
                 if (node == nullptr) continue;
                 auto &res = node->value;
                 auto &file = in_files[i];
-                file.open(res.path);
+                file.open(res.path, std::ios::binary);
                 if (!file.is_open()) {
                     std::ostringstream oss;
                     oss << "[Error] line(" << res.line << "): " << "Can not access file \"" << res.path << "\"";
