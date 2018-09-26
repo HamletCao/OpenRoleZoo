@@ -14,6 +14,7 @@
 #include <vector>
 #include <sstream>
 #include <cstdint>
+#include <climits>
 
 namespace orz {
 
