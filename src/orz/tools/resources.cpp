@@ -3,6 +3,7 @@
 //
 
 #include "orz/tools/resources.h"
+#include <cstring>
 
 namespace orz {
     namespace resources {
