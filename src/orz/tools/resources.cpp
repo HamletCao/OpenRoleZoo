@@ -333,7 +333,7 @@ namespace orz {
                         out << indent << "\"";
                         in_double_quotes = true;
                     }
-                    out << "\\x" << std::setw(2) << std::setfill('0') << int(byte);
+                    out << "\\x" << std::setw(2) << std::setfill('0') << ((unsigned)(byte) & 0xff);
                     ++write_number;
                     if (write_number >= loop_size) {
                         out << "\"" << std::endl;
@@ -512,20 +512,6 @@ namespace orz {
                 }
                 return compile(in_source, header_filename, source_filename);
             } else if (orz::isdir(path)) {
-                std::ofstream out_header(header_filename);
-                if (!out_header.is_open()) {
-                    std::ostringstream oss;
-                    oss << "[Error] : " << "Can not open output file \"" << header_filename << "\"";
-                    m_last_error_message = oss.str();
-                    return false;
-                }
-                std::ofstream out_source(source_filename);
-                if (!out_source.is_open()) {
-                    std::ostringstream oss;
-                    oss << "[Error] : " << "Can not open output file \"" << source_filename << "\"";
-                    m_last_error_message = oss.str();
-                    return false;
-                }
                 auto filenames = orz::FindFilesRecursively(path);
                 Log(INFO) << "Find " << filenames.size() << " files in \"" << path << "\"";
                 std::vector<resources> in_resources(filenames.size());
@@ -539,6 +525,20 @@ namespace orz {
                         if (ch == '\\') ch = '/';
                     }
                     in_resources[i] = res;
+                }
+                std::ofstream out_header(header_filename);
+                if (!out_header.is_open()) {
+                    std::ostringstream oss;
+                    oss << "[Error] : " << "Can not open output file \"" << header_filename << "\".";
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+                std::ofstream out_source(source_filename);
+                if (!out_source.is_open()) {
+                    std::ostringstream oss;
+                    oss << "[Error] : " << "Can not open output file \"" << source_filename << "\".";
+                    m_last_error_message = oss.str();
+                    return false;
                 }
                 return compile(in_resources, out_header, out_source, get_filename(header_filename));
             } else {
