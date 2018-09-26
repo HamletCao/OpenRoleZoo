@@ -10,6 +10,9 @@
 
 #include <cstring>
 #include <cstdint>
+#include <cstdio>
+
+#pragma warning(disable: 4996)
 
 namespace orz {
     namespace resources {
@@ -198,7 +201,6 @@ namespace orz {
             resources_hash_node *insert(const std::string &key, const resources &value) {
                 auto *found_node = this->find(key);
                 if (found_node) {
-                    // TODO: set value
                     found_node->value = value;
                     return found_node;
                 }
@@ -322,34 +324,70 @@ namespace orz {
 
         class code_block {
         public:
+            static inline int write_byte(std::ostream &out, int byte) {
+                byte &= 0xff;
+                switch (byte)
+                {
+                    case '\0': out << R"(\0)"; return 2;
+                    case '\'': out << R"(\')"; return 2;
+                    case '\"': out << R"(\")"; return 2;
+                    case '\?': out << R"(\?)"; return 2;
+                    case '\\': out << R"(\\)"; return 2;
+                    case '\a': out << R"(\a)"; return 2;
+                    case '\b': out << R"(\b)"; return 2;
+                    case '\f': out << R"(\f)"; return 2;
+                    case '\n': out << R"(\n)"; return 2;
+                    case '\r': out << R"(\r)"; return 2;
+                    case '\t': out << R"(\t)"; return 2;
+                    case '\v': out << R"(\v)"; return 2;
+                    default: {
+                        if (byte >= 0x20 && byte <= 0x7E) {
+                            out << char(byte); return 1;
+                        } else {
+                            char temp[5];
+                            std::sprintf(temp, "\\x%02x", byte);
+                            out << temp; return 4;
+                        }
+                    }
+                }
+            }
+
+            static inline int write_byte_hex(std::ostream &out, int byte) {
+                byte &= 0xff;
+                char temp[5];
+                std::sprintf(temp, "\\x%02x", byte);
+                out << temp; return 4;
+            }
+
             static std::ostream &data(std::ostream &out, std::istream &mem,
                                       const std::string &indent = "",
                                       size_t *size = nullptr) {
-                static const int loop_size = 32;
+                static const int loop_size = 96;
                 int write_number = 0;
-                bool in_double_quotes = false;
-                char byte;
                 size_t write_size = 0;
+
+                char buffer[1024 * 1024];
+
                 out << std::hex;
-                while (mem.read(&byte, 1)) {
-                    if (!in_double_quotes) {
-                        out << indent << "\"";
-                        in_double_quotes = true;
-                    }
-                    out << "\\x" << std::setw(2) << std::setfill('0') << ((unsigned int)(byte) & 0xff);
-                    ++write_number;
-                    if (write_number >= loop_size) {
-                        out << "\"" << std::endl;
-                        in_double_quotes = false;
-                        write_size += write_number;
-                        write_number = 0;
+                out << "\"";
+                while (mem.good()) {
+                    mem.read(buffer, sizeof(buffer));
+                    auto read_size = mem.gcount();
+                    for (size_t i = 0; i < read_size; ++i) {
+                        auto byte = buffer[i];
+                        // out << "\\x" << std::setw(2) << std::setfill('0') << ((unsigned int)(byte) & 0xff);
+                        write_number += write_byte(out, byte);
+                        ++write_size;
+                        if (write_number >= loop_size) {
+                            out << "\"" << std::endl << "\"";
+                            write_number = 0;
+                        }
                     }
                 }
-                if (in_double_quotes) {
-                    write_size += write_number;
-                    out << "\"" << std::endl;
+                if (write_number > 0) {
+                    out << "\"" << std::endl << "\"";
                 }
-                out << indent << "\"\"";
+                out << indent << "\"";
                 if (size) *size = write_size;
                 return out;
             }

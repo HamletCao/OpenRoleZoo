@@ -19,6 +19,10 @@ namespace orz {
     namespace resources {
         struct resources {
         public:
+            resources() = default;
+            explicit resources(const std::string &url, const std::string &path, size_t line = 0)
+                    : line(line), url(url), path(path) {}
+
             size_t line = 0;
             std::string url;
             std::string path;
