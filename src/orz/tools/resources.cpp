@@ -365,6 +365,7 @@ namespace orz {
                 static const int loop_size = 96;
                 int write_number = 0;
                 size_t write_size = 0;
+                std::ostringstream out_buffer;
 
                 char buffer[1024 * 1024];
 
@@ -376,16 +377,20 @@ namespace orz {
                     for (size_t i = 0; i < read_size; ++i) {
                         auto byte = buffer[i];
                         // out << "\\x" << std::setw(2) << std::setfill('0') << ((unsigned int)(byte) & 0xff);
-                        write_number += write_byte(out, byte);
+                        write_number += write_byte(out_buffer, byte);
                         ++write_size;
                         if (write_number >= loop_size) {
-                            out << "\"" << std::endl << "\"";
+                            out_buffer << "\"" << std::endl << "\"";
+                            out << out_buffer.str();
+                            out_buffer.str("");
                             write_number = 0;
                         }
                     }
                 }
                 if (write_number > 0) {
-                    out << "\"" << std::endl << "\"";
+                    out_buffer << "\"" << std::endl << "\"";
+                    out << out_buffer.str();
+                    out_buffer.str("");
                 }
                 out << indent << "\"";
                 if (size) *size = write_size;
