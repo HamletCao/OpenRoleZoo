@@ -43,12 +43,12 @@ namespace orz {
                 "",
         };
 
-        static const char *const code_source_include[]= {
+        static const char *const code_source_include[] = {
                 "#include <string.h>",
                 "#include <stdio.h>",
         };
 
-        static const char *const code_source_declare_ELFhash[]= {
+        static const char *const code_source_declare_ELFhash[] = {
                 "static unsigned int ELFhash(const char *str) {",
                 "    unsigned int hash = 0;",
                 "    unsigned int x = 0;",
@@ -64,7 +64,7 @@ namespace orz {
                 "}",
         };
 
-        static const char *const code_source_declare_orz_resources_node[]= {
+        static const char *const code_source_declare_orz_resources_node[] = {
                 "struct orz_resources_node {",
                 "    const char *key;",
                 "    unsigned int hash;",
@@ -75,20 +75,20 @@ namespace orz {
                 "};",
         };
 
-        static const char *const code_source_declare_orz_resources_table_head[]= {
+        static const char *const code_source_declare_orz_resources_table_head[] = {
                 "struct orz_resources_node orz_resources_table[] = {",
         };
 
-        static const char *const code_source_declare_orz_resources_table_tail[]= {
+        static const char *const code_source_declare_orz_resources_table_tail[] = {
                 "};",
         };
 
-        static const char *const code_source_declare_orz_resources_table_size[]= {
+        static const char *const code_source_declare_orz_resources_table_size[] = {
                 "static const unsigned int orz_resources_table_size =",
                 "    sizeof(orz_resources_table) / sizeof(orz_resources_table[0]);",
         };
 
-        static const char *const code_source_declare_orz_resources_table_find[]= {
+        static const char *const code_source_declare_orz_resources_table_find[] = {
                 "struct orz_resources_node *orz_resources_table_find(const char *key)",
                 "{",
                 "    if (orz_resources_table_size == 0) return NULL;",
@@ -109,7 +109,7 @@ namespace orz {
                 "}",
         };
 
-        static const char *const code_source_declare_orz_resources_get[]= {
+        static const char *const code_source_declare_orz_resources_get[] = {
                 "const struct orz_resources orz_resources_get(const char *key)",
                 "{",
                 "    struct orz_resources resources;",
@@ -136,15 +136,15 @@ namespace orz {
                 "}",
         };
 
-        static inline std::ostream & write_lines(std::ostream &out, const char *const *lines, size_t num) {
+        static inline std::ostream &write_lines(std::ostream &out, const char *const *lines, size_t num) {
             for (size_t i = 0; i < num; ++i) {
                 out << lines[i] << std::endl;
             }
             return out;
         }
 
-        template <size_t _Size>
-        static inline std::ostream & write_lines(std::ostream &out, const char *const (&lines)[_Size]) {
+        template<size_t _Size>
+        static inline std::ostream &write_lines(std::ostream &out, const char *const (&lines)[_Size]) {
             return write_lines(out, lines, _Size);
         }
 
@@ -368,9 +368,8 @@ namespace orz {
             }
 
             static std::ostream &data(std::ostream &out, std::istream &mem,
-                    const std::string &indent = "",
-                    size_t *size = nullptr)
-            {
+                                      const std::string &indent = "",
+                                      size_t *size = nullptr) {
                 static const int loop_size = 32;
                 int write_number = 0;
                 bool in_double_quotes = false;
@@ -465,7 +464,7 @@ namespace orz {
                     file.open(res.path);
                     if (!file.is_open()) {
                         std::ostringstream oss;
-                        oss << "[Error] line(" << res.line << "): " << "Can not access \"" << res.path << "\"";
+                        oss << "[Error] line(" << res.line << "): " << "Can not access file \"" << res.path << "\"";
                         m_last_error_message = oss.str();
                         return false;
                     }
@@ -509,7 +508,8 @@ namespace orz {
                 return true;
             }
 
-            bool compile(std::istream &in_source, std::ostream &out_header, std::ostream &out_source) {
+            bool compile(std::istream &in_source, std::ostream &out_header, std::ostream &out_source,
+                         const std::string &val_header_path = "orz_resources.h") {
                 size_t line_number = 0;
                 std::string line;
                 std::vector<resources> list;
@@ -537,7 +537,44 @@ namespace orz {
                     list.push_back(res);
                 }
 
-                return compile(list, out_header, out_source);
+                return compile(list, out_header, out_source, val_header_path);
+            }
+
+            static inline std::string get_filename(const std::string &path) {
+                auto win_sep_pos = path.rfind('\\');
+                auto unix_sep_pos = path.rfind('/');
+                auto sep_pos = win_sep_pos;
+                if (sep_pos == std::string::npos) sep_pos = unix_sep_pos;
+                else if (unix_sep_pos != std::string::npos && unix_sep_pos > sep_pos) sep_pos = unix_sep_pos;
+                if (sep_pos == std::string::npos) {
+                    return path;
+                    return std::string();
+                }
+                return path.substr(sep_pos + 1);
+            }
+
+            bool compile(std::istream &in_source,
+                         const std::string &header_filename,
+                         const std::string &source_filename) {
+                std::ofstream out_header(header_filename);
+                if (!out_header.is_open()) {
+                    std::ostringstream oss;
+                    oss << "[Error] : " << "Can not open output file \"" << header_filename << "\"";
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+                std::ofstream out_source(source_filename);
+                if (!out_source.is_open()) {
+                    std::ostringstream oss;
+                    oss << "[Error] : " << "Can not open output file \"" << source_filename << "\"";
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+                return compile(in_source, out_header, out_source, get_filename(header_filename));
+            }
+
+            const std::string &last_error_message() const {
+                return m_last_error_message;
             }
 
         private:
