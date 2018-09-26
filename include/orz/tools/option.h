@@ -15,6 +15,8 @@
 #include <sstream>
 #include <cstdint>
 #include <climits>
+#include <cctype>
+#include <algorithm>
 
 namespace orz {
 

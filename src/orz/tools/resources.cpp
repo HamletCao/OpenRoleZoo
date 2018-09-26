@@ -3,10 +3,13 @@
 //
 
 #include "orz/tools/resources.h"
-#include <cstring>
+
 #include "orz/io/dir.h"
 #include "orz/io/walker.h"
 #include "orz/utils/log.h"
+
+#include <cstring>
+#include <cstdint>
 
 namespace orz {
     namespace resources {
@@ -166,7 +169,7 @@ namespace orz {
 
             std::string key;
             hash_type hash;
-            ssize_t next = -1;
+            int64_t next = -1;
 
             resources value;
         };
@@ -333,7 +336,7 @@ namespace orz {
                         out << indent << "\"";
                         in_double_quotes = true;
                     }
-                    out << "\\x" << std::setw(2) << std::setfill('0') << ((unsigned)(byte) & 0xff);
+                    out << "\\x" << std::setw(2) << std::setfill('0') << ((unsigned int)(byte) & 0xff);
                     ++write_number;
                     if (write_number >= loop_size) {
                         out << "\"" << std::endl;
