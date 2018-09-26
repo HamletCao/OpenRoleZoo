@@ -14,6 +14,10 @@ namespace orz {
 
     bool access(const std::string &path);
 
+    bool isdir(const std::string &path);
+
+    bool isfile(const std::string &path);
+
     /***
      * @brief Remove a file for now
      * @param filename File to remove
