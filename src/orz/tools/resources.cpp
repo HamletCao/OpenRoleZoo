@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <memory>
 #include <map>
+#include <cmath>
 
 namespace orz {
     namespace resources {
@@ -456,6 +457,7 @@ namespace orz {
                 number /= 1024.0;
                 base_time++;
             }
+            number = std::round(number * 10.0) / 10.0;
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(1) << number << base[base_time];
             return oss.str();
