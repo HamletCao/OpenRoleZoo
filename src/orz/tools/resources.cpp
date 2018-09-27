@@ -493,8 +493,6 @@ namespace orz {
                 auto &res = node->value;
                 auto &file = *in_files[i];
 
-                auto file_is_open = file.is_open();
-
                 out_source << std::dec;
                 out_source << "{ \"" << res.url << "\", " << node->hash << ", " << node->next << "," << std::endl;
 
