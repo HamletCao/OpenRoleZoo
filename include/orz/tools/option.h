@@ -660,6 +660,8 @@ namespace orz {
                 }
             }
 
+            friend std::ostream &operator<<(std::ostream &out, const self &object);
+
         private:
             OptionProperty m_prop = OPTIONAL;
             std::set<std::string> m_names;
@@ -667,6 +669,27 @@ namespace orz {
             ValueCommon m_value;
             bool m_found = false;
         };
+
+        inline std::ostream &operator<<(std::ostream &out, const Option &option) {
+            bool first_name = true;
+            out << "[";
+            for (auto &name : option.name()) {
+                if (first_name) {
+                    first_name = false;
+                } else {
+                    out << " ";
+                }
+                out << "-" << name;
+            }
+            out << "]";
+            if (option.property() == REQUIRED) {
+                out << " [REQUIRED]";
+            }
+            if (!option.description().empty()) {
+                out << ": " << option.description();
+            }
+            return out;
+        }
 
         const char Option::prefix = '-';
 
@@ -740,6 +763,7 @@ namespace orz {
 
             Option *add(const std::shared_ptr<Option> &option) {
                 std::shared_ptr<Option> option_copy = option;
+                m_option_list.push_back(option);
                 for (auto name : option_copy->name()) {
                     m_options.insert(std::make_pair(name, option_copy));
                 }
@@ -821,15 +845,28 @@ namespace orz {
                 return closest_name;
             }
 
+            bool check() const {
+                for (auto &option : m_options) {
+                    auto &opt = *option.second;
+                    if (opt.property() == REQUIRED && !opt.found()) {
+                        std::ostringstream oss;
+                        oss << "Must set option: " << opt;
+                        m_last_error_message = oss.str();
+                        return false;
+                    }
+                }
+                return true;
+            }
+
             class option_iterator {
             public:
                 using self = option_iterator;
 
-                using pair_iterator = std::map<std::string, std::shared_ptr<Option>>::iterator;
+                using inner_iterator = std::vector<std::shared_ptr<Option>>::iterator;
 
                 option_iterator() = default;
 
-                explicit option_iterator(pair_iterator iter) : m_iter(iter) {}
+                explicit option_iterator(inner_iterator iter) : m_iter(iter) {}
 
                 self &operator++() {
                     this->m_iter++;
@@ -858,26 +895,26 @@ namespace orz {
                 }
 
                 Option &operator*() {
-                    return *m_iter->second;
+                    return **m_iter;
                 }
 
                 Option *operator->() {
-                    return m_iter->second.get();
+                    return (*m_iter).get();
                 }
 
             private:
-                pair_iterator m_iter;
+                inner_iterator m_iter;
             };
 
             class const_option_iterator {
             public:
                 using self = const_option_iterator;
 
-                using pair_iterator = std::map<std::string, std::shared_ptr<Option>>::const_iterator;
+                using inner_iterator = std::vector<std::shared_ptr<Option>>::const_iterator;
 
                 const_option_iterator() = default;
 
-                explicit const_option_iterator(pair_iterator iter) : m_iter(iter) {}
+                explicit const_option_iterator(inner_iterator iter) : m_iter(iter) {}
 
                 self &operator++() {
                     this->m_iter++;
@@ -906,33 +943,34 @@ namespace orz {
                 }
 
                 const Option &operator*() {
-                    return *m_iter->second;
+                    return **m_iter;
                 }
 
                 const Option *operator->() {
-                    return m_iter->second.get();
+                    return (*m_iter).get();
                 }
 
             private:
-                pair_iterator m_iter;
+                inner_iterator m_iter;
 
             };
 
-            option_iterator begin() { return option_iterator(m_options.begin()); }
+            option_iterator begin() { return option_iterator(m_option_list.begin()); }
 
-            option_iterator end() { return option_iterator(m_options.end()); }
+            option_iterator end() { return option_iterator(m_option_list.end()); }
 
-            const_option_iterator begin() const { return const_option_iterator(m_options.cbegin()); }
+            const_option_iterator begin() const { return const_option_iterator(m_option_list.cbegin()); }
 
-            const_option_iterator end() const { return const_option_iterator(m_options.cend()); }
+            const_option_iterator end() const { return const_option_iterator(m_option_list.cend()); }
 
-            const_option_iterator cbegin() const { return const_option_iterator(m_options.cbegin()); }
+            const_option_iterator cbegin() const { return const_option_iterator(m_option_list.cbegin()); }
 
-            const_option_iterator cend() const { return const_option_iterator(m_options.cend()); }
+            const_option_iterator cend() const { return const_option_iterator(m_option_list.cend()); }
 
         private:
             std::map<std::string, std::shared_ptr<Option>> m_options;
-            std::string m_last_error_message;
+            std::vector<std::shared_ptr<Option>> m_option_list;
+            mutable std::string m_last_error_message;
         };
     }
 }
