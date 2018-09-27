@@ -391,7 +391,7 @@ namespace orz {
                     for (std::streamsize i = 0; i < read_size; ++i) {
                         auto byte = buffer[i];
                         // out << "\\x" << std::setw(2) << std::setfill('0') << ((unsigned int)(byte) & 0xff);
-                        write_number += write_byte(out_buffer, byte);
+                        write_number += write_byte_hex(out_buffer, byte);
                         ++write_size;
                         if (write_number >= loop_size) {
                             out_buffer << "\"" << std::endl << "\"";
