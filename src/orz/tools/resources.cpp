@@ -604,7 +604,7 @@ namespace orz {
                 return compile(in_source, header_filename, source_filename);
             } else if (orz::isdir(path)) {
                 auto filenames = orz::FindFilesRecursively(path);
-                std::cout << "[Info] " << "Found " << filenames.size() << " files in \"" << path << "\"." << std::endl;
+                std::cout << "[Info] " << "Found " << filenames.size() << " files in folder \"" << path << "\"." << std::endl;
                 std::vector<resources> in_resources(filenames.size());
                 for (size_t i = 0; i < filenames.size(); ++i) {
                     auto &filename = filenames[i];
