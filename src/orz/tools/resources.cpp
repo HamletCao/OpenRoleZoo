@@ -16,6 +16,7 @@
 #include <fstream>
 #include <cstdio>
 #include <memory>
+#include <map>
 
 namespace orz {
     namespace resources {
@@ -388,15 +389,21 @@ namespace orz {
                 out << indent << "};" << std::endl;
                 out << indent << "const size_t orz_resources_table_item_" << id << "_size = " << memory_size << "UL;"
                     << std::endl;
+
+                std::string table_item_size_name = std::string("orz_resources_table_item_") + id + "_size";
+                m_table_item_size.insert(std::make_pair(table_item_size_name, memory_size));
+
                 return out;
             }
 
             std::ostream &declare_node(std::ostream &out, const std::string &id,
                                        const std::string &key, resources_hash_node::hash_type hash, int64_t next,
                                        const std::string &indent = "") {
+                std::string table_item_size_name = std::string("orz_resources_table_item_") + id + "_size";
+                const auto memory_size = m_table_item_size[table_item_size_name];
+
                 out << std::dec << indent << "{ \"" << key << "\", " << hash << ", " << next << "," << std::endl;
-                out << indent << "    (const char *)orz_resources_table_item_" << id << ", orz_resources_table_item_"
-                    << id << "_size }";
+                out << indent << "(const char *)orz_resources_table_item_" << id << ", " << memory_size << "UL }";
                 return out;
             }
 
@@ -409,6 +416,7 @@ namespace orz {
         private:
             size_t m_buffer_size = 0;
             std::shared_ptr<char> m_buffer;
+            std::map<std::string, size_t> m_table_item_size;
         };
 
         std::string trim(const std::string &line) {
