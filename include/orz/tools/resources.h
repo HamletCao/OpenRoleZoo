@@ -6,13 +6,9 @@
 #define ORZ_TOOLS_RESOURCES_H
 
 #include <string>
+#include <vector>
 #include <istream>
 #include <ostream>
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <vector>
-#include <fstream>
 
 namespace orz {
 

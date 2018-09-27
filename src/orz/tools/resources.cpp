@@ -8,9 +8,14 @@
 #include "orz/io/walker.h"
 #include "orz/utils/log.h"
 
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 #include <cstring>
 #include <cstdint>
+#include <fstream>
 #include <cstdio>
+#include <memory>
 
 #pragma warning(disable: 4996)
 
@@ -324,6 +329,13 @@ namespace orz {
 
         class code_block {
         public:
+            using self = code_block;
+
+            static const size_t BUFFER_SIZE = 1024 * 1024;
+
+            code_block()
+                    : m_buffer_size(BUFFER_SIZE), m_buffer(new char[BUFFER_SIZE], std::default_delete<char[]>()) {}
+
             static inline int write_byte(std::ostream &out, int byte) {
                 byte &= 0xff;
                 switch (byte)
@@ -356,25 +368,27 @@ namespace orz {
                 byte &= 0xff;
                 char temp[5];
                 std::sprintf(temp, "\\x%02x", byte);
-                out << temp; return 4;
+                out << temp;
+                return 4;
             }
 
-            static std::ostream &data(std::ostream &out, std::istream &mem,
-                                      const std::string &indent = "",
-                                      size_t *size = nullptr) {
+            std::ostream &data(std::ostream &out, std::istream &mem,
+                               const std::string &indent = "",
+                               size_t *size = nullptr) {
                 static const int loop_size = 96;
                 int write_number = 0;
                 size_t write_size = 0;
                 std::ostringstream out_buffer;
 
-                char buffer[1024 * 1024];
+                char *buffer = m_buffer.get();
+                const size_t bufer_size = m_buffer_size;
 
                 out << std::hex;
                 out << "\"";
                 while (mem.good()) {
-                    mem.read(buffer, sizeof(buffer));
+                    mem.read(buffer, bufer_size);
                     auto read_size = mem.gcount();
-                    for (size_t i = 0; i < read_size; ++i) {
+                    for (std::streamsize i = 0; i < read_size; ++i) {
                         auto byte = buffer[i];
                         // out << "\\x" << std::setw(2) << std::setfill('0') << ((unsigned int)(byte) & 0xff);
                         write_number += write_byte(out_buffer, byte);
@@ -396,6 +410,10 @@ namespace orz {
                 if (size) *size = write_size;
                 return out;
             }
+
+        private:
+            size_t m_buffer_size = 0;
+            std::shared_ptr<char> m_buffer;
         };
 
         std::string trim(const std::string &line) {
@@ -441,15 +459,15 @@ namespace orz {
                 table.insert(resources.url, resources);
             }
             const auto &nodes = table.nodes();
-            std::vector<std::ifstream> in_files(nodes.size());
+            std::vector<std::shared_ptr<std::ifstream>> in_files(nodes.size());
             // 1.0 open sources
             for (size_t i = 0; i < nodes.size(); ++i) {
                 auto node = nodes[i];
                 if (node == nullptr) continue;
                 auto &res = node->value;
                 auto &file = in_files[i];
-                file.open(res.path, std::ios::binary);
-                if (!file.is_open()) {
+                file = std::make_shared<std::ifstream>(res.path, std::ios::binary);
+                if (!file->is_open()) {
                     std::ostringstream oss;
                     oss << "[Error] line(" << res.line << "): " << "Can not access file \"" << res.path << "\"";
                     m_last_error_message = oss.str();
@@ -464,6 +482,7 @@ namespace orz {
             write_lines(out_source, code_source_declare_orz_resources_node) << std::endl;
             write_lines(out_source, code_source_declare_orz_resources_table_head);
 
+            code_block coder;
             // 1.2 write table
             for (size_t i = 0; i < nodes.size(); ++i) {
                 auto node = nodes[i];
@@ -472,13 +491,17 @@ namespace orz {
                     continue;
                 }
                 auto &res = node->value;
-                auto &file = in_files[i];
+                auto &file = *in_files[i];
+
+                auto file_is_open = file.is_open();
 
                 out_source << std::dec;
                 out_source << "{ \"" << res.url << "\", " << node->hash << ", " << node->next << "," << std::endl;
 
                 size_t size = 0;
-                code_block::data(out_source, file, "", &size) << ", ";
+                coder.data(out_source, file, std::string(""), &size) << ", ";
+
+                file.close();
 
                 out_source << std::dec;
                 out_source << size << "UL, ";
