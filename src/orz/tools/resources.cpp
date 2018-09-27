@@ -50,6 +50,7 @@ namespace orz {
         static const char *const code_source_include[] = {
                 "#include <string.h>",
                 "#include <stdio.h>",
+                "#include <stdint.h>",
         };
 
         static const char *const code_source_declare_ELFhash[] = {
@@ -327,6 +328,15 @@ namespace orz {
             size_t m_size = 0;
         };
 
+        union uint64_chunk {
+            uint64_t i;
+            uint8_t c[8];
+
+            uint64_chunk() : i(0) {}
+
+            void zeros() { i = 0; }
+        };
+
         class code_block {
         public:
             using self = code_block;
@@ -372,6 +382,67 @@ namespace orz {
                 return 4;
             }
 
+            std::ostream &declare_data(std::ostream &out, std::istream &mem, const std::string &id,
+                                       const std::string &indent = "") {
+                out << indent << "const uint64_t orz_resources_table_item_" << id << "[] = {" << std::endl;
+
+                char *buffer = m_buffer.get();
+                const size_t buffer_size = m_buffer_size;
+
+                std::ostringstream out_buffer;
+                uint64_chunk chunk;
+
+                static const int loop_size = 96;
+                size_t memory_size = 0;
+
+                while (mem.good()) {
+                    mem.read(buffer, buffer_size);
+                    auto read_size = mem.gcount();
+                    memory_size += read_size;
+                    std::streamsize i;
+                    for (i = 0; i < read_size - 7; i += 8) {
+                        if (out_buffer.tellp() > loop_size) {
+                            out_buffer << std::endl;
+                            out << out_buffer.str();
+                            out_buffer.str("");
+                        }
+
+                        std::memcpy(chunk.c, buffer + i, 8);
+                        out_buffer << "0x" << std::hex << chunk.i << ",";
+                    }
+                    if (i < read_size) {
+                        chunk.zeros();
+                        std::memcpy(chunk.c, buffer + i, size_t(read_size - i));
+                        out_buffer << "0x" << std::hex << chunk.i << ",";
+                    }
+                }
+
+                if (out_buffer.tellp() > 0) {
+                    out_buffer << std::endl;
+                    out << out_buffer.str();
+                    out_buffer.str("");
+                }
+
+                out << indent << "};" << std::endl;
+                out << indent << "const size_t orz_resources_table_item_" << id << "_size = " << memory_size << "UL;"
+                    << std::endl;
+                return out;
+            }
+
+            std::ostream &declare_node(std::ostream &out, const std::string &id,
+                                       const std::string &key, resources_hash_node::hash_type hash, int64_t next,
+                                       const std::string &indent = "") {
+                out << std::dec << indent << "{ \"" << key << "\", " << hash << ", " << next << "," << std::endl;
+                out << indent << "    (const char *)orz_resources_table_item_" << id << ", orz_resources_table_item_" << id << "_size }";
+                return out;
+            }
+
+            std::ostream &declare_empty_node(std::ostream &out,
+                                             const std::string &indent = "") {
+                out << indent << "{ NULL, 0, -1, NULL, 0 }";
+                return out;
+            }
+
             std::ostream &data(std::ostream &out, std::istream &mem,
                                const std::string &indent = "",
                                size_t *size = nullptr) {
@@ -391,7 +462,7 @@ namespace orz {
                     for (std::streamsize i = 0; i < read_size; ++i) {
                         auto byte = buffer[i];
                         // out << "\\x" << std::setw(2) << std::setfill('0') << ((unsigned int)(byte) & 0xff);
-                        write_number += write_byte_hex(out_buffer, byte);
+                        write_number += write_byte(out_buffer, byte);
                         ++write_size;
                         if (write_number >= loop_size) {
                             out_buffer << "\"" << std::endl << "\"";
@@ -476,34 +547,29 @@ namespace orz {
             }
             out_source << "#include \"" << val_header_path << "\"" << std::endl;
             out_source << std::endl;
-
             write_lines(out_source, code_source_include) << std::endl;
+
+            code_block coder;
+            for (size_t i = 0; i < nodes.size(); ++i) {
+                auto node = nodes[i];
+                if (node == nullptr) continue;
+                auto &file = *in_files[i];
+                coder.declare_data(out_source, file, std::to_string(i)) << std::endl;
+            }
+
             write_lines(out_source, code_source_declare_ELFhash) << std::endl;
             write_lines(out_source, code_source_declare_orz_resources_node) << std::endl;
             write_lines(out_source, code_source_declare_orz_resources_table_head);
-
-            code_block coder;
             // 1.2 write table
             for (size_t i = 0; i < nodes.size(); ++i) {
                 auto node = nodes[i];
                 if (node == nullptr) {
-                    out_source << "{NULL, 0, -1, NULL, 0}," << std::endl;
+                    coder.declare_empty_node(out_source, "    ") << "," << std::endl;
                     continue;
                 }
-                auto &res = node->value;
-                auto &file = *in_files[i];
 
-                out_source << std::dec;
-                out_source << "{ \"" << res.url << "\", " << node->hash << ", " << node->next << "," << std::endl;
-
-                size_t size = 0;
-                coder.data(out_source, file, std::string(""), &size) << ", ";
-
-                file.close();
-
-                out_source << std::dec;
-                out_source << size << "UL, ";
-                out_source << "}," << std::endl;
+                coder.declare_node(out_source, std::to_string(i),
+                        node->key, node->hash, node->next, "    ") << "," << std::endl;
             }
 
             write_lines(out_source, code_source_declare_orz_resources_table_tail) << std::endl;
