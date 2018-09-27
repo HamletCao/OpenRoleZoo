@@ -17,8 +17,6 @@
 #include <cstdio>
 #include <memory>
 
-#pragma warning(disable: 4996)
-
 namespace orz {
     namespace resources {
         static const char *const code_header[] = {
@@ -346,42 +344,6 @@ namespace orz {
             code_block()
                     : m_buffer_size(BUFFER_SIZE), m_buffer(new char[BUFFER_SIZE], std::default_delete<char[]>()) {}
 
-            static inline int write_byte(std::ostream &out, int byte) {
-                byte &= 0xff;
-                switch (byte)
-                {
-                    case '\0': out << R"(\0)"; return 2;
-                    case '\'': out << R"(\')"; return 2;
-                    case '\"': out << R"(\")"; return 2;
-                    case '\?': out << R"(\?)"; return 2;
-                    case '\\': out << R"(\\)"; return 2;
-                    case '\a': out << R"(\a)"; return 2;
-                    case '\b': out << R"(\b)"; return 2;
-                    case '\f': out << R"(\f)"; return 2;
-                    case '\n': out << R"(\n)"; return 2;
-                    case '\r': out << R"(\r)"; return 2;
-                    case '\t': out << R"(\t)"; return 2;
-                    case '\v': out << R"(\v)"; return 2;
-                    default: {
-                        if (byte >= 0x20 && byte <= 0x7E) {
-                            out << char(byte); return 1;
-                        } else {
-                            char temp[5];
-                            std::sprintf(temp, "\\x%02x", byte);
-                            out << temp; return 4;
-                        }
-                    }
-                }
-            }
-
-            static inline int write_byte_hex(std::ostream &out, int byte) {
-                byte &= 0xff;
-                char temp[5];
-                std::sprintf(temp, "\\x%02x", byte);
-                out << temp;
-                return 4;
-            }
-
             std::ostream &declare_data(std::ostream &out, std::istream &mem, const std::string &id,
                                        const std::string &indent = "") {
                 out << indent << "const uint64_t orz_resources_table_item_" << id << "[] = {" << std::endl;
@@ -433,52 +395,14 @@ namespace orz {
                                        const std::string &key, resources_hash_node::hash_type hash, int64_t next,
                                        const std::string &indent = "") {
                 out << std::dec << indent << "{ \"" << key << "\", " << hash << ", " << next << "," << std::endl;
-                out << indent << "    (const char *)orz_resources_table_item_" << id << ", orz_resources_table_item_" << id << "_size }";
+                out << indent << "    (const char *)orz_resources_table_item_" << id << ", orz_resources_table_item_"
+                    << id << "_size }";
                 return out;
             }
 
             std::ostream &declare_empty_node(std::ostream &out,
                                              const std::string &indent = "") {
                 out << indent << "{ NULL, 0, -1, NULL, 0 }";
-                return out;
-            }
-
-            std::ostream &data(std::ostream &out, std::istream &mem,
-                               const std::string &indent = "",
-                               size_t *size = nullptr) {
-                static const int loop_size = 96;
-                int write_number = 0;
-                size_t write_size = 0;
-                std::ostringstream out_buffer;
-
-                char *buffer = m_buffer.get();
-                const size_t bufer_size = m_buffer_size;
-
-                out << std::hex;
-                out << "\"";
-                while (mem.good()) {
-                    mem.read(buffer, bufer_size);
-                    auto read_size = mem.gcount();
-                    for (std::streamsize i = 0; i < read_size; ++i) {
-                        auto byte = buffer[i];
-                        // out << "\\x" << std::setw(2) << std::setfill('0') << ((unsigned int)(byte) & 0xff);
-                        write_number += write_byte(out_buffer, byte);
-                        ++write_size;
-                        if (write_number >= loop_size) {
-                            out_buffer << "\"" << std::endl << "\"";
-                            out << out_buffer.str();
-                            out_buffer.str("");
-                            write_number = 0;
-                        }
-                    }
-                }
-                if (write_number > 0) {
-                    out_buffer << "\"" << std::endl << "\"";
-                    out << out_buffer.str();
-                    out_buffer.str("");
-                }
-                out << indent << "\"";
-                if (size) *size = write_size;
                 return out;
             }
 
@@ -569,7 +493,7 @@ namespace orz {
                 }
 
                 coder.declare_node(out_source, std::to_string(i),
-                        node->key, node->hash, node->next, "    ") << "," << std::endl;
+                                   node->key, node->hash, node->next, "    ") << "," << std::endl;
             }
 
             write_lines(out_source, code_source_declare_orz_resources_table_tail) << std::endl;
