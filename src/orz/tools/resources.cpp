@@ -6,7 +6,7 @@
 
 #include "orz/io/dir.h"
 #include "orz/io/walker.h"
-#include "orz/utils/log.h"
+#include "orz/utils/format.h"
 
 #include <iostream>
 #include <iomanip>
@@ -346,7 +346,8 @@ namespace orz {
                     : m_buffer_size(BUFFER_SIZE), m_buffer(new char[BUFFER_SIZE], std::default_delete<char[]>()) {}
 
             std::ostream &declare_data(std::ostream &out, std::istream &mem, const std::string &id,
-                                       const std::string &indent = "") {
+                                       const std::string &indent = "",
+                                       size_t *data_size = nullptr) {
                 out << indent << "const uint64_t orz_resources_table_item_" << id << "[] = {" << std::endl;
 
                 char *buffer = m_buffer.get();
@@ -392,6 +393,8 @@ namespace orz {
 
                 std::string table_item_size_name = std::string("orz_resources_table_item_") + id + "_size";
                 m_table_item_size.insert(std::make_pair(table_item_size_name, memory_size));
+
+                if (data_size) *data_size = memory_size;
 
                 return out;
             }
@@ -444,6 +447,20 @@ namespace orz {
             return path.substr(sep_pos + 1);
         }
 
+        std::string memory_size_string(size_t memory_size) {
+            static const char *base[] = {"B", "KB", "MB", "GB", "TB"};
+            static const size_t base_size = sizeof(base) / sizeof(base[0]);
+            double number = memory_size;
+            size_t base_time = 0;
+            while (number >= 1024.0 && base_time + 1 < base_size) {
+                number /= 1024.0;
+                base_time++;
+            }
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(1) << number << base[base_time];
+            return oss.str();
+        }
+
         bool
         compiler::compile(const std::vector<orz::resources::resources> &in_resources, std::ostream &out_header,
                           std::ostream &out_source, const std::string &val_header_path) {
@@ -485,8 +502,14 @@ namespace orz {
             for (size_t i = 0; i < nodes.size(); ++i) {
                 auto node = nodes[i];
                 if (node == nullptr) continue;
+
+                std::cout << "[Info] " << "Compiling \"" << node->value.url << "\"." << std::flush;
+                size_t data_size = 0;
+
                 auto &file = *in_files[i];
-                coder.declare_data(out_source, file, std::to_string(i)) << std::endl;
+                coder.declare_data(out_source, file, std::to_string(i), "", &data_size) << std::endl;
+
+                std::cout << " " << memory_size_string(data_size) << std::endl;
             }
 
             write_lines(out_source, code_source_declare_ELFhash) << std::endl;
@@ -543,6 +566,8 @@ namespace orz {
                 list.push_back(res);
             }
 
+            std::cout << "[Info] " << "Found " << list.size() << " files." << std::endl;
+
             return compile(list, out_header, out_source, val_header_path);
         }
 
@@ -551,14 +576,14 @@ namespace orz {
             std::ofstream out_header(header_filename);
             if (!out_header.is_open()) {
                 std::ostringstream oss;
-                oss << "[Error] : " << "Can not open output file \"" << header_filename << "\"";
+                oss << "[Error] " << "Can not open output file \"" << header_filename << "\"";
                 m_last_error_message = oss.str();
                 return false;
             }
             std::ofstream out_source(source_filename);
             if (!out_source.is_open()) {
                 std::ostringstream oss;
-                oss << "[Error] : " << "Can not open output file \"" << source_filename << "\"";
+                oss << "[Error] " << "Can not open output file \"" << source_filename << "\"";
                 m_last_error_message = oss.str();
                 return false;
             }
@@ -571,14 +596,15 @@ namespace orz {
                 std::ifstream in_source(path);
                 if (!in_source.is_open()) {
                     std::ostringstream oss;
-                    oss << "[Error] : " << "Can not access input file \"" << path << "\"";
+                    oss << "[Error] " << "Can not access input file \"" << path << "\"";
                     m_last_error_message = oss.str();
                     return false;
                 }
+                std::cout << "[Info] " << "Open file \"" << path << " \"." << std::endl;
                 return compile(in_source, header_filename, source_filename);
             } else if (orz::isdir(path)) {
                 auto filenames = orz::FindFilesRecursively(path);
-                Log(INFO) << "Find " << filenames.size() << " files in \"" << path << "\"";
+                std::cout << "[Info] " << "Found " << filenames.size() << " files in \"" << path << "\"." << std::endl;
                 std::vector<resources> in_resources(filenames.size());
                 for (size_t i = 0; i < filenames.size(); ++i) {
                     auto &filename = filenames[i];
@@ -594,21 +620,21 @@ namespace orz {
                 std::ofstream out_header(header_filename);
                 if (!out_header.is_open()) {
                     std::ostringstream oss;
-                    oss << "[Error] : " << "Can not open output file \"" << header_filename << "\".";
+                    oss << "[Error] " << "Can not open output file \"" << header_filename << "\".";
                     m_last_error_message = oss.str();
                     return false;
                 }
                 std::ofstream out_source(source_filename);
                 if (!out_source.is_open()) {
                     std::ostringstream oss;
-                    oss << "[Error] : " << "Can not open output file \"" << source_filename << "\".";
+                    oss << "[Error] " << "Can not open output file \"" << source_filename << "\".";
                     m_last_error_message = oss.str();
                     return false;
                 }
                 return compile(in_resources, out_header, out_source, get_filename(header_filename));
             } else {
                 std::ostringstream oss;
-                oss << "[Error] : " << "Can not access input path \"" << path << "\", is a file or dir?";
+                oss << "[Error] " << "Can not access input path \"" << path << "\", is a file or dir?";
                 m_last_error_message = oss.str();
                 return false;
             }

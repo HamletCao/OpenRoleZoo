@@ -9,6 +9,7 @@
 
 void print_help(const orz::arg::OptionSet &options) {
     std::cout << "Usage: command [option] input_path" << std::endl;
+    std::cout << "    " << "Input path can be file or folder" << std::endl;
     std::cout << "Option:" << std::endl;
     for (auto &option : options) {
         std::cout << "    " << option << std::endl;
@@ -19,7 +20,10 @@ int main(int argc, const char *argv[]) {
     orz::arg::OptionSet options;
     auto option_out_dir = options.add(orz::arg::STRING, {"o", "-out_dir"})->
             description("set generated files output dir")->
-            value(".");
+            value(orz::getcwd());
+    auto option_in_dir = options.add(orz::arg::STRING, {"i", "-in_dir"})->
+            description("set resources files input root dir")->
+            value(orz::getcwd());
     auto option_filename = options.add(orz::arg::STRING, {"n", "-fn", "-filename"})->
             description("set output filename")->
             value("orz_resources");
@@ -47,6 +51,10 @@ int main(int argc, const char *argv[]) {
     if (args.size() < 1) {
         print_help(options);
         return 3;
+    }
+
+    if (option_in_dir->found()) {
+        orz::cd(option_in_dir->value().to_string());
     }
 
     input_path = args[0];
