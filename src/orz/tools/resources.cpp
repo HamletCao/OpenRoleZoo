@@ -98,7 +98,7 @@ namespace orz {
         };
 
         static const char *const code_source_declare_orz_resources_table_head[] = {
-                "struct orz_resources_node orz_resources_table[] = {",
+                "static struct orz_resources_node orz_resources_table[] = {",
         };
 
         static const char *const code_source_declare_orz_resources_table_tail[] = {
@@ -111,7 +111,7 @@ namespace orz {
         };
 
         static const char *const code_source_declare_orz_resources_table_find[] = {
-                "struct orz_resources_node *orz_resources_table_find(const char *key)",
+                "static struct orz_resources_node *orz_resources_table_find(const char *key)",
                 "{",
                 "    if (orz_resources_table_size == 0) return NULL;",
                 "    unsigned int hash = ELFhash(key);",
@@ -366,7 +366,7 @@ namespace orz {
             std::ostream &declare_data(std::ostream &out, std::istream &mem, const std::string &id,
                                        const std::string &indent = "",
                                        size_t *data_size = nullptr) {
-                out << indent << "const uint64_t orz_resources_table_item_" << id << "[] = {" << std::endl;
+                out << indent << "static const uint64_t orz_resources_table_item_" << id << "[] = {" << std::endl;
 
                 char *buffer = m_buffer.get();
                 const size_t buffer_size = m_buffer_size;
@@ -406,7 +406,7 @@ namespace orz {
                 }
 
                 out << indent << "};" << std::endl;
-                out << indent << "const size_t orz_resources_table_item_" << id << "_size = " << memory_size << "UL;"
+                out << indent << "static const size_t orz_resources_table_item_" << id << "_size = " << memory_size << "UL;"
                     << std::endl;
 
                 std::string table_item_size_name = std::string("orz_resources_table_item_") + id + "_size";
