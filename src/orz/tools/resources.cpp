@@ -602,7 +602,7 @@ namespace orz {
                     m_last_error_message = oss.str();
                     return false;
                 }
-                std::cout << "[Info] " << "Open file \"" << path << " \"." << std::endl;
+                std::cout << "[Info] " << "Open file \"" << path << "\"." << std::endl;
                 return compile(in_source, header_filename, source_filename);
             } else if (orz::isdir(path)) {
                 auto filenames = orz::FindFilesRecursively(path);
