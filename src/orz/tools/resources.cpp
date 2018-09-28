@@ -36,6 +36,13 @@ namespace orz {
                 "    size_t size;",
                 "};",
                 "",
+                "#ifdef _MSC_VER",
+                "#define ORZ_RESOURCES_HIDDEN_API",
+                "#else",
+                "#define ORZ_RESOURCES_HIDDEN_API __attribute__((visibility(\"hidden\")))",
+                "#endif",
+                "",
+                "ORZ_RESOURCES_HIDDEN_API",
                 "const struct orz_resources orz_resources_get(const char *key);",
                 // "void orz_resources_list();",
                 "",
@@ -575,17 +582,21 @@ namespace orz {
 
         bool compiler::compile(std::istream &in_source, const std::string &header_filename,
                                const std::string &source_filename) {
-            std::ofstream out_header(header_filename);
-            if (!out_header.is_open()) {
-                std::ostringstream oss;
-                oss << "[Error] " << "Can not open output file \"" << header_filename << "\"";
-                m_last_error_message = oss.str();
-                return false;
-            }
             std::ofstream out_source(source_filename);
             if (!out_source.is_open()) {
                 std::ostringstream oss;
                 oss << "[Error] " << "Can not open output file \"" << source_filename << "\"";
+                m_last_error_message = oss.str();
+                return false;
+            }
+            if (up2date_header(header_filename)) {
+                std::ostringstream fake_out_header;
+                return  compile(in_source, fake_out_header, out_source, get_filename(header_filename));
+            }
+            std::ofstream out_header(header_filename);
+            if (!out_header.is_open()) {
+                std::ostringstream oss;
+                oss << "[Error] " << "Can not open output file \"" << header_filename << "\"";
                 m_last_error_message = oss.str();
                 return false;
             }
@@ -619,17 +630,21 @@ namespace orz {
                     }
                     in_resources[i] = res;
                 }
-                std::ofstream out_header(header_filename);
-                if (!out_header.is_open()) {
-                    std::ostringstream oss;
-                    oss << "[Error] " << "Can not open output file \"" << header_filename << "\".";
-                    m_last_error_message = oss.str();
-                    return false;
-                }
                 std::ofstream out_source(source_filename);
                 if (!out_source.is_open()) {
                     std::ostringstream oss;
                     oss << "[Error] " << "Can not open output file \"" << source_filename << "\".";
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+                if (up2date_header(header_filename)) {
+                    std::ostringstream fake_out_header;
+                    return  compile(in_resources, fake_out_header, out_source, get_filename(header_filename));
+                }
+                std::ofstream out_header(header_filename);
+                if (!out_header.is_open()) {
+                    std::ostringstream oss;
+                    oss << "[Error] " << "Can not open output file \"" << header_filename << "\".";
                     m_last_error_message = oss.str();
                     return false;
                 }
@@ -641,6 +656,16 @@ namespace orz {
                 return false;
             }
             return false;
+        }
+
+        bool compiler::up2date_header(const std::string &header_filename) {
+            std::ifstream header_file(header_filename);
+            if (!header_file.is_open()) return false;
+            std::ostringstream try_out_header;
+            write_lines(try_out_header, code_header);
+            std::ostringstream ready_out_header;
+            ready_out_header << header_file.rdbuf();
+            return try_out_header.str() == ready_out_header.str();
         }
     }
 }
