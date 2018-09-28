@@ -17,13 +17,13 @@
 namespace orz {
     using time_point = decltype(std::chrono::system_clock::now());
 
-    static void _Concat_str(std::ostream &out) { (decltype(_Concat_str(out))()); }
+    static inline void _Concat_str(std::ostream &out) { (decltype(_Concat_str(out))()); }
 
     template<typename T, typename... Args>
-    static void _Concat_str(std::ostream &out, T &&t, Args&&... args) { _Concat_str(out << std::forward<T>(t), std::forward<Args>(args)...); }
+    static inline void _Concat_str(std::ostream &out, T &&t, Args&&... args) { _Concat_str(out << std::forward<T>(t), std::forward<Args>(args)...); }
 
     template<typename... Args>
-    inline const std::string Concat(Args&&... args) {
+    static inline const std::string Concat(Args&&... args) {
         std::ostringstream oss;
         _Concat_str(oss, std::forward<Args>(args)...);
         return oss.str();
@@ -38,7 +38,7 @@ namespace orz {
     std::string Join(const std::vector<std::string> &list, const std::string &sep);
 
     template<typename T>
-    std::ostream &operator<<(std::ostream &out, const std::vector<T> &vec) {
+    static inline std::ostream &operator<<(std::ostream &out, const std::vector<T> &vec) {
         out << "[";
         for (size_t i = 0; i < vec.size(); ++i) {
             if (i) out << ", ";

@@ -46,11 +46,28 @@ namespace orz {
         m_valid = true;
     }
 
-    std::string http_request(const URL &url, http::VERB verb, const std::string &data) {
+    std::string http_request(const URL &url, http::VERB verb, const std::string &data, const std::string &header) {
         try {
-            return http_request_core(url, verb, data);
+            return http_request_core(url, verb, data, header);
         } catch (const Exception &) {
             return std::string();
         }
+    }
+
+    std::string http_request(const URL &url, http::VERB verb, const std::string &data, header::TYPE header) {
+        std::string header_str;
+        switch (header) {
+            case header::JSON:
+                header_str = "Content-Type:application/json; charset=utf-8";
+                break;
+            case header::FORM:
+                header_str = "Content-Type:application/x-www-form-urlencoded; charset=utf-8";
+                break;
+        }
+        return http_request(url, verb, data, header_str);
+    }
+
+    std::string http_request(const URL &url, http::VERB verb, const std::string &data) {
+        return http_request(url, verb, data, header::FORM);
     }
 }

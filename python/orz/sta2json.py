@@ -3,7 +3,7 @@
 
 import os
 import struct
-from sta import *
+from .sta import *
 import json
 import copy
 import base64
@@ -40,7 +40,7 @@ def unpack_float(stream, **kwargs):
 
 def unpack_string(stream, **kwargs):
     length = struct.unpack('=i', stream.read(4))[0]
-    s = struct.unpack('=%ds' % length, stream.read(length))[0]
+    s = struct.unpack('=%ds' % length, stream.read(length))[0].decode()
     return s
 
 
@@ -79,7 +79,7 @@ def unpack_list(stream, **kwargs):
 
     obj = []
     length = struct.unpack('=i', stream.read(4))[0]
-    for i in xrange(length):
+    for i in range(length):
         local_kwargs['getway'] = getway + '_' + str(i)
         obj.append(unpack_obj(stream, **local_kwargs))
     return obj
@@ -93,7 +93,7 @@ def unpack_dict(stream, **kwargs):
 
     obj = {}
     length = struct.unpack('=i', stream.read(4))[0]
-    for i in xrange(length):
+    for i in range(length):
         key = unpack_string(stream, **kwargs)
         local_kwargs['getway'] = getway + '_' + key
         value = unpack_obj(stream, **local_kwargs)

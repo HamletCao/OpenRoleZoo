@@ -335,7 +335,7 @@ namespace orz {
         return data;
     }
 
-    std::string http_request_core(const URL &url, http::VERB verb, const std::string &data) {
+    std::string http_request_core(const URL &url, http::VERB verb, const std::string &data, const std::string &header) {
         std::string report;
 
         struct hostent host_buf = {nullptr};
@@ -355,7 +355,7 @@ namespace orz {
         content_buffer << Concat("HOST: ", ip, "\r\n");
         content_buffer << Concat("User-Agent: ", "Microsoft Internet Explorer", "\r\n");
         // content_buffer << Concat("Connection: ", "keep-alive", "\r\n");
-        content_buffer << Concat("Content-Type: application/x-www-form-urlencoded", "\r\n");
+        content_buffer << Concat(header, "\r\n");
         content_buffer << Concat("Content-Length: ", data.size(), "\r\n");
         content_buffer << "\r\n";
         content_buffer << data;
@@ -387,12 +387,12 @@ namespace orz {
 
         socket_stream.write(content.data(), content.size());
 
-        std::string header;
+        std::string line;
         option  http_option;
 
-        while (getline(socket_stream, header)) {
-            if (header.empty()) break;
-            http_option.add(header.substr(0, header.size()));
+        while (getline(socket_stream, line)) {
+            if (line.empty()) break;
+            http_option.add(line.substr(0, line.size()));
         }
 
         std::string data_length = http_option.get_one("Content-Length");

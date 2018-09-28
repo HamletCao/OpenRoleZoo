@@ -15,6 +15,7 @@
 #define CHDIR(path) ::_chdir(path)
 
 #include <Windows.h>
+#include <sys/stat.h>
 
 #elif  ORZ_PLATFORM_OS_LINUX || ORZ_PLATFORM_OS_MAC || ORZ_PLATFORM_OS_IOS
 
@@ -22,6 +23,8 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <fstream>
+#include <orz/io/dir.h>
+
 
 #define ACCESS ::access
 #define MKDIR(a) ::mkdir((a),0755)
@@ -153,6 +156,18 @@ namespace orz {
         }
         ext = name_ext.substr(sep_pos + 1);
         return name_ext.substr(0, sep_pos);
+    }
+
+    bool isdir(const std::string &path) {
+        struct stat buf;
+        if (stat(path.c_str(), &buf)) return false;
+        return bool(S_IFDIR & buf.st_mode);
+    }
+
+    bool isfile(const std::string &path) {
+        struct stat buf;
+        if (stat(path.c_str(), &buf)) return false;
+        return bool(S_IFREG & buf.st_mode);
     }
 }
 

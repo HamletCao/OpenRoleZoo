@@ -24,7 +24,7 @@ class AESCrypto(object):
         self.iv = iv
 
     def encrypt(self, data, iv=None):
-        # type: (str, str) -> str
+        # type: (bytes, bytes) -> bytes
 
         if iv is None:
             iv = self.iv
@@ -38,7 +38,7 @@ class AESCrypto(object):
         return crypto.encrypt(padded_data)
 
     def decrypt(self, data, iv=None):
-        # type: (str, str) -> str
+        # type: (bytes, bytes) -> bytes
 
         if iv is None:
             iv = self.iv
@@ -53,7 +53,7 @@ class AESCrypto(object):
 
     @classmethod
     def __fake_tail(cls, data):
-        # type: (str) -> bool
+        # type: (bytes) -> bool
 
         if len(data) == 0:
             return False
@@ -62,14 +62,14 @@ class AESCrypto(object):
         ch = data[-1]
         num = ord(ch)
         if num < data_len:
-            for i in xrange(data_len - num, data_len):
+            for i in range(data_len - num, data_len):
                 if data[i] != ch:
                     return False
             return True
         return False
 
     def __add_pkcs7_padding(self, data):
-        # type: (str) -> str
+        # type: (bytes) -> bytes
 
         if len(data) == 0:
             return data
@@ -77,27 +77,33 @@ class AESCrypto(object):
         tail_size = len(data) % self.__block_size
         if tail_size > 0:
             padding_size = self.__block_size - tail_size
-            return data + padding_size * chr(padding_size)
+            return data + padding_size * chr(padding_size).encode()
         elif self.__fake_tail(data):
             padding_size = self.__block_size
-            return data + padding_size * chr(padding_size)
+            return data + padding_size * chr(padding_size).encode()
 
         return data
 
     @classmethod
     def __remove_pkcs7_padding(cls, data):
-        # type: (str) -> str
+        # type: (bytes) -> bytes
 
         if len(data) == 0:
             return data
 
         data_len = len(data)
         ch = data[-1]
-        num = ord(ch)
+        if isinstance(ch, int):
+            num = ch
+        else:
+            num = ord(ch)
         if num < data_len:
-            for i in xrange(data_len - num, data_len):
+            for i in range(data_len - num, data_len):
                 if data[i] != ch:
                     return data
-            return data.rstrip(ch)
+            if isinstance(ch, int):
+                return data.rstrip(chr(ch).encode())
+            else:
+                return data.rstrip(ch)
 
         return data

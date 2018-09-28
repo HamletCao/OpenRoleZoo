@@ -106,12 +106,17 @@ namespace orz {
                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                 (LPTSTR) &lpMsgBuf,
                 0, NULL);
-        std::string msg = reinterpret_cast<char *>(lpMsgBuf);
-        LocalFree(lpMsgBuf);
-        return msg;
+        std::ostringstream msg;
+        msg << std::hex << "0x" << dw << ": ";
+        if (lpMsgBuf != nullptr)
+        {
+            msg << lpMsgBuf;
+            LocalFree(lpMsgBuf);
+        }
+        return msg.str();
     }
 
-    std::string http_request_core(const URL &url, http::VERB verb, const std::string &data) {
+    std::string http_request_core(const URL &url, http::VERB verb, const std::string &data, const std::string &header) {
         using namespace orz;
         std::string report;
 
@@ -144,13 +149,34 @@ namespace orz {
         }
         need close_request(InternetCloseHandle, hOpenRequest);
 
-        std::string header = "Content-Type:application/x-www-form-urlencoded; charset=utf-8";
+        // std::string header = "Content-Type:application/x-www-form-urlencoded; charset=utf-8";
         // std::string header = "Content-Type:application/json; charset=utf-8";
 
         // Send
         BOOL bRequest = HttpSendRequestA(hOpenRequest,
                                          const_cast<char *>(header.data()), DWORD(header.size()),
                                          const_cast<char *>(data.data()), DWORD(data.size()));
+
+
+        if (!bRequest) {
+            DWORD dwError = GetLastError ();
+            if (dwError == ERROR_INTERNET_INVALID_CA)
+            {
+                DWORD dwFlags;
+                DWORD dwBuffLen = sizeof(dwFlags);
+
+                InternetQueryOption (hOpenRequest, INTERNET_OPTION_SECURITY_FLAGS,
+                                     (LPVOID)&dwFlags, &dwBuffLen);
+
+                dwFlags |= SECURITY_FLAG_IGNORE_UNKNOWN_CA;
+                InternetSetOption (hOpenRequest, INTERNET_OPTION_SECURITY_FLAGS,
+                                   &dwFlags, sizeof (dwFlags) );
+
+                bRequest = HttpSendRequestA(hOpenRequest,
+                                            const_cast<char *>(header.data()), DWORD(header.size()),
+                                            const_cast<char *>(data.data()), DWORD(data.size()));
+            }
+        }
 
         if (!bRequest) {
             ORZ_LOG(INFO) << "Http send request error: " << std::hex << format_message(GetLastError());
