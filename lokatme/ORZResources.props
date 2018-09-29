@@ -17,12 +17,12 @@
     </ClCompile>
     <PreBuildEvent>
       <Command>%(Command)
-if not exist resources.orc ( echo # Add every line to the format /url:path.&gt;resources.orc )
+if not exist orz_resources.orc ( echo # Add every line to the format /url:path.&gt;orz_resources.orc )
       </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup Condition="'$(UseORZResources)'=='true'">
-    <CustomBuild Include="resources.orc">
+    <CustomBuild Include="orz_resources.orc">
       <FileType>Document</FileType>
       <Command>orz_resources "%(FullPath)" --out_dir="%(ProjectDir)resources"</Command>
       <Message>Compiling resources file %(FullPath)</Message>
