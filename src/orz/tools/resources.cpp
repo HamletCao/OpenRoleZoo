@@ -392,6 +392,13 @@ namespace orz {
                         std::memcpy(chunk.c, buffer + i, 8);
                         out_buffer << "0x" << std::hex << chunk.i << ",";
                     }
+
+                    if (out_buffer.tellp() > loop_size) {
+                        out_buffer << std::endl;
+                        out << out_buffer.str();
+                        out_buffer.str("");
+                    }
+
                     if (i < read_size) {
                         chunk.zeros();
                         std::memcpy(chunk.c, buffer + i, size_t(read_size - i));
@@ -406,7 +413,7 @@ namespace orz {
                 }
 
                 out << indent << "};" << std::endl;
-                out << indent << "static const size_t orz_resources_table_item_" << id << "_size = " << memory_size << "UL;"
+                out << indent << "/* static const size_t orz_resources_table_item_" << id << "_size = " << memory_size << "UL; */"
                     << std::endl;
 
                 std::string table_item_size_name = std::string("orz_resources_table_item_") + id + "_size";
@@ -424,7 +431,7 @@ namespace orz {
                 const auto memory_size = m_table_item_size[table_item_size_name];
 
                 out << std::dec << indent << "{ \"" << key << "\", " << hash << ", " << next << "," << std::endl;
-                out << indent << "(const char *)orz_resources_table_item_" << id << ", " << memory_size << "UL }";
+                out << indent << "  (const char *)orz_resources_table_item_" << id << ", " << memory_size << "UL }";
                 return out;
             }
 
