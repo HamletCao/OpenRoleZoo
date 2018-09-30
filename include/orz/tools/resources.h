@@ -42,6 +42,8 @@ namespace orz {
 
             bool up2date_header(const std::string &header_filename);
 
+            bool up2date_header(const std::string &header_filename, const std::string &content);
+
             const std::string &last_error_message() const {
                 return m_last_error_message;
             }

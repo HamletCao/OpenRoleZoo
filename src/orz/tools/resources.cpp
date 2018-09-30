@@ -392,6 +392,13 @@ namespace orz {
                         std::memcpy(chunk.c, buffer + i, 8);
                         out_buffer << "0x" << std::hex << chunk.i << ",";
                     }
+
+                    if (out_buffer.tellp() > loop_size) {
+                        out_buffer << std::endl;
+                        out << out_buffer.str();
+                        out_buffer.str("");
+                    }
+
                     if (i < read_size) {
                         chunk.zeros();
                         std::memcpy(chunk.c, buffer + i, size_t(read_size - i));
@@ -406,7 +413,8 @@ namespace orz {
                 }
 
                 out << indent << "};" << std::endl;
-                out << indent << "static const size_t orz_resources_table_item_" << id << "_size = " << memory_size << "UL;"
+                out << indent << "/* static const size_t orz_resources_table_item_" << id << "_size = " << memory_size
+                    << "UL; */"
                     << std::endl;
 
                 std::string table_item_size_name = std::string("orz_resources_table_item_") + id + "_size";
@@ -424,7 +432,7 @@ namespace orz {
                 const auto memory_size = m_table_item_size[table_item_size_name];
 
                 out << std::dec << indent << "{ \"" << key << "\", " << hash << ", " << next << "," << std::endl;
-                out << indent << "(const char *)orz_resources_table_item_" << id << ", " << memory_size << "UL }";
+                out << indent << "  (const char *)orz_resources_table_item_" << id << ", " << memory_size << "UL }";
                 return out;
             }
 
@@ -592,25 +600,37 @@ namespace orz {
 
         bool compiler::compile(std::istream &in_source, const std::string &header_filename,
                                const std::string &source_filename) {
+            std::stringstream memory_out_source;
+            std::stringstream memory_out_header;
+
+            if (!compile(in_source, memory_out_header, memory_out_source, get_filename(header_filename))) {
+                return false;
+            }
+
             std::ofstream out_source(source_filename);
             if (!out_source.is_open()) {
                 std::ostringstream oss;
-                oss << "[Error] " << "Can not open output file \"" << source_filename << "\"";
+                oss << "[Error] " << "Can not open output file \"" << source_filename << "\".";
                 m_last_error_message = oss.str();
                 return false;
             }
-            if (up2date_header(header_filename)) {
-                std::ostringstream fake_out_header;
-                return  compile(in_source, fake_out_header, out_source, get_filename(header_filename));
+
+            std::string memory_out_header_content = memory_out_header.str();
+            if (!up2date_header(header_filename, memory_out_header_content)) {
+                std::ofstream out_header(header_filename);
+                if (!out_header.is_open()) {
+                    std::ostringstream oss;
+                    oss << "[Error] " << "Can not open output file \"" << header_filename << "\".";
+                    m_last_error_message = oss.str();
+                    return false;
+                }
+                out_header << memory_out_header_content;
             }
-            std::ofstream out_header(header_filename);
-            if (!out_header.is_open()) {
-                std::ostringstream oss;
-                oss << "[Error] " << "Can not open output file \"" << header_filename << "\"";
-                m_last_error_message = oss.str();
-                return false;
-            }
-            return compile(in_source, out_header, out_source, get_filename(header_filename));
+
+            memory_out_source.seekg(0);
+            out_source << memory_out_source.rdbuf();
+
+            return true;
         }
 
         bool compiler::compile(const std::string &path, const std::string &header_filename,
@@ -627,7 +647,8 @@ namespace orz {
                 return compile(in_source, header_filename, source_filename);
             } else if (orz::isdir(path)) {
                 auto filenames = orz::FindFilesRecursively(path);
-                std::cout << "[Info] " << "Found " << filenames.size() << " files in folder \"" << path << "\"." << std::endl;
+                std::cout << "[Info] " << "Found " << filenames.size() << " files in folder \"" << path << "\"."
+                          << std::endl;
                 std::vector<resources> in_resources(filenames.size());
                 for (size_t i = 0; i < filenames.size(); ++i) {
                     auto &filename = filenames[i];
@@ -640,6 +661,14 @@ namespace orz {
                     }
                     in_resources[i] = res;
                 }
+
+                std::stringstream memory_out_source;
+                std::stringstream memory_out_header;
+
+                if (!compile(in_resources, memory_out_header, memory_out_source, get_filename(header_filename))) {
+                    return false;
+                }
+
                 std::ofstream out_source(source_filename);
                 if (!out_source.is_open()) {
                     std::ostringstream oss;
@@ -647,18 +676,23 @@ namespace orz {
                     m_last_error_message = oss.str();
                     return false;
                 }
-                if (up2date_header(header_filename)) {
-                    std::ostringstream fake_out_header;
-                    return  compile(in_resources, fake_out_header, out_source, get_filename(header_filename));
+
+                std::string memory_out_header_content = memory_out_header.str();
+                if (!up2date_header(header_filename, memory_out_header_content)) {
+                    std::ofstream out_header(header_filename);
+                    if (!out_header.is_open()) {
+                        std::ostringstream oss;
+                        oss << "[Error] " << "Can not open output file \"" << header_filename << "\".";
+                        m_last_error_message = oss.str();
+                        return false;
+                    }
+                    out_header << memory_out_header_content;
                 }
-                std::ofstream out_header(header_filename);
-                if (!out_header.is_open()) {
-                    std::ostringstream oss;
-                    oss << "[Error] " << "Can not open output file \"" << header_filename << "\".";
-                    m_last_error_message = oss.str();
-                    return false;
-                }
-                return compile(in_resources, out_header, out_source, get_filename(header_filename));
+
+                memory_out_source.seekg(0);
+                out_source << memory_out_source.rdbuf();
+
+                return true;
             } else {
                 std::ostringstream oss;
                 oss << "[Error] " << "Can not access input path \"" << path << "\", is a file or dir?";
@@ -676,6 +710,14 @@ namespace orz {
             std::ostringstream ready_out_header;
             ready_out_header << header_file.rdbuf();
             return try_out_header.str() == ready_out_header.str();
+        }
+
+        bool compiler::up2date_header(const std::string &header_filename, const std::string &content) {
+            std::ifstream header_file(header_filename);
+            if (!header_file.is_open()) return false;
+            std::ostringstream ready_out_header;
+            ready_out_header << header_file.rdbuf();
+            return content == ready_out_header.str();
         }
     }
 }

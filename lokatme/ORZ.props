@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- option -->
   <PropertyGroup Label="UserMacros">
-    <ORZHome>$(SEETA_LOCAL)</ORZHome>
+    <ORZHome>D:\3rd\local</ORZHome>
     <ORZDebugFuffix>d</ORZDebugFuffix>
   </PropertyGroup>
   <ItemGroup>

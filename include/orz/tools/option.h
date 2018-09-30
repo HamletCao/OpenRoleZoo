@@ -527,7 +527,7 @@ namespace orz {
                 return this;
             }
 
-            self *name(std::initializer_list<std::string> _string_list) {
+            self *name(const std::initializer_list<std::string> &_string_list) {
                 return this->name(std::set<std::string>(_string_list.begin(), _string_list.end()));
             }
 
@@ -707,12 +707,12 @@ namespace orz {
 
             std::unique_ptr<int[]> dist(new int[M * N]);
 #define __EDIT_DIST(m, n) (dist[(m) * N + (n)])
-            __EDIT_DIST(0, 0) = 0;
+            __EDIT_DIST(0, 0) = lhs[0] == rhs[0] ? 0 : 2;
             for (size_t n = 1; n < N; ++n) {
-                __EDIT_DIST(0, n) = __EDIT_DIST(0, n - 1);
+                __EDIT_DIST(0, n) = __EDIT_DIST(0, n - 1) + 1;
             }
             for (size_t m = 1; m < M; ++m) {
-                __EDIT_DIST(m, 0) = __EDIT_DIST(m - 1, 0);
+                __EDIT_DIST(m, 0) = __EDIT_DIST(m - 1, 0) + 1;
             }
             for (size_t m = 1; m < M; ++m) {
                 for (size_t n = 1; n < N; ++n) {
@@ -737,7 +737,7 @@ namespace orz {
         public:
             using self = OptionSet;
 
-            Option *add(ValueType type, std::initializer_list<std::string> list) {
+            Option *add(ValueType type, const std::initializer_list<std::string> &list) {
                 std::shared_ptr<Option> option(new Option);
                 option->type(type)->name(list);
                 return this->add(option);
