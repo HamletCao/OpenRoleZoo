@@ -527,7 +527,7 @@ namespace orz {
                 return this;
             }
 
-            self *name(std::initializer_list<std::string> _string_list) {
+            self *name(const std::initializer_list<std::string> &_string_list) {
                 return this->name(std::set<std::string>(_string_list.begin(), _string_list.end()));
             }
 
@@ -737,7 +737,7 @@ namespace orz {
         public:
             using self = OptionSet;
 
-            Option *add(ValueType type, std::initializer_list<std::string> list) {
+            Option *add(ValueType type, const std::initializer_list<std::string> &list) {
                 std::shared_ptr<Option> option(new Option);
                 option->type(type)->name(list);
                 return this->add(option);
