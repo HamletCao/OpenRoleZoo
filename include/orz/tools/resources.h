@@ -28,6 +28,8 @@ namespace orz {
         public:
             static const char annotation = '#';
 
+            compiler();
+
             bool compile(const std::vector<resources> &in_resources, std::ostream &out_header, std::ostream &out_source,
                          const std::string &val_header_path = "orz_resources.h");
 
@@ -48,8 +50,21 @@ namespace orz {
                 return m_last_error_message;
             }
 
+            void set_working_directory(const std::string &path) { m_working_directory = path; }
+            void set_output_directory(const std::string &path) { m_output_directory = path; }
+            void set_input_directory(const std::string &path) { m_input_directory = path; }
+
         private:
             std::string m_last_error_message;
+
+            // path to load orc file
+            std::string m_working_directory;
+
+            // path to output generated files
+            std::string m_output_directory;
+
+            // path to input resources file
+            std::string m_input_directory;
         };
     }
 }

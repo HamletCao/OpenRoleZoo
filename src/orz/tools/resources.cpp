@@ -488,6 +488,32 @@ namespace orz {
             return oss.str();
         }
 
+        class working_in {
+        public:
+            using self = working_in;
+
+            explicit working_in(const std::string &path, const std::string &base = "")
+                    : m_backup(orz::getcwd()) {
+                if (!base.empty()) orz::cd(base);
+                if (!path.empty()) orz::cd(path);
+                m_path = orz::getcwd();
+            }
+
+            ~working_in() {
+                orz::cd(m_backup);
+            }
+
+            working_in(const self &) = delete;
+
+            working_in &operator=(const self &) = delete;
+
+            const std::string &path() const { return m_path; }
+
+        private:
+            std::string m_backup;
+            std::string m_path;
+        };
+
         bool
         compiler::compile(const std::vector<orz::resources::resources> &in_resources, std::ostream &out_header,
                           std::ostream &out_source, const std::string &val_header_path) {
@@ -513,6 +539,7 @@ namespace orz {
                 if (node == nullptr) continue;
                 auto &res = node->value;
                 auto &file = in_files[i];
+                working_in input_directory(m_input_directory, m_working_directory);
                 file = std::make_shared<std::ifstream>(res.path, std::ios::binary);
                 if (!file->is_open()) {
                     std::ostringstream oss;
@@ -607,6 +634,7 @@ namespace orz {
                 return false;
             }
 
+            working_in output_directory(m_output_directory, m_working_directory);
             std::ofstream out_source(source_filename);
             if (!out_source.is_open()) {
                 std::ostringstream oss;
@@ -635,6 +663,7 @@ namespace orz {
 
         bool compiler::compile(const std::string &path, const std::string &header_filename,
                                const std::string &source_filename) {
+            working_in working_directory(m_working_directory);
             if (orz::isfile(path)) {
                 std::ifstream in_source(path);
                 if (!in_source.is_open()) {
@@ -646,6 +675,7 @@ namespace orz {
                 std::cout << "[Info] " << "Open file \"" << path << "\"." << std::endl;
                 return compile(in_source, header_filename, source_filename);
             } else if (orz::isdir(path)) {
+                m_input_directory = m_working_directory;    // make sure input directory in working path change
                 auto filenames = orz::FindFilesRecursively(path);
                 std::cout << "[Info] " << "Found " << filenames.size() << " files in folder \"" << path << "\"."
                           << std::endl;
@@ -669,6 +699,7 @@ namespace orz {
                     return false;
                 }
 
+                working_in output_dircetory(m_output_directory, m_working_directory);
                 std::ofstream out_source(source_filename);
                 if (!out_source.is_open()) {
                     std::ostringstream oss;
@@ -718,6 +749,10 @@ namespace orz {
             std::ostringstream ready_out_header;
             ready_out_header << header_file.rdbuf();
             return content == ready_out_header.str();
+        }
+
+        compiler::compiler() {
+            m_working_directory = orz::getcwd();
         }
     }
 }

@@ -51,22 +51,29 @@ int main(int argc, const char *argv[]) {
     if (args.size() < 1) {
         print_help(options);
         return 3;
-    }
-
-    if (option_in_dir->found()) {
-        orz::cd(option_in_dir->value().to_string());
+    } else if (args.size() > 1) {
+        std::cout << "[Info] Ignore parameters:";
+        for (size_t i = 1; i < args.size(); ++i) {
+            std::cout << " " << args[i];
+        }
+        std::cout << std::endl;
     }
 
     input_path = args[0];
+    auto in_dir = option_in_dir->value().to_string();
     auto out_dir = option_out_dir->value().to_string();
     auto filename = option_filename->value().to_string();
 
     orz::mkdir(out_dir);
 
-    std::string header_filename = orz::Join({out_dir, filename + ".h"}, orz::FileSeparator());
-    std::string source_filename = orz::Join({out_dir, filename + ".c"}, orz::FileSeparator());
+    std::string header_filename = filename + ".h";
+    std::string source_filename = filename + ".c";
 
     orz::resources::compiler compiler;
+
+    compiler.set_input_directory(in_dir);
+    compiler.set_output_directory(out_dir);
+
     if (!compiler.compile(input_path, header_filename, source_filename)) {
         std::cerr << compiler.last_error_message() << std::endl;
         return 4;
