@@ -64,6 +64,10 @@ int main(int argc, const char *argv[]) {
     auto out_dir = option_out_dir->value().to_string();
     auto filename = option_filename->value().to_string();
 
+    if (!option_in_dir->found()) {
+        in_dir = orz::cut_path_tail(input_path);
+    }
+
     orz::mkdir(out_dir);
 
     std::string header_filename = filename + ".h";
