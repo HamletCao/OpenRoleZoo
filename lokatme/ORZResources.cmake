@@ -9,7 +9,26 @@ else()
     message(STATUS "Using ORZ resources: OFF")
 endif()
 
+if ("${ORZ_RESOURCES_EXE}" STREQUAL "" OR
+    "${ORZ_RESOURCES_EXE}" STREQUAL "ORZ_RESOURCES_EXE-NOTFOUND")
+    message(STATUS "Detecting orc file compiler")
+    find_program(ORZ_RESOURCES_EXE orz_resources)
+    if ("${ORZ_RESOURCES_EXE}" STREQUAL "ORZ_RESOURCES_EXE-NOTFOUND")
+        message(STATUS "Detecting orc file compiler - not found")
+    else()
+        message(STATUS "Detecting orc file compiler - found ${ORZ_RESOURCES_EXE}")
+    endif()
+endif()
+
 function(add_orz_resources var_output_dir var_headers var_sources)
+    # find compiler
+    if ("${ORZ_RESOURCES_EXE}" STREQUAL "ORZ_RESOURCES_EXE-NOTFOUND")
+        message(FATAL_ERROR "
+Can not find orc compiler: orz_resources
+Please try install ORZ: OpenRoleZoo to fix this problem
+")
+    endif()
+
     # set names
     set(OUTPUT_SUB_DIR .resources)
     set(OUTPUT_FILENAME orz_resources)
@@ -35,7 +54,7 @@ function(add_orz_resources var_output_dir var_headers var_sources)
     # compiling orc file
     add_custom_command(
             OUTPUT "${var_output_dir}/${OUTPUT_SUB_DIR}/${OUTPUT_FILENAME}.c"
-            COMMAND orz_resources "${OUTPUT_FILENAME}.orc"
+            COMMAND ${ORZ_RESOURCES_EXE} "${OUTPUT_FILENAME}.orc"
                                   "--out_dir=${OUTPUT_SUB_DIR}"
                                   "--in_dir=${var_output_dir}"
             # "--filename=${OUTPUT_FILENAME}"

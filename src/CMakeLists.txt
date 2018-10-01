@@ -37,12 +37,12 @@ add_library(${PROJECT_NAME}_STATIC STATIC ${ORZ_INCLUDE_FILES} ${ORZ_SRC_INCLUDE
 if (ORZ_WITH_OPENSSL)
     message(STATUS "Build with OpenSSL")
     add_definitions(-DORZ_WITH_OPENSSL)
-	#find_package(OpenSSL REQUIRED)
+	# find_package(OpenSSL REQUIRED)
     include_directories(${OPENSSL_INCLUDE_DIR})
-    #target_link_libraries(${PROJECT_NAME}_SHARED ${OPENSSL_CRYPTO_LIBRARY})
-    #target_link_libraries(${PROJECT_NAME}_STATIC ${OPENSSL_CRYPTO_LIBRARY})
-    #target_link_libraries(${PROJECT_NAME}_SHARED ${OPENSSL_SSL_LIBRARY})
-    #target_link_libraries(${PROJECT_NAME}_STATIC ${OPENSSL_SSL_LIBRARY})
+    # target_link_libraries(${PROJECT_NAME}_SHARED ${OPENSSL_CRYPTO_LIBRARY})
+    # target_link_libraries(${PROJECT_NAME}_STATIC ${OPENSSL_CRYPTO_LIBRARY})
+    # target_link_libraries(${PROJECT_NAME}_SHARED ${OPENSSL_SSL_LIBRARY})
+    # target_link_libraries(${PROJECT_NAME}_STATIC ${OPENSSL_SSL_LIBRARY})
 endif (ORZ_WITH_OPENSSL)
 
 if (WIN32)
@@ -58,7 +58,9 @@ endif ()
 set_target_properties(${PROJECT_NAME}_STATIC PROPERTIES OUTPUT_NAME ${PROJECT_NAME}_static${ENV_SUFFIX})
 
 if (ORZ_INSTALL)
-	install(TARGETS ${PROJECT_NAME}_STATIC
+	install(TARGETS
+            # ${PROJECT_NAME}_SHARED
+            ${PROJECT_NAME}_STATIC
 		RUNTIME DESTINATION ${ENV_RUNTIME_DIR}
 		LIBRARY DESTINATION ${ENV_LIBRARY_DIR}
 		ARCHIVE DESTINATION ${ENV_ARCHIVE_DIR}
