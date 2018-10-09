@@ -21,7 +21,7 @@
 
 namespace orz {
     namespace resources {
-        static const char *const code_header[] = {
+        static const char *const code_header1[] = {
                 "#ifndef _INC_ORZ_RESOURCES_AUTO_COMPILATION_H",
                 "#define _INC_ORZ_RESOURCES_AUTO_COMPILATION_H",
                 "",
@@ -30,7 +30,9 @@ namespace orz {
                 "#endif",
                 "",
                 "#include <stddef.h>",
-                "",
+        };
+
+        static const char *const code_header2[] = {
                 "/**",
                 " * \\brief ORZ resources structure",
                 " */",
@@ -354,6 +356,19 @@ namespace orz {
             void zeros() { i = 0; }
         };
 
+        bool is_number(char ch) { return ch >= '0' && ch <= '9'; }
+        bool is_letter(char ch) { return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'); }
+
+        static std::string to_var(const std::string &var) {
+            // if (!var.empty() && is_number(var[0])) return to_var("_" + var);
+            auto local_var = var;
+            for (auto &ch : local_var) {
+                if (is_number(ch) || is_letter(ch)) continue;
+                ch = '_';
+            }
+            return std::move(local_var);
+        }
+
         class code_block {
         public:
             using self = code_block;
@@ -362,6 +377,17 @@ namespace orz {
 
             code_block()
                     : m_buffer_size(BUFFER_SIZE), m_buffer(new char[BUFFER_SIZE], std::default_delete<char[]>()) {}
+
+            static std::ostream &generate_header(std::ostream &out, const std::string &mark = "") {
+                write_lines(out, code_header1) << std::endl;
+                if (!mark.empty()) {
+                    auto var = to_var(mark);
+                    out << "#define orz_resources_get __orz_" << var << "_get" << std::endl;
+                    out << std::endl;
+                }
+                write_lines(out, code_header2) << std::endl;
+                return out;
+            }
 
             std::ostream &declare_data(std::ostream &out, std::istream &mem, const std::string &id,
                                        const std::string &indent = "",
@@ -587,7 +613,8 @@ namespace orz {
             write_lines(out_source, code_source_declare_orz_resources_get) << std::endl;
 
             // 2.0 write header
-            write_lines(out_header, code_header);
+            // write_lines(out_header, code_header);
+            code_block::generate_header(out_header, m_mark);
             return true;
         }
 
@@ -737,7 +764,8 @@ namespace orz {
             std::ifstream header_file(header_filename);
             if (!header_file.is_open()) return false;
             std::ostringstream try_out_header;
-            write_lines(try_out_header, code_header);
+            // write_lines(try_out_header, code_header);
+            code_block::generate_header(try_out_header, m_mark);
             std::ostringstream ready_out_header;
             ready_out_header << header_file.rdbuf();
             return try_out_header.str() == ready_out_header.str();

@@ -16,6 +16,12 @@ void print_help(const orz::arg::OptionSet &options) {
     }
 }
 
+static bool is_abosulte_path(const std::string &path) {
+    if (path.size() >= 1 && path[0] == '/') return true;
+    if (path.size() >= 3 && path[1] == ':' && (path[2] == '/' || path[2] == '\\')) return true;
+    return false;
+}
+
 int main(int argc, const char *argv[]) {
     orz::arg::OptionSet options;
     auto option_out_dir = options.add(orz::arg::STRING, {"o", "-out_dir"})->
@@ -77,6 +83,12 @@ int main(int argc, const char *argv[]) {
 
     compiler.set_input_directory(in_dir);
     compiler.set_output_directory(out_dir);
+
+    if (is_abosulte_path(input_path)) {
+        compiler.set_mark(input_path);
+    } else {
+        compiler.set_mark(orz::Join({orz::getcwd(), input_path}, orz::FileSeparator()));
+    }
 
     if (!compiler.compile(input_path, header_filename, source_filename)) {
         std::cerr << compiler.last_error_message() << std::endl;

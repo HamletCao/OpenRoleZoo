@@ -53,6 +53,7 @@ namespace orz {
             void set_working_directory(const std::string &path) { m_working_directory = path; }
             void set_output_directory(const std::string &path) { m_output_directory = path; }
             void set_input_directory(const std::string &path) { m_input_directory = path; }
+            void set_mark(const std::string &mark) { m_mark = mark; }
 
         private:
             std::string m_last_error_message;
@@ -65,6 +66,8 @@ namespace orz {
 
             // path to input resources file
             std::string m_input_directory;
+
+            std::string m_mark;
         };
     }
 }
