@@ -54,8 +54,8 @@ Please try install ORZ: OpenRoleZoo to fix this problem
     # compiling orc file
     add_custom_command(
             OUTPUT "${var_output_dir}/${OUTPUT_SUB_DIR}/${OUTPUT_FILENAME}.c"
-            COMMAND ${ORZ_RESOURCES_EXE} "${OUTPUT_FILENAME}.orc"
-                                  "--out_dir=${OUTPUT_SUB_DIR}"
+            COMMAND ${ORZ_RESOURCES_EXE} "${var_output_dir}/${OUTPUT_FILENAME}.orc"
+                                  "--out_dir=${var_output_dir}/${OUTPUT_SUB_DIR}"
                                   "--in_dir=${var_output_dir}"
             # "--filename=${OUTPUT_FILENAME}"
             DEPENDS "${var_output_dir}/${OUTPUT_FILENAME}.orc"

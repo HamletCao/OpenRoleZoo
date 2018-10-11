@@ -16,6 +16,12 @@ void print_help(const orz::arg::OptionSet &options) {
     }
 }
 
+static bool is_abosulte_path(const std::string &path) {
+    if (path.size() >= 1 && path[0] == '/') return true;
+    if (path.size() >= 3 && path[1] == ':' && (path[2] == '/' || path[2] == '\\')) return true;
+    return false;
+}
+
 int main(int argc, const char *argv[]) {
     orz::arg::OptionSet options;
     auto option_out_dir = options.add(orz::arg::STRING, {"o", "-out_dir"})->
@@ -51,22 +57,39 @@ int main(int argc, const char *argv[]) {
     if (args.size() < 1) {
         print_help(options);
         return 3;
-    }
-
-    if (option_in_dir->found()) {
-        orz::cd(option_in_dir->value().to_string());
+    } else if (args.size() > 1) {
+        std::cout << "[Info] Ignore parameters:";
+        for (size_t i = 1; i < args.size(); ++i) {
+            std::cout << " " << args[i];
+        }
+        std::cout << std::endl;
     }
 
     input_path = args[0];
+    auto in_dir = option_in_dir->value().to_string();
     auto out_dir = option_out_dir->value().to_string();
     auto filename = option_filename->value().to_string();
 
+    if (!option_in_dir->found()) {
+        in_dir = orz::cut_path_tail(input_path);
+    }
+
     orz::mkdir(out_dir);
 
-    std::string header_filename = orz::Join({out_dir, filename + ".h"}, orz::FileSeparator());
-    std::string source_filename = orz::Join({out_dir, filename + ".c"}, orz::FileSeparator());
+    std::string header_filename = filename + ".h";
+    std::string source_filename = filename + ".c";
 
     orz::resources::compiler compiler;
+
+    compiler.set_input_directory(in_dir);
+    compiler.set_output_directory(out_dir);
+
+    if (is_abosulte_path(input_path)) {
+        compiler.set_mark(input_path);
+    } else {
+        compiler.set_mark(orz::Join({orz::getcwd(), input_path}, orz::FileSeparator()));
+    }
+
     if (!compiler.compile(input_path, header_filename, source_filename)) {
         std::cerr << compiler.last_error_message() << std::endl;
         return 4;
